@@ -20,6 +20,7 @@ import (
 )
 
 func main() {
+	// Loading environment variables when not using a docker container
 	if os.Getenv("RUNNING_IN_DOCKER") == "" {
 		log.Print("Not running in a docker container. Loading .env file...")
 		if err := godotenv.Load(); err != nil {

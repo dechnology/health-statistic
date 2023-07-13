@@ -31,6 +31,8 @@ func main() {
 		log.Fatalf("Error loading the .env file: %v", err)
 	}
 
+	url := "https://itri-dechnology.jp.auth0.com/oauth/token"
+
 	payloadData := Payload{
 		ClientID:     os.Getenv("AUTH0_CLIENT_ID"),
 		ClientSecret: os.Getenv("AUTH0_CLIENT_SECRET"),
