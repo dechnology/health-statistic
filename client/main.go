@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/joho/godotenv"
@@ -30,12 +31,10 @@ func main() {
 		log.Fatalf("Error loading the .env file: %v", err)
 	}
 
-	url := "https://itri-dechnology.jp.auth0.com/oauth/token"
-
 	payloadData := Payload{
-		ClientID:     "P91OfajMRFuYBcvDbzWpwtPHqp6udbA9",
-		ClientSecret: "kkZ9phqMXz82QITJPA5BPwnNB4S2hDG9KwoWKRyGbzkUbJr-IkmHNS_McZbhFvFg",
-		Audience:     "https://health-statistic.dechnology.com.tw",
+		ClientID:     os.Getenv("AUTH0_CLIENT_ID"),
+		ClientSecret: os.Getenv("AUTH0_CLIENT_SECRET"),
+		Audience:     os.Getenv("AUTH0_AUDIENCE"),
 		GrantType:    "client_credentials",
 	}
 
