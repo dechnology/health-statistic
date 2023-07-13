@@ -22,3 +22,6 @@ go.work
 
 # Environment files
 .env
+
+# Client Package
+client/
