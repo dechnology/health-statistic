@@ -3,7 +3,10 @@
 package questionnaire
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -11,13 +14,37 @@ const (
 	Label = "questionnaire"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldCreatedAt holds the string denoting the created_at field in the database.
+	FieldCreatedAt = "created_at"
+	// EdgeQuestions holds the string denoting the questions edge name in mutations.
+	EdgeQuestions = "questions"
+	// EdgeResponses holds the string denoting the responses edge name in mutations.
+	EdgeResponses = "responses"
 	// Table holds the table name of the questionnaire in the database.
 	Table = "questionnaires"
+	// QuestionsTable is the table that holds the questions relation/edge.
+	QuestionsTable = "questions"
+	// QuestionsInverseTable is the table name for the Question entity.
+	// It exists in this package in order to avoid circular dependency with the "question" package.
+	QuestionsInverseTable = "questions"
+	// QuestionsColumn is the table column denoting the questions relation/edge.
+	QuestionsColumn = "questionnaire_questions"
+	// ResponsesTable is the table that holds the responses relation/edge.
+	ResponsesTable = "user_questionnaires"
+	// ResponsesInverseTable is the table name for the UserQuestionnaire entity.
+	// It exists in this package in order to avoid circular dependency with the "userquestionnaire" package.
+	ResponsesInverseTable = "user_questionnaires"
+	// ResponsesColumn is the table column denoting the responses relation/edge.
+	ResponsesColumn = "questionnaire_responses"
 )
 
 // Columns holds all SQL columns for questionnaire fields.
 var Columns = []string{
 	FieldID,
+	FieldName,
+	FieldCreatedAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -30,10 +57,67 @@ func ValidColumn(column string) bool {
 	return false
 }
 
+var (
+	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
+	DefaultCreatedAt func() time.Time
+)
+
 // OrderOption defines the ordering options for the Questionnaire queries.
 type OrderOption func(*sql.Selector)
 
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByQuestionsCount orders the results by questions count.
+func ByQuestionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newQuestionsStep(), opts...)
+	}
+}
+
+// ByQuestions orders the results by questions terms.
+func ByQuestions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newQuestionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByResponsesCount orders the results by responses count.
+func ByResponsesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newResponsesStep(), opts...)
+	}
+}
+
+// ByResponses orders the results by responses terms.
+func ByResponses(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newResponsesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newQuestionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(QuestionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, QuestionsTable, QuestionsColumn),
+	)
+}
+func newResponsesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ResponsesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ResponsesTable, ResponsesColumn),
+	)
 }

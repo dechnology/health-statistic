@@ -9,6 +9,30 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent"
 )
 
+// The AnswerFunc type is an adapter to allow the use of ordinary
+// function as Answer mutator.
+type AnswerFunc func(context.Context, *ent.AnswerMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AnswerFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AnswerMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AnswerMutation", m)
+}
+
+// The QuestionFunc type is an adapter to allow the use of ordinary
+// function as Question mutator.
+type QuestionFunc func(context.Context, *ent.QuestionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f QuestionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.QuestionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QuestionMutation", m)
+}
+
 // The QuestionnaireFunc type is an adapter to allow the use of ordinary
 // function as Questionnaire mutator.
 type QuestionnaireFunc func(context.Context, *ent.QuestionnaireMutation) (ent.Value, error)
@@ -31,6 +55,18 @@ func (f UserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
+}
+
+// The UserQuestionnaireFunc type is an adapter to allow the use of ordinary
+// function as UserQuestionnaire mutator.
+type UserQuestionnaireFunc func(context.Context, *ent.UserQuestionnaireMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UserQuestionnaireFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.UserQuestionnaireMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserQuestionnaireMutation", m)
 }
 
 // Condition is a hook condition function.

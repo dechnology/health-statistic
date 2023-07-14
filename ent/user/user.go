@@ -4,8 +4,10 @@ package user
 
 import (
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -13,6 +15,10 @@ const (
 	Label = "user"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldCreatedAt holds the string denoting the created_at field in the database.
+	FieldCreatedAt = "created_at"
+	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
+	FieldUpdatedAt = "updated_at"
 	// FieldBirthYear holds the string denoting the birth_year field in the database.
 	FieldBirthYear = "birth_year"
 	// FieldHeight holds the string denoting the height field in the database.
@@ -41,13 +47,24 @@ const (
 	FieldEyesightCondition = "eyesight_condition"
 	// FieldSmokingHabit holds the string denoting the smoking_habit field in the database.
 	FieldSmokingHabit = "smoking_habit"
+	// EdgeQuestionnaires holds the string denoting the questionnaires edge name in mutations.
+	EdgeQuestionnaires = "questionnaires"
 	// Table holds the table name of the user in the database.
 	Table = "users"
+	// QuestionnairesTable is the table that holds the questionnaires relation/edge.
+	QuestionnairesTable = "user_questionnaires"
+	// QuestionnairesInverseTable is the table name for the UserQuestionnaire entity.
+	// It exists in this package in order to avoid circular dependency with the "userquestionnaire" package.
+	QuestionnairesInverseTable = "user_questionnaires"
+	// QuestionnairesColumn is the table column denoting the questionnaires relation/edge.
+	QuestionnairesColumn = "user_questionnaires"
 )
 
 // Columns holds all SQL columns for user fields.
 var Columns = []string{
 	FieldID,
+	FieldCreatedAt,
+	FieldUpdatedAt,
 	FieldBirthYear,
 	FieldHeight,
 	FieldWeight,
@@ -75,6 +92,12 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
+	DefaultCreatedAt func() time.Time
+	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
+	DefaultUpdatedAt func() time.Time
+	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
+	UpdateDefaultUpdatedAt func() time.Time
 	// BirthYearValidator is a validator for the "birth_year" field. It is called by the builders before save.
 	BirthYearValidator func(int) error
 	// HeightValidator is a validator for the "height" field. It is called by the builders before save.
@@ -270,6 +293,16 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
 // ByBirthYear orders the results by the birth_year field.
 func ByBirthYear(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldBirthYear, opts...).ToFunc()
@@ -338,4 +371,25 @@ func ByEyesightCondition(opts ...sql.OrderTermOption) OrderOption {
 // BySmokingHabit orders the results by the smoking_habit field.
 func BySmokingHabit(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSmokingHabit, opts...).ToFunc()
+}
+
+// ByQuestionnairesCount orders the results by questionnaires count.
+func ByQuestionnairesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newQuestionnairesStep(), opts...)
+	}
+}
+
+// ByQuestionnaires orders the results by questionnaires terms.
+func ByQuestionnaires(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newQuestionnairesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newQuestionnairesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(QuestionnairesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, QuestionnairesTable, QuestionnairesColumn),
+	)
 }

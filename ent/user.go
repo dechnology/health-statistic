@@ -5,17 +5,23 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
+	"github.com/google/uuid"
 )
 
 // User is the model entity for the User schema.
 type User struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// BirthYear holds the value of the "birth_year" field.
 	BirthYear int `json:"birth_year,omitempty"`
 	// Height holds the value of the "height" field.
@@ -44,7 +50,28 @@ type User struct {
 	EyesightCondition user.EyesightCondition `json:"eyesight_condition,omitempty"`
 	// SmokingHabit holds the value of the "smoking_habit" field.
 	SmokingHabit user.SmokingHabit `json:"smoking_habit,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the UserQuery when eager-loading is set.
+	Edges        UserEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// UserEdges holds the relations/edges for other nodes in the graph.
+type UserEdges struct {
+	// Questionnaires holds the value of the questionnaires edge.
+	Questionnaires []*UserQuestionnaire `json:"questionnaires,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// QuestionnairesOrErr returns the Questionnaires value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) QuestionnairesOrErr() ([]*UserQuestionnaire, error) {
+	if e.loadedTypes[0] {
+		return e.Questionnaires, nil
+	}
+	return nil, &NotLoadedError{edge: "questionnaires"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -56,10 +83,14 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case user.FieldHeight, user.FieldWeight:
 			values[i] = new(sql.NullFloat64)
-		case user.FieldID, user.FieldBirthYear:
+		case user.FieldBirthYear:
 			values[i] = new(sql.NullInt64)
 		case user.FieldGender, user.FieldEducationLevel, user.FieldOccupation, user.FieldMarriage, user.FieldMedicalHistory, user.FieldMedicationStatus, user.FieldEarCondition, user.FieldEyesightCondition, user.FieldSmokingHabit:
 			values[i] = new(sql.NullString)
+		case user.FieldCreatedAt, user.FieldUpdatedAt:
+			values[i] = new(sql.NullTime)
+		case user.FieldID:
+			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -76,11 +107,23 @@ func (u *User) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case user.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value != nil {
+				u.ID = *value
 			}
-			u.ID = int(value.Int64)
+		case user.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				u.CreatedAt = value.Time
+			}
+		case user.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				u.UpdatedAt = value.Time
+			}
 		case user.FieldBirthYear:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field birth_year", values[i])
@@ -178,6 +221,11 @@ func (u *User) Value(name string) (ent.Value, error) {
 	return u.selectValues.Get(name)
 }
 
+// QueryQuestionnaires queries the "questionnaires" edge of the User entity.
+func (u *User) QueryQuestionnaires() *UserQuestionnaireQuery {
+	return NewUserClient(u.config).QueryQuestionnaires(u)
+}
+
 // Update returns a builder for updating this User.
 // Note that you need to call User.Unwrap() before calling this method if this User
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -201,6 +249,12 @@ func (u *User) String() string {
 	var builder strings.Builder
 	builder.WriteString("User(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", u.ID))
+	builder.WriteString("created_at=")
+	builder.WriteString(u.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(u.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("birth_year=")
 	builder.WriteString(fmt.Sprintf("%v", u.BirthYear))
 	builder.WriteString(", ")

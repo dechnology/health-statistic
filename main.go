@@ -12,9 +12,11 @@ package main
 /************************************/
 
 import (
+	"context"
 	"log"
 	"os"
 
+	"github.com/eesoymilk/health-statistic-api/db"
 	"github.com/eesoymilk/health-statistic-api/router"
 	"github.com/joho/godotenv"
 )
@@ -26,6 +28,13 @@ func main() {
 		if err := godotenv.Load(); err != nil {
 			log.Fatalf("Error loading .env file: %v", err)
 		}
+	}
+
+	db := db.New()
+	defer db.Close()
+
+	if err := db.Schema.Create(context.Background()); err != nil {
+		log.Fatalf("failed creating schema resources: %v", err)
 	}
 
 	r := router.New()

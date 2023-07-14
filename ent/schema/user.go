@@ -1,8 +1,12 @@
 package schema
 
 import (
+	"time"
+
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // User holds the schema definition for the User entity.
@@ -13,9 +17,18 @@ type User struct {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int("birth_year").Positive(),
-		field.Float("height").Positive(),
-		field.Float("weight").Positive(),
+		field.UUID("id", uuid.UUID{}),
+		field.Time("created_at").
+			Default(time.Now),
+		field.Time("updated_at").
+			Default(time.Now).
+			UpdateDefault(time.Now),
+		field.Int("birth_year").
+			Positive(),
+		field.Float("height").
+			Positive(),
+		field.Float("weight").
+			Positive(),
 		field.Enum("gender").Values(
 			"male",
 			"female",
@@ -43,8 +56,12 @@ func (User) Fields() []ent.Field {
 			"divorced",
 			"widowed",
 		),
-		field.String("medical_history").MaxLen(100).Optional(),
-		field.String("medication_status").MaxLen(100).Optional(),
+		field.String("medical_history").
+			MaxLen(100).
+			Optional(),
+		field.String("medication_status").
+			MaxLen(100).
+			Optional(),
 		field.Bool("demented_among_direct_relatives"),
 		field.Bool("head_injury_experience"),
 		field.Enum("ear_condition").Values(
@@ -67,5 +84,7 @@ func (User) Fields() []ent.Field {
 
 // Edges of the User.
 func (User) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.To("questionnaires", UserQuestionnaire.Type),
+	}
 }

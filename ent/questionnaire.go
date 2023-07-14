@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -13,10 +14,46 @@ import (
 
 // Questionnaire is the model entity for the Questionnaire schema.
 type Questionnaire struct {
-	config
+	config `json:"-"`
 	// ID of the ent.
-	ID           int `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
+	// Name holds the value of the "name" field.
+	Name string `json:"name,omitempty"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the QuestionnaireQuery when eager-loading is set.
+	Edges        QuestionnaireEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// QuestionnaireEdges holds the relations/edges for other nodes in the graph.
+type QuestionnaireEdges struct {
+	// Questions holds the value of the questions edge.
+	Questions []*Question `json:"questions,omitempty"`
+	// Responses holds the value of the responses edge.
+	Responses []*UserQuestionnaire `json:"responses,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// QuestionsOrErr returns the Questions value or an error if the edge
+// was not loaded in eager-loading.
+func (e QuestionnaireEdges) QuestionsOrErr() ([]*Question, error) {
+	if e.loadedTypes[0] {
+		return e.Questions, nil
+	}
+	return nil, &NotLoadedError{edge: "questions"}
+}
+
+// ResponsesOrErr returns the Responses value or an error if the edge
+// was not loaded in eager-loading.
+func (e QuestionnaireEdges) ResponsesOrErr() ([]*UserQuestionnaire, error) {
+	if e.loadedTypes[1] {
+		return e.Responses, nil
+	}
+	return nil, &NotLoadedError{edge: "responses"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -26,6 +63,10 @@ func (*Questionnaire) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case questionnaire.FieldID:
 			values[i] = new(sql.NullInt64)
+		case questionnaire.FieldName:
+			values[i] = new(sql.NullString)
+		case questionnaire.FieldCreatedAt:
+			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -47,6 +88,18 @@ func (q *Questionnaire) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			q.ID = int(value.Int64)
+		case questionnaire.FieldName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field name", values[i])
+			} else if value.Valid {
+				q.Name = value.String
+			}
+		case questionnaire.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				q.CreatedAt = value.Time
+			}
 		default:
 			q.selectValues.Set(columns[i], values[i])
 		}
@@ -58,6 +111,16 @@ func (q *Questionnaire) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (q *Questionnaire) Value(name string) (ent.Value, error) {
 	return q.selectValues.Get(name)
+}
+
+// QueryQuestions queries the "questions" edge of the Questionnaire entity.
+func (q *Questionnaire) QueryQuestions() *QuestionQuery {
+	return NewQuestionnaireClient(q.config).QueryQuestions(q)
+}
+
+// QueryResponses queries the "responses" edge of the Questionnaire entity.
+func (q *Questionnaire) QueryResponses() *UserQuestionnaireQuery {
+	return NewQuestionnaireClient(q.config).QueryResponses(q)
 }
 
 // Update returns a builder for updating this Questionnaire.
@@ -82,7 +145,12 @@ func (q *Questionnaire) Unwrap() *Questionnaire {
 func (q *Questionnaire) String() string {
 	var builder strings.Builder
 	builder.WriteString("Questionnaire(")
-	builder.WriteString(fmt.Sprintf("id=%v", q.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", q.ID))
+	builder.WriteString("name=")
+	builder.WriteString(q.Name)
+	builder.WriteString(", ")
+	builder.WriteString("created_at=")
+	builder.WriteString(q.CreatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

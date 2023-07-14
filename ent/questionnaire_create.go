@@ -4,11 +4,15 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaire"
+	"github.com/eesoymilk/health-statistic-api/ent/userquestionnaire"
 )
 
 // QuestionnaireCreate is the builder for creating a Questionnaire entity.
@@ -18,6 +22,56 @@ type QuestionnaireCreate struct {
 	hooks    []Hook
 }
 
+// SetName sets the "name" field.
+func (qc *QuestionnaireCreate) SetName(s string) *QuestionnaireCreate {
+	qc.mutation.SetName(s)
+	return qc
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (qc *QuestionnaireCreate) SetCreatedAt(t time.Time) *QuestionnaireCreate {
+	qc.mutation.SetCreatedAt(t)
+	return qc
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (qc *QuestionnaireCreate) SetNillableCreatedAt(t *time.Time) *QuestionnaireCreate {
+	if t != nil {
+		qc.SetCreatedAt(*t)
+	}
+	return qc
+}
+
+// AddQuestionIDs adds the "questions" edge to the Question entity by IDs.
+func (qc *QuestionnaireCreate) AddQuestionIDs(ids ...int) *QuestionnaireCreate {
+	qc.mutation.AddQuestionIDs(ids...)
+	return qc
+}
+
+// AddQuestions adds the "questions" edges to the Question entity.
+func (qc *QuestionnaireCreate) AddQuestions(q ...*Question) *QuestionnaireCreate {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
+	}
+	return qc.AddQuestionIDs(ids...)
+}
+
+// AddResponseIDs adds the "responses" edge to the UserQuestionnaire entity by IDs.
+func (qc *QuestionnaireCreate) AddResponseIDs(ids ...int) *QuestionnaireCreate {
+	qc.mutation.AddResponseIDs(ids...)
+	return qc
+}
+
+// AddResponses adds the "responses" edges to the UserQuestionnaire entity.
+func (qc *QuestionnaireCreate) AddResponses(u ...*UserQuestionnaire) *QuestionnaireCreate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return qc.AddResponseIDs(ids...)
+}
+
 // Mutation returns the QuestionnaireMutation object of the builder.
 func (qc *QuestionnaireCreate) Mutation() *QuestionnaireMutation {
 	return qc.mutation
@@ -25,6 +79,7 @@ func (qc *QuestionnaireCreate) Mutation() *QuestionnaireMutation {
 
 // Save creates the Questionnaire in the database.
 func (qc *QuestionnaireCreate) Save(ctx context.Context) (*Questionnaire, error) {
+	qc.defaults()
 	return withHooks(ctx, qc.sqlSave, qc.mutation, qc.hooks)
 }
 
@@ -50,8 +105,22 @@ func (qc *QuestionnaireCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (qc *QuestionnaireCreate) defaults() {
+	if _, ok := qc.mutation.CreatedAt(); !ok {
+		v := questionnaire.DefaultCreatedAt()
+		qc.mutation.SetCreatedAt(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (qc *QuestionnaireCreate) check() error {
+	if _, ok := qc.mutation.Name(); !ok {
+		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Questionnaire.name"`)}
+	}
+	if _, ok := qc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Questionnaire.created_at"`)}
+	}
 	return nil
 }
 
@@ -78,6 +147,46 @@ func (qc *QuestionnaireCreate) createSpec() (*Questionnaire, *sqlgraph.CreateSpe
 		_node = &Questionnaire{config: qc.config}
 		_spec = sqlgraph.NewCreateSpec(questionnaire.Table, sqlgraph.NewFieldSpec(questionnaire.FieldID, field.TypeInt))
 	)
+	if value, ok := qc.mutation.Name(); ok {
+		_spec.SetField(questionnaire.FieldName, field.TypeString, value)
+		_node.Name = value
+	}
+	if value, ok := qc.mutation.CreatedAt(); ok {
+		_spec.SetField(questionnaire.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if nodes := qc.mutation.QuestionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   questionnaire.QuestionsTable,
+			Columns: []string{questionnaire.QuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(question.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := qc.mutation.ResponsesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   questionnaire.ResponsesTable,
+			Columns: []string{questionnaire.ResponsesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userquestionnaire.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
 }
 
@@ -95,6 +204,7 @@ func (qcb *QuestionnaireCreateBulk) Save(ctx context.Context) ([]*Questionnaire,
 	for i := range qcb.builders {
 		func(i int, root context.Context) {
 			builder := qcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*QuestionnaireMutation)
 				if !ok {
