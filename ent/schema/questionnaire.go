@@ -25,6 +25,6 @@ func (Questionnaire) Fields() []ent.Field {
 func (Questionnaire) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("questions", Question.Type),
-		edge.To("responses", UserQuestionnaire.Type),
+		edge.To("questionnaire_responses", QuestionnaireResponse.Type),
 	}
 }

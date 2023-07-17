@@ -205,7 +205,7 @@ func HasUserQuestionnaire() predicate.Answer {
 }
 
 // HasUserQuestionnaireWith applies the HasEdge predicate on the "user_questionnaire" edge with a given conditions (other predicates).
-func HasUserQuestionnaireWith(preds ...predicate.UserQuestionnaire) predicate.Answer {
+func HasUserQuestionnaireWith(preds ...predicate.QuestionnaireResponse) predicate.Answer {
 	return predicate.Answer(func(s *sql.Selector) {
 		step := newUserQuestionnaireStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {

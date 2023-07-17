@@ -15,8 +15,8 @@ type Question func(*sql.Selector)
 // Questionnaire is the predicate function for questionnaire builders.
 type Questionnaire func(*sql.Selector)
 
+// QuestionnaireResponse is the predicate function for questionnaireresponse builders.
+type QuestionnaireResponse func(*sql.Selector)
+
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
-
-// UserQuestionnaire is the predicate function for userquestionnaire builders.
-type UserQuestionnaire func(*sql.Selector)

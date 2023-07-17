@@ -10,9 +10,8 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
-	"github.com/eesoymilk/health-statistic-api/ent/userquestionnaire"
-	"github.com/google/uuid"
 )
 
 // UserCreate is the builder for creating a User entity.
@@ -151,24 +150,24 @@ func (uc *UserCreate) SetSmokingHabit(uh user.SmokingHabit) *UserCreate {
 }
 
 // SetID sets the "id" field.
-func (uc *UserCreate) SetID(u uuid.UUID) *UserCreate {
-	uc.mutation.SetID(u)
+func (uc *UserCreate) SetID(s string) *UserCreate {
+	uc.mutation.SetID(s)
 	return uc
 }
 
-// AddQuestionnaireIDs adds the "questionnaires" edge to the UserQuestionnaire entity by IDs.
-func (uc *UserCreate) AddQuestionnaireIDs(ids ...int) *UserCreate {
-	uc.mutation.AddQuestionnaireIDs(ids...)
+// AddQuestionnaireResponseIDs adds the "questionnaire_responses" edge to the QuestionnaireResponse entity by IDs.
+func (uc *UserCreate) AddQuestionnaireResponseIDs(ids ...int) *UserCreate {
+	uc.mutation.AddQuestionnaireResponseIDs(ids...)
 	return uc
 }
 
-// AddQuestionnaires adds the "questionnaires" edges to the UserQuestionnaire entity.
-func (uc *UserCreate) AddQuestionnaires(u ...*UserQuestionnaire) *UserCreate {
-	ids := make([]int, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// AddQuestionnaireResponses adds the "questionnaire_responses" edges to the QuestionnaireResponse entity.
+func (uc *UserCreate) AddQuestionnaireResponses(q ...*QuestionnaireResponse) *UserCreate {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
 	}
-	return uc.AddQuestionnaireIDs(ids...)
+	return uc.AddQuestionnaireResponseIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -335,10 +334,10 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
-			_node.ID = *id
-		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
-			return nil, err
+		if id, ok := _spec.ID.Value.(string); ok {
+			_node.ID = id
+		} else {
+			return nil, fmt.Errorf("unexpected User.ID type: %T", _spec.ID.Value)
 		}
 	}
 	uc.mutation.id = &_node.ID
@@ -349,11 +348,11 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	var (
 		_node = &User{config: uc.config}
-		_spec = sqlgraph.NewCreateSpec(user.Table, sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID))
+		_spec = sqlgraph.NewCreateSpec(user.Table, sqlgraph.NewFieldSpec(user.FieldID, field.TypeString))
 	)
 	if id, ok := uc.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = &id
+		_spec.ID.Value = id
 	}
 	if value, ok := uc.mutation.CreatedAt(); ok {
 		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)
@@ -419,15 +418,15 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldSmokingHabit, field.TypeEnum, value)
 		_node.SmokingHabit = value
 	}
-	if nodes := uc.mutation.QuestionnairesIDs(); len(nodes) > 0 {
+	if nodes := uc.mutation.QuestionnaireResponsesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.QuestionnairesTable,
-			Columns: []string{user.QuestionnairesColumn},
+			Table:   user.QuestionnaireResponsesTable,
+			Columns: user.QuestionnaireResponsesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(userquestionnaire.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

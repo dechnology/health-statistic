@@ -14,7 +14,7 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
 	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaire"
-	"github.com/eesoymilk/health-statistic-api/ent/userquestionnaire"
+	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
 )
 
 // QuestionnaireUpdate is the builder for updating Questionnaire entities.
@@ -65,19 +65,19 @@ func (qu *QuestionnaireUpdate) AddQuestions(q ...*Question) *QuestionnaireUpdate
 	return qu.AddQuestionIDs(ids...)
 }
 
-// AddResponseIDs adds the "responses" edge to the UserQuestionnaire entity by IDs.
-func (qu *QuestionnaireUpdate) AddResponseIDs(ids ...int) *QuestionnaireUpdate {
-	qu.mutation.AddResponseIDs(ids...)
+// AddQuestionnaireResponseIDs adds the "questionnaire_responses" edge to the QuestionnaireResponse entity by IDs.
+func (qu *QuestionnaireUpdate) AddQuestionnaireResponseIDs(ids ...int) *QuestionnaireUpdate {
+	qu.mutation.AddQuestionnaireResponseIDs(ids...)
 	return qu
 }
 
-// AddResponses adds the "responses" edges to the UserQuestionnaire entity.
-func (qu *QuestionnaireUpdate) AddResponses(u ...*UserQuestionnaire) *QuestionnaireUpdate {
-	ids := make([]int, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// AddQuestionnaireResponses adds the "questionnaire_responses" edges to the QuestionnaireResponse entity.
+func (qu *QuestionnaireUpdate) AddQuestionnaireResponses(q ...*QuestionnaireResponse) *QuestionnaireUpdate {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
 	}
-	return qu.AddResponseIDs(ids...)
+	return qu.AddQuestionnaireResponseIDs(ids...)
 }
 
 // Mutation returns the QuestionnaireMutation object of the builder.
@@ -106,25 +106,25 @@ func (qu *QuestionnaireUpdate) RemoveQuestions(q ...*Question) *QuestionnaireUpd
 	return qu.RemoveQuestionIDs(ids...)
 }
 
-// ClearResponses clears all "responses" edges to the UserQuestionnaire entity.
-func (qu *QuestionnaireUpdate) ClearResponses() *QuestionnaireUpdate {
-	qu.mutation.ClearResponses()
+// ClearQuestionnaireResponses clears all "questionnaire_responses" edges to the QuestionnaireResponse entity.
+func (qu *QuestionnaireUpdate) ClearQuestionnaireResponses() *QuestionnaireUpdate {
+	qu.mutation.ClearQuestionnaireResponses()
 	return qu
 }
 
-// RemoveResponseIDs removes the "responses" edge to UserQuestionnaire entities by IDs.
-func (qu *QuestionnaireUpdate) RemoveResponseIDs(ids ...int) *QuestionnaireUpdate {
-	qu.mutation.RemoveResponseIDs(ids...)
+// RemoveQuestionnaireResponseIDs removes the "questionnaire_responses" edge to QuestionnaireResponse entities by IDs.
+func (qu *QuestionnaireUpdate) RemoveQuestionnaireResponseIDs(ids ...int) *QuestionnaireUpdate {
+	qu.mutation.RemoveQuestionnaireResponseIDs(ids...)
 	return qu
 }
 
-// RemoveResponses removes "responses" edges to UserQuestionnaire entities.
-func (qu *QuestionnaireUpdate) RemoveResponses(u ...*UserQuestionnaire) *QuestionnaireUpdate {
-	ids := make([]int, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// RemoveQuestionnaireResponses removes "questionnaire_responses" edges to QuestionnaireResponse entities.
+func (qu *QuestionnaireUpdate) RemoveQuestionnaireResponses(q ...*QuestionnaireResponse) *QuestionnaireUpdate {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
 	}
-	return qu.RemoveResponseIDs(ids...)
+	return qu.RemoveQuestionnaireResponseIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -214,28 +214,28 @@ func (qu *QuestionnaireUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if qu.mutation.ResponsesCleared() {
+	if qu.mutation.QuestionnaireResponsesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   questionnaire.ResponsesTable,
-			Columns: []string{questionnaire.ResponsesColumn},
+			Table:   questionnaire.QuestionnaireResponsesTable,
+			Columns: questionnaire.QuestionnaireResponsesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(userquestionnaire.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := qu.mutation.RemovedResponsesIDs(); len(nodes) > 0 && !qu.mutation.ResponsesCleared() {
+	if nodes := qu.mutation.RemovedQuestionnaireResponsesIDs(); len(nodes) > 0 && !qu.mutation.QuestionnaireResponsesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   questionnaire.ResponsesTable,
-			Columns: []string{questionnaire.ResponsesColumn},
+			Table:   questionnaire.QuestionnaireResponsesTable,
+			Columns: questionnaire.QuestionnaireResponsesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(userquestionnaire.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -243,15 +243,15 @@ func (qu *QuestionnaireUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := qu.mutation.ResponsesIDs(); len(nodes) > 0 {
+	if nodes := qu.mutation.QuestionnaireResponsesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   questionnaire.ResponsesTable,
-			Columns: []string{questionnaire.ResponsesColumn},
+			Table:   questionnaire.QuestionnaireResponsesTable,
+			Columns: questionnaire.QuestionnaireResponsesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(userquestionnaire.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -314,19 +314,19 @@ func (quo *QuestionnaireUpdateOne) AddQuestions(q ...*Question) *QuestionnaireUp
 	return quo.AddQuestionIDs(ids...)
 }
 
-// AddResponseIDs adds the "responses" edge to the UserQuestionnaire entity by IDs.
-func (quo *QuestionnaireUpdateOne) AddResponseIDs(ids ...int) *QuestionnaireUpdateOne {
-	quo.mutation.AddResponseIDs(ids...)
+// AddQuestionnaireResponseIDs adds the "questionnaire_responses" edge to the QuestionnaireResponse entity by IDs.
+func (quo *QuestionnaireUpdateOne) AddQuestionnaireResponseIDs(ids ...int) *QuestionnaireUpdateOne {
+	quo.mutation.AddQuestionnaireResponseIDs(ids...)
 	return quo
 }
 
-// AddResponses adds the "responses" edges to the UserQuestionnaire entity.
-func (quo *QuestionnaireUpdateOne) AddResponses(u ...*UserQuestionnaire) *QuestionnaireUpdateOne {
-	ids := make([]int, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// AddQuestionnaireResponses adds the "questionnaire_responses" edges to the QuestionnaireResponse entity.
+func (quo *QuestionnaireUpdateOne) AddQuestionnaireResponses(q ...*QuestionnaireResponse) *QuestionnaireUpdateOne {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
 	}
-	return quo.AddResponseIDs(ids...)
+	return quo.AddQuestionnaireResponseIDs(ids...)
 }
 
 // Mutation returns the QuestionnaireMutation object of the builder.
@@ -355,25 +355,25 @@ func (quo *QuestionnaireUpdateOne) RemoveQuestions(q ...*Question) *Questionnair
 	return quo.RemoveQuestionIDs(ids...)
 }
 
-// ClearResponses clears all "responses" edges to the UserQuestionnaire entity.
-func (quo *QuestionnaireUpdateOne) ClearResponses() *QuestionnaireUpdateOne {
-	quo.mutation.ClearResponses()
+// ClearQuestionnaireResponses clears all "questionnaire_responses" edges to the QuestionnaireResponse entity.
+func (quo *QuestionnaireUpdateOne) ClearQuestionnaireResponses() *QuestionnaireUpdateOne {
+	quo.mutation.ClearQuestionnaireResponses()
 	return quo
 }
 
-// RemoveResponseIDs removes the "responses" edge to UserQuestionnaire entities by IDs.
-func (quo *QuestionnaireUpdateOne) RemoveResponseIDs(ids ...int) *QuestionnaireUpdateOne {
-	quo.mutation.RemoveResponseIDs(ids...)
+// RemoveQuestionnaireResponseIDs removes the "questionnaire_responses" edge to QuestionnaireResponse entities by IDs.
+func (quo *QuestionnaireUpdateOne) RemoveQuestionnaireResponseIDs(ids ...int) *QuestionnaireUpdateOne {
+	quo.mutation.RemoveQuestionnaireResponseIDs(ids...)
 	return quo
 }
 
-// RemoveResponses removes "responses" edges to UserQuestionnaire entities.
-func (quo *QuestionnaireUpdateOne) RemoveResponses(u ...*UserQuestionnaire) *QuestionnaireUpdateOne {
-	ids := make([]int, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// RemoveQuestionnaireResponses removes "questionnaire_responses" edges to QuestionnaireResponse entities.
+func (quo *QuestionnaireUpdateOne) RemoveQuestionnaireResponses(q ...*QuestionnaireResponse) *QuestionnaireUpdateOne {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
 	}
-	return quo.RemoveResponseIDs(ids...)
+	return quo.RemoveQuestionnaireResponseIDs(ids...)
 }
 
 // Where appends a list predicates to the QuestionnaireUpdate builder.
@@ -493,28 +493,28 @@ func (quo *QuestionnaireUpdateOne) sqlSave(ctx context.Context) (_node *Question
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if quo.mutation.ResponsesCleared() {
+	if quo.mutation.QuestionnaireResponsesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   questionnaire.ResponsesTable,
-			Columns: []string{questionnaire.ResponsesColumn},
+			Table:   questionnaire.QuestionnaireResponsesTable,
+			Columns: questionnaire.QuestionnaireResponsesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(userquestionnaire.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := quo.mutation.RemovedResponsesIDs(); len(nodes) > 0 && !quo.mutation.ResponsesCleared() {
+	if nodes := quo.mutation.RemovedQuestionnaireResponsesIDs(); len(nodes) > 0 && !quo.mutation.QuestionnaireResponsesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   questionnaire.ResponsesTable,
-			Columns: []string{questionnaire.ResponsesColumn},
+			Table:   questionnaire.QuestionnaireResponsesTable,
+			Columns: questionnaire.QuestionnaireResponsesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(userquestionnaire.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -522,15 +522,15 @@ func (quo *QuestionnaireUpdateOne) sqlSave(ctx context.Context) (_node *Question
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := quo.mutation.ResponsesIDs(); len(nodes) > 0 {
+	if nodes := quo.mutation.QuestionnaireResponsesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   questionnaire.ResponsesTable,
-			Columns: []string{questionnaire.ResponsesColumn},
+			Table:   questionnaire.QuestionnaireResponsesTable,
+			Columns: questionnaire.QuestionnaireResponsesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(userquestionnaire.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -72,6 +72,10 @@ func main() {
 		log.Fatalf("Error parsing JSON response body: %v", err)
 	}
 
-	fmt.Printf("\nBody:\nAccess Token: %s\nExpires In: %d\nToken Type: %s\n", responseBody.AccessToken, responseBody.ExpiresIn, responseBody.TokenType)
-
+	fmt.Printf(
+		"\nBody:\nAccess Token: %s\nExpires In: %d\nToken Type: %s\n",
+		responseBody.AccessToken,
+		responseBody.ExpiresIn,
+		responseBody.TokenType,
+	)
 }

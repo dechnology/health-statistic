@@ -8,52 +8,61 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
-	"github.com/google/uuid"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id uuid.UUID) predicate.User {
+func ID(id string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id uuid.UUID) predicate.User {
+func IDEQ(id string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id uuid.UUID) predicate.User {
+func IDNEQ(id string) predicate.User {
 	return predicate.User(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...uuid.UUID) predicate.User {
+func IDIn(ids ...string) predicate.User {
 	return predicate.User(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...uuid.UUID) predicate.User {
+func IDNotIn(ids ...string) predicate.User {
 	return predicate.User(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id uuid.UUID) predicate.User {
+func IDGT(id string) predicate.User {
 	return predicate.User(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id uuid.UUID) predicate.User {
+func IDGTE(id string) predicate.User {
 	return predicate.User(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id uuid.UUID) predicate.User {
+func IDLT(id string) predicate.User {
 	return predicate.User(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id uuid.UUID) predicate.User {
+func IDLTE(id string) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldID, id))
+}
+
+// IDEqualFold applies the EqualFold predicate on the ID field.
+func IDEqualFold(id string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldID, id))
+}
+
+// IDContainsFold applies the ContainsFold predicate on the ID field.
+func IDContainsFold(id string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldID, id))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
@@ -611,21 +620,21 @@ func SmokingHabitNotIn(vs ...SmokingHabit) predicate.User {
 	return predicate.User(sql.FieldNotIn(FieldSmokingHabit, vs...))
 }
 
-// HasQuestionnaires applies the HasEdge predicate on the "questionnaires" edge.
-func HasQuestionnaires() predicate.User {
+// HasQuestionnaireResponses applies the HasEdge predicate on the "questionnaire_responses" edge.
+func HasQuestionnaireResponses() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, QuestionnairesTable, QuestionnairesColumn),
+			sqlgraph.Edge(sqlgraph.M2M, false, QuestionnaireResponsesTable, QuestionnaireResponsesPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasQuestionnairesWith applies the HasEdge predicate on the "questionnaires" edge with a given conditions (other predicates).
-func HasQuestionnairesWith(preds ...predicate.UserQuestionnaire) predicate.User {
+// HasQuestionnaireResponsesWith applies the HasEdge predicate on the "questionnaire_responses" edge with a given conditions (other predicates).
+func HasQuestionnaireResponsesWith(preds ...predicate.QuestionnaireResponse) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := newQuestionnairesStep()
+		step := newQuestionnaireResponsesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

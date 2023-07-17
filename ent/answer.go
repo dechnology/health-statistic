@@ -11,7 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/eesoymilk/health-statistic-api/ent/answer"
 	"github.com/eesoymilk/health-statistic-api/ent/question"
-	"github.com/eesoymilk/health-statistic-api/ent/userquestionnaire"
+	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
 )
 
 // Answer is the model entity for the Answer schema.
@@ -25,10 +25,10 @@ type Answer struct {
 	Body string `json:"body,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AnswerQuery when eager-loading is set.
-	Edges                      AnswerEdges `json:"edges"`
-	question_answers           *int
-	user_questionnaire_answers *int
-	selectValues               sql.SelectValues
+	Edges                          AnswerEdges `json:"edges"`
+	question_answers               *int
+	questionnaire_response_answers *int
+	selectValues                   sql.SelectValues
 }
 
 // AnswerEdges holds the relations/edges for other nodes in the graph.
@@ -36,7 +36,7 @@ type AnswerEdges struct {
 	// Question holds the value of the question edge.
 	Question *Question `json:"question,omitempty"`
 	// UserQuestionnaire holds the value of the user_questionnaire edge.
-	UserQuestionnaire *UserQuestionnaire `json:"user_questionnaire,omitempty"`
+	UserQuestionnaire *QuestionnaireResponse `json:"user_questionnaire,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool
@@ -57,11 +57,11 @@ func (e AnswerEdges) QuestionOrErr() (*Question, error) {
 
 // UserQuestionnaireOrErr returns the UserQuestionnaire value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e AnswerEdges) UserQuestionnaireOrErr() (*UserQuestionnaire, error) {
+func (e AnswerEdges) UserQuestionnaireOrErr() (*QuestionnaireResponse, error) {
 	if e.loadedTypes[1] {
 		if e.UserQuestionnaire == nil {
 			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: userquestionnaire.Label}
+			return nil, &NotFoundError{label: questionnaireresponse.Label}
 		}
 		return e.UserQuestionnaire, nil
 	}
@@ -81,7 +81,7 @@ func (*Answer) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullTime)
 		case answer.ForeignKeys[0]: // question_answers
 			values[i] = new(sql.NullInt64)
-		case answer.ForeignKeys[1]: // user_questionnaire_answers
+		case answer.ForeignKeys[1]: // questionnaire_response_answers
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -125,10 +125,10 @@ func (a *Answer) assignValues(columns []string, values []any) error {
 			}
 		case answer.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field user_questionnaire_answers", value)
+				return fmt.Errorf("unexpected type %T for edge-field questionnaire_response_answers", value)
 			} else if value.Valid {
-				a.user_questionnaire_answers = new(int)
-				*a.user_questionnaire_answers = int(value.Int64)
+				a.questionnaire_response_answers = new(int)
+				*a.questionnaire_response_answers = int(value.Int64)
 			}
 		default:
 			a.selectValues.Set(columns[i], values[i])
@@ -149,7 +149,7 @@ func (a *Answer) QueryQuestion() *QuestionQuery {
 }
 
 // QueryUserQuestionnaire queries the "user_questionnaire" edge of the Answer entity.
-func (a *Answer) QueryUserQuestionnaire() *UserQuestionnaireQuery {
+func (a *Answer) QueryUserQuestionnaire() *QuestionnaireResponseQuery {
 	return NewAnswerClient(a.config).QueryUserQuestionnaire(a)
 }
 

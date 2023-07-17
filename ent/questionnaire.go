@@ -31,8 +31,8 @@ type Questionnaire struct {
 type QuestionnaireEdges struct {
 	// Questions holds the value of the questions edge.
 	Questions []*Question `json:"questions,omitempty"`
-	// Responses holds the value of the responses edge.
-	Responses []*UserQuestionnaire `json:"responses,omitempty"`
+	// QuestionnaireResponses holds the value of the questionnaire_responses edge.
+	QuestionnaireResponses []*QuestionnaireResponse `json:"questionnaire_responses,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool
@@ -47,13 +47,13 @@ func (e QuestionnaireEdges) QuestionsOrErr() ([]*Question, error) {
 	return nil, &NotLoadedError{edge: "questions"}
 }
 
-// ResponsesOrErr returns the Responses value or an error if the edge
+// QuestionnaireResponsesOrErr returns the QuestionnaireResponses value or an error if the edge
 // was not loaded in eager-loading.
-func (e QuestionnaireEdges) ResponsesOrErr() ([]*UserQuestionnaire, error) {
+func (e QuestionnaireEdges) QuestionnaireResponsesOrErr() ([]*QuestionnaireResponse, error) {
 	if e.loadedTypes[1] {
-		return e.Responses, nil
+		return e.QuestionnaireResponses, nil
 	}
-	return nil, &NotLoadedError{edge: "responses"}
+	return nil, &NotLoadedError{edge: "questionnaire_responses"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -118,9 +118,9 @@ func (q *Questionnaire) QueryQuestions() *QuestionQuery {
 	return NewQuestionnaireClient(q.config).QueryQuestions(q)
 }
 
-// QueryResponses queries the "responses" edge of the Questionnaire entity.
-func (q *Questionnaire) QueryResponses() *UserQuestionnaireQuery {
-	return NewQuestionnaireClient(q.config).QueryResponses(q)
+// QueryQuestionnaireResponses queries the "questionnaire_responses" edge of the Questionnaire entity.
+func (q *Questionnaire) QueryQuestionnaireResponses() *QuestionnaireResponseQuery {
+	return NewQuestionnaireClient(q.config).QueryQuestionnaireResponses(q)
 }
 
 // Update returns a builder for updating this Questionnaire.

@@ -12,19 +12,18 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
+	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
-	"github.com/eesoymilk/health-statistic-api/ent/userquestionnaire"
-	"github.com/google/uuid"
 )
 
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx                *QueryContext
-	order              []user.OrderOption
-	inters             []Interceptor
-	predicates         []predicate.User
-	withQuestionnaires *UserQuestionnaireQuery
+	ctx                        *QueryContext
+	order                      []user.OrderOption
+	inters                     []Interceptor
+	predicates                 []predicate.User
+	withQuestionnaireResponses *QuestionnaireResponseQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -61,9 +60,9 @@ func (uq *UserQuery) Order(o ...user.OrderOption) *UserQuery {
 	return uq
 }
 
-// QueryQuestionnaires chains the current query on the "questionnaires" edge.
-func (uq *UserQuery) QueryQuestionnaires() *UserQuestionnaireQuery {
-	query := (&UserQuestionnaireClient{config: uq.config}).Query()
+// QueryQuestionnaireResponses chains the current query on the "questionnaire_responses" edge.
+func (uq *UserQuery) QueryQuestionnaireResponses() *QuestionnaireResponseQuery {
+	query := (&QuestionnaireResponseClient{config: uq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := uq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -74,8 +73,8 @@ func (uq *UserQuery) QueryQuestionnaires() *UserQuestionnaireQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
-			sqlgraph.To(userquestionnaire.Table, userquestionnaire.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.QuestionnairesTable, user.QuestionnairesColumn),
+			sqlgraph.To(questionnaireresponse.Table, questionnaireresponse.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.QuestionnaireResponsesTable, user.QuestionnaireResponsesPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -107,8 +106,8 @@ func (uq *UserQuery) FirstX(ctx context.Context) *User {
 
 // FirstID returns the first User ID from the query.
 // Returns a *NotFoundError when no User ID was found.
-func (uq *UserQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
-	var ids []uuid.UUID
+func (uq *UserQuery) FirstID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = uq.Limit(1).IDs(setContextOp(ctx, uq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -120,7 +119,7 @@ func (uq *UserQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (uq *UserQuery) FirstIDX(ctx context.Context) uuid.UUID {
+func (uq *UserQuery) FirstIDX(ctx context.Context) string {
 	id, err := uq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -158,8 +157,8 @@ func (uq *UserQuery) OnlyX(ctx context.Context) *User {
 // OnlyID is like Only, but returns the only User ID in the query.
 // Returns a *NotSingularError when more than one User ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (uq *UserQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
-	var ids []uuid.UUID
+func (uq *UserQuery) OnlyID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = uq.Limit(2).IDs(setContextOp(ctx, uq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -175,7 +174,7 @@ func (uq *UserQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (uq *UserQuery) OnlyIDX(ctx context.Context) uuid.UUID {
+func (uq *UserQuery) OnlyIDX(ctx context.Context) string {
 	id, err := uq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -203,7 +202,7 @@ func (uq *UserQuery) AllX(ctx context.Context) []*User {
 }
 
 // IDs executes the query and returns a list of User IDs.
-func (uq *UserQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+func (uq *UserQuery) IDs(ctx context.Context) (ids []string, err error) {
 	if uq.ctx.Unique == nil && uq.path != nil {
 		uq.Unique(true)
 	}
@@ -215,7 +214,7 @@ func (uq *UserQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (uq *UserQuery) IDsX(ctx context.Context) []uuid.UUID {
+func (uq *UserQuery) IDsX(ctx context.Context) []string {
 	ids, err := uq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -270,26 +269,26 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:             uq.config,
-		ctx:                uq.ctx.Clone(),
-		order:              append([]user.OrderOption{}, uq.order...),
-		inters:             append([]Interceptor{}, uq.inters...),
-		predicates:         append([]predicate.User{}, uq.predicates...),
-		withQuestionnaires: uq.withQuestionnaires.Clone(),
+		config:                     uq.config,
+		ctx:                        uq.ctx.Clone(),
+		order:                      append([]user.OrderOption{}, uq.order...),
+		inters:                     append([]Interceptor{}, uq.inters...),
+		predicates:                 append([]predicate.User{}, uq.predicates...),
+		withQuestionnaireResponses: uq.withQuestionnaireResponses.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
 	}
 }
 
-// WithQuestionnaires tells the query-builder to eager-load the nodes that are connected to
-// the "questionnaires" edge. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithQuestionnaires(opts ...func(*UserQuestionnaireQuery)) *UserQuery {
-	query := (&UserQuestionnaireClient{config: uq.config}).Query()
+// WithQuestionnaireResponses tells the query-builder to eager-load the nodes that are connected to
+// the "questionnaire_responses" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithQuestionnaireResponses(opts ...func(*QuestionnaireResponseQuery)) *UserQuery {
+	query := (&QuestionnaireResponseClient{config: uq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withQuestionnaires = query
+	uq.withQuestionnaireResponses = query
 	return uq
 }
 
@@ -372,7 +371,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
 		loadedTypes = [1]bool{
-			uq.withQuestionnaires != nil,
+			uq.withQuestionnaireResponses != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -393,44 +392,76 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := uq.withQuestionnaires; query != nil {
-		if err := uq.loadQuestionnaires(ctx, query, nodes,
-			func(n *User) { n.Edges.Questionnaires = []*UserQuestionnaire{} },
-			func(n *User, e *UserQuestionnaire) { n.Edges.Questionnaires = append(n.Edges.Questionnaires, e) }); err != nil {
+	if query := uq.withQuestionnaireResponses; query != nil {
+		if err := uq.loadQuestionnaireResponses(ctx, query, nodes,
+			func(n *User) { n.Edges.QuestionnaireResponses = []*QuestionnaireResponse{} },
+			func(n *User, e *QuestionnaireResponse) {
+				n.Edges.QuestionnaireResponses = append(n.Edges.QuestionnaireResponses, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (uq *UserQuery) loadQuestionnaires(ctx context.Context, query *UserQuestionnaireQuery, nodes []*User, init func(*User), assign func(*User, *UserQuestionnaire)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*User)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
+func (uq *UserQuery) loadQuestionnaireResponses(ctx context.Context, query *QuestionnaireResponseQuery, nodes []*User, init func(*User), assign func(*User, *QuestionnaireResponse)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[string]*User)
+	nids := make(map[int]map[*User]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
 		if init != nil {
-			init(nodes[i])
+			init(node)
 		}
 	}
-	query.withFKs = true
-	query.Where(predicate.UserQuestionnaire(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(user.QuestionnairesColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(user.QuestionnaireResponsesTable)
+		s.Join(joinT).On(s.C(questionnaireresponse.FieldID), joinT.C(user.QuestionnaireResponsesPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(user.QuestionnaireResponsesPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(user.QuestionnaireResponsesPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullString)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := values[0].(*sql.NullString).String
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*User]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*QuestionnaireResponse](ctx, query, qr, query.inters)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.user_questionnaires
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "user_questionnaires" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		nodes, ok := nids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "user_questionnaires" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected "questionnaire_responses" node returned %v`, n.ID)
 		}
-		assign(node, n)
+		for kn := range nodes {
+			assign(kn, n)
+		}
 	}
 	return nil
 }
@@ -445,7 +476,7 @@ func (uq *UserQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (uq *UserQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID))
+	_spec := sqlgraph.NewQuerySpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeString))
 	_spec.From = uq.sql
 	if unique := uq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

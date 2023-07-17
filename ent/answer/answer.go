@@ -33,11 +33,11 @@ const (
 	QuestionColumn = "question_answers"
 	// UserQuestionnaireTable is the table that holds the user_questionnaire relation/edge.
 	UserQuestionnaireTable = "answers"
-	// UserQuestionnaireInverseTable is the table name for the UserQuestionnaire entity.
-	// It exists in this package in order to avoid circular dependency with the "userquestionnaire" package.
-	UserQuestionnaireInverseTable = "user_questionnaires"
+	// UserQuestionnaireInverseTable is the table name for the QuestionnaireResponse entity.
+	// It exists in this package in order to avoid circular dependency with the "questionnaireresponse" package.
+	UserQuestionnaireInverseTable = "questionnaire_responses"
 	// UserQuestionnaireColumn is the table column denoting the user_questionnaire relation/edge.
-	UserQuestionnaireColumn = "user_questionnaire_answers"
+	UserQuestionnaireColumn = "questionnaire_response_answers"
 )
 
 // Columns holds all SQL columns for answer fields.
@@ -51,7 +51,7 @@ var Columns = []string{
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"question_answers",
-	"user_questionnaire_answers",
+	"questionnaire_response_answers",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

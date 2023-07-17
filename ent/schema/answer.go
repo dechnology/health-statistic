@@ -27,7 +27,7 @@ func (Answer) Edges() []ent.Edge {
 		edge.From("question", Question.Type).
 			Ref("answers").
 			Unique(),
-		edge.From("user_questionnaire", UserQuestionnaire.Type).
+		edge.From("user_questionnaire", QuestionnaireResponse.Type).
 			Ref("answers").
 			Unique(),
 	}

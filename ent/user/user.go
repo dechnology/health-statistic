@@ -47,17 +47,15 @@ const (
 	FieldEyesightCondition = "eyesight_condition"
 	// FieldSmokingHabit holds the string denoting the smoking_habit field in the database.
 	FieldSmokingHabit = "smoking_habit"
-	// EdgeQuestionnaires holds the string denoting the questionnaires edge name in mutations.
-	EdgeQuestionnaires = "questionnaires"
+	// EdgeQuestionnaireResponses holds the string denoting the questionnaire_responses edge name in mutations.
+	EdgeQuestionnaireResponses = "questionnaire_responses"
 	// Table holds the table name of the user in the database.
 	Table = "users"
-	// QuestionnairesTable is the table that holds the questionnaires relation/edge.
-	QuestionnairesTable = "user_questionnaires"
-	// QuestionnairesInverseTable is the table name for the UserQuestionnaire entity.
-	// It exists in this package in order to avoid circular dependency with the "userquestionnaire" package.
-	QuestionnairesInverseTable = "user_questionnaires"
-	// QuestionnairesColumn is the table column denoting the questionnaires relation/edge.
-	QuestionnairesColumn = "user_questionnaires"
+	// QuestionnaireResponsesTable is the table that holds the questionnaire_responses relation/edge. The primary key declared below.
+	QuestionnaireResponsesTable = "user_questionnaire_responses"
+	// QuestionnaireResponsesInverseTable is the table name for the QuestionnaireResponse entity.
+	// It exists in this package in order to avoid circular dependency with the "questionnaireresponse" package.
+	QuestionnaireResponsesInverseTable = "questionnaire_responses"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -80,6 +78,12 @@ var Columns = []string{
 	FieldEyesightCondition,
 	FieldSmokingHabit,
 }
+
+var (
+	// QuestionnaireResponsesPrimaryKey and QuestionnaireResponsesColumn2 are the table columns denoting the
+	// primary key for the questionnaire_responses relation (M2M).
+	QuestionnaireResponsesPrimaryKey = []string{"user_id", "questionnaire_response_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -373,23 +377,23 @@ func BySmokingHabit(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSmokingHabit, opts...).ToFunc()
 }
 
-// ByQuestionnairesCount orders the results by questionnaires count.
-func ByQuestionnairesCount(opts ...sql.OrderTermOption) OrderOption {
+// ByQuestionnaireResponsesCount orders the results by questionnaire_responses count.
+func ByQuestionnaireResponsesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newQuestionnairesStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newQuestionnaireResponsesStep(), opts...)
 	}
 }
 
-// ByQuestionnaires orders the results by questionnaires terms.
-func ByQuestionnaires(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByQuestionnaireResponses orders the results by questionnaire_responses terms.
+func ByQuestionnaireResponses(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newQuestionnairesStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newQuestionnaireResponsesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-func newQuestionnairesStep() *sqlgraph.Step {
+func newQuestionnaireResponsesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(QuestionnairesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, QuestionnairesTable, QuestionnairesColumn),
+		sqlgraph.To(QuestionnaireResponsesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, QuestionnaireResponsesTable, QuestionnaireResponsesPrimaryKey...),
 	)
 }

@@ -20,8 +20,8 @@ const (
 	FieldCreatedAt = "created_at"
 	// EdgeQuestions holds the string denoting the questions edge name in mutations.
 	EdgeQuestions = "questions"
-	// EdgeResponses holds the string denoting the responses edge name in mutations.
-	EdgeResponses = "responses"
+	// EdgeQuestionnaireResponses holds the string denoting the questionnaire_responses edge name in mutations.
+	EdgeQuestionnaireResponses = "questionnaire_responses"
 	// Table holds the table name of the questionnaire in the database.
 	Table = "questionnaires"
 	// QuestionsTable is the table that holds the questions relation/edge.
@@ -31,13 +31,11 @@ const (
 	QuestionsInverseTable = "questions"
 	// QuestionsColumn is the table column denoting the questions relation/edge.
 	QuestionsColumn = "questionnaire_questions"
-	// ResponsesTable is the table that holds the responses relation/edge.
-	ResponsesTable = "user_questionnaires"
-	// ResponsesInverseTable is the table name for the UserQuestionnaire entity.
-	// It exists in this package in order to avoid circular dependency with the "userquestionnaire" package.
-	ResponsesInverseTable = "user_questionnaires"
-	// ResponsesColumn is the table column denoting the responses relation/edge.
-	ResponsesColumn = "questionnaire_responses"
+	// QuestionnaireResponsesTable is the table that holds the questionnaire_responses relation/edge. The primary key declared below.
+	QuestionnaireResponsesTable = "questionnaire_questionnaire_responses"
+	// QuestionnaireResponsesInverseTable is the table name for the QuestionnaireResponse entity.
+	// It exists in this package in order to avoid circular dependency with the "questionnaireresponse" package.
+	QuestionnaireResponsesInverseTable = "questionnaire_responses"
 )
 
 // Columns holds all SQL columns for questionnaire fields.
@@ -46,6 +44,12 @@ var Columns = []string{
 	FieldName,
 	FieldCreatedAt,
 }
+
+var (
+	// QuestionnaireResponsesPrimaryKey and QuestionnaireResponsesColumn2 are the table columns denoting the
+	// primary key for the questionnaire_responses relation (M2M).
+	QuestionnaireResponsesPrimaryKey = []string{"questionnaire_id", "questionnaire_response_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -94,17 +98,17 @@ func ByQuestions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByResponsesCount orders the results by responses count.
-func ByResponsesCount(opts ...sql.OrderTermOption) OrderOption {
+// ByQuestionnaireResponsesCount orders the results by questionnaire_responses count.
+func ByQuestionnaireResponsesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newResponsesStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newQuestionnaireResponsesStep(), opts...)
 	}
 }
 
-// ByResponses orders the results by responses terms.
-func ByResponses(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByQuestionnaireResponses orders the results by questionnaire_responses terms.
+func ByQuestionnaireResponses(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newResponsesStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newQuestionnaireResponsesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newQuestionsStep() *sqlgraph.Step {
@@ -114,10 +118,10 @@ func newQuestionsStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, QuestionsTable, QuestionsColumn),
 	)
 }
-func newResponsesStep() *sqlgraph.Step {
+func newQuestionnaireResponsesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ResponsesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, ResponsesTable, ResponsesColumn),
+		sqlgraph.To(QuestionnaireResponsesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, QuestionnaireResponsesTable, QuestionnaireResponsesPrimaryKey...),
 	)
 }

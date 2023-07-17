@@ -193,21 +193,21 @@ func HasQuestionsWith(preds ...predicate.Question) predicate.Questionnaire {
 	})
 }
 
-// HasResponses applies the HasEdge predicate on the "responses" edge.
-func HasResponses() predicate.Questionnaire {
+// HasQuestionnaireResponses applies the HasEdge predicate on the "questionnaire_responses" edge.
+func HasQuestionnaireResponses() predicate.Questionnaire {
 	return predicate.Questionnaire(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ResponsesTable, ResponsesColumn),
+			sqlgraph.Edge(sqlgraph.M2M, false, QuestionnaireResponsesTable, QuestionnaireResponsesPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasResponsesWith applies the HasEdge predicate on the "responses" edge with a given conditions (other predicates).
-func HasResponsesWith(preds ...predicate.UserQuestionnaire) predicate.Questionnaire {
+// HasQuestionnaireResponsesWith applies the HasEdge predicate on the "questionnaire_responses" edge with a given conditions (other predicates).
+func HasQuestionnaireResponsesWith(preds ...predicate.QuestionnaireResponse) predicate.Questionnaire {
 	return predicate.Questionnaire(func(s *sql.Selector) {
-		step := newResponsesStep()
+		step := newQuestionnaireResponsesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

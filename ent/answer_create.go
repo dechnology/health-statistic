@@ -12,7 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/eesoymilk/health-statistic-api/ent/answer"
 	"github.com/eesoymilk/health-statistic-api/ent/question"
-	"github.com/eesoymilk/health-statistic-api/ent/userquestionnaire"
+	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
 )
 
 // AnswerCreate is the builder for creating a Answer entity.
@@ -61,13 +61,13 @@ func (ac *AnswerCreate) SetQuestion(q *Question) *AnswerCreate {
 	return ac.SetQuestionID(q.ID)
 }
 
-// SetUserQuestionnaireID sets the "user_questionnaire" edge to the UserQuestionnaire entity by ID.
+// SetUserQuestionnaireID sets the "user_questionnaire" edge to the QuestionnaireResponse entity by ID.
 func (ac *AnswerCreate) SetUserQuestionnaireID(id int) *AnswerCreate {
 	ac.mutation.SetUserQuestionnaireID(id)
 	return ac
 }
 
-// SetNillableUserQuestionnaireID sets the "user_questionnaire" edge to the UserQuestionnaire entity by ID if the given value is not nil.
+// SetNillableUserQuestionnaireID sets the "user_questionnaire" edge to the QuestionnaireResponse entity by ID if the given value is not nil.
 func (ac *AnswerCreate) SetNillableUserQuestionnaireID(id *int) *AnswerCreate {
 	if id != nil {
 		ac = ac.SetUserQuestionnaireID(*id)
@@ -75,9 +75,9 @@ func (ac *AnswerCreate) SetNillableUserQuestionnaireID(id *int) *AnswerCreate {
 	return ac
 }
 
-// SetUserQuestionnaire sets the "user_questionnaire" edge to the UserQuestionnaire entity.
-func (ac *AnswerCreate) SetUserQuestionnaire(u *UserQuestionnaire) *AnswerCreate {
-	return ac.SetUserQuestionnaireID(u.ID)
+// SetUserQuestionnaire sets the "user_questionnaire" edge to the QuestionnaireResponse entity.
+func (ac *AnswerCreate) SetUserQuestionnaire(q *QuestionnaireResponse) *AnswerCreate {
+	return ac.SetUserQuestionnaireID(q.ID)
 }
 
 // Mutation returns the AnswerMutation object of the builder.
@@ -188,13 +188,13 @@ func (ac *AnswerCreate) createSpec() (*Answer, *sqlgraph.CreateSpec) {
 			Columns: []string{answer.UserQuestionnaireColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(userquestionnaire.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.user_questionnaire_answers = &nodes[0]
+		_node.questionnaire_response_answers = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

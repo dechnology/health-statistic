@@ -12,8 +12,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
+	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
-	"github.com/eesoymilk/health-statistic-api/ent/userquestionnaire"
 )
 
 // UserUpdate is the builder for updating User entities.
@@ -182,19 +182,19 @@ func (uu *UserUpdate) SetSmokingHabit(uh user.SmokingHabit) *UserUpdate {
 	return uu
 }
 
-// AddQuestionnaireIDs adds the "questionnaires" edge to the UserQuestionnaire entity by IDs.
-func (uu *UserUpdate) AddQuestionnaireIDs(ids ...int) *UserUpdate {
-	uu.mutation.AddQuestionnaireIDs(ids...)
+// AddQuestionnaireResponseIDs adds the "questionnaire_responses" edge to the QuestionnaireResponse entity by IDs.
+func (uu *UserUpdate) AddQuestionnaireResponseIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddQuestionnaireResponseIDs(ids...)
 	return uu
 }
 
-// AddQuestionnaires adds the "questionnaires" edges to the UserQuestionnaire entity.
-func (uu *UserUpdate) AddQuestionnaires(u ...*UserQuestionnaire) *UserUpdate {
-	ids := make([]int, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// AddQuestionnaireResponses adds the "questionnaire_responses" edges to the QuestionnaireResponse entity.
+func (uu *UserUpdate) AddQuestionnaireResponses(q ...*QuestionnaireResponse) *UserUpdate {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
 	}
-	return uu.AddQuestionnaireIDs(ids...)
+	return uu.AddQuestionnaireResponseIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -202,25 +202,25 @@ func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
 }
 
-// ClearQuestionnaires clears all "questionnaires" edges to the UserQuestionnaire entity.
-func (uu *UserUpdate) ClearQuestionnaires() *UserUpdate {
-	uu.mutation.ClearQuestionnaires()
+// ClearQuestionnaireResponses clears all "questionnaire_responses" edges to the QuestionnaireResponse entity.
+func (uu *UserUpdate) ClearQuestionnaireResponses() *UserUpdate {
+	uu.mutation.ClearQuestionnaireResponses()
 	return uu
 }
 
-// RemoveQuestionnaireIDs removes the "questionnaires" edge to UserQuestionnaire entities by IDs.
-func (uu *UserUpdate) RemoveQuestionnaireIDs(ids ...int) *UserUpdate {
-	uu.mutation.RemoveQuestionnaireIDs(ids...)
+// RemoveQuestionnaireResponseIDs removes the "questionnaire_responses" edge to QuestionnaireResponse entities by IDs.
+func (uu *UserUpdate) RemoveQuestionnaireResponseIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveQuestionnaireResponseIDs(ids...)
 	return uu
 }
 
-// RemoveQuestionnaires removes "questionnaires" edges to UserQuestionnaire entities.
-func (uu *UserUpdate) RemoveQuestionnaires(u ...*UserQuestionnaire) *UserUpdate {
-	ids := make([]int, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// RemoveQuestionnaireResponses removes "questionnaire_responses" edges to QuestionnaireResponse entities.
+func (uu *UserUpdate) RemoveQuestionnaireResponses(q ...*QuestionnaireResponse) *UserUpdate {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
 	}
-	return uu.RemoveQuestionnaireIDs(ids...)
+	return uu.RemoveQuestionnaireResponseIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -328,7 +328,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := uu.check(); err != nil {
 		return n, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID))
+	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeString))
 	if ps := uu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -399,28 +399,28 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.SmokingHabit(); ok {
 		_spec.SetField(user.FieldSmokingHabit, field.TypeEnum, value)
 	}
-	if uu.mutation.QuestionnairesCleared() {
+	if uu.mutation.QuestionnaireResponsesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.QuestionnairesTable,
-			Columns: []string{user.QuestionnairesColumn},
+			Table:   user.QuestionnaireResponsesTable,
+			Columns: user.QuestionnaireResponsesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(userquestionnaire.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.RemovedQuestionnairesIDs(); len(nodes) > 0 && !uu.mutation.QuestionnairesCleared() {
+	if nodes := uu.mutation.RemovedQuestionnaireResponsesIDs(); len(nodes) > 0 && !uu.mutation.QuestionnaireResponsesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.QuestionnairesTable,
-			Columns: []string{user.QuestionnairesColumn},
+			Table:   user.QuestionnaireResponsesTable,
+			Columns: user.QuestionnaireResponsesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(userquestionnaire.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -428,15 +428,15 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.QuestionnairesIDs(); len(nodes) > 0 {
+	if nodes := uu.mutation.QuestionnaireResponsesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.QuestionnairesTable,
-			Columns: []string{user.QuestionnairesColumn},
+			Table:   user.QuestionnaireResponsesTable,
+			Columns: user.QuestionnaireResponsesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(userquestionnaire.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -617,19 +617,19 @@ func (uuo *UserUpdateOne) SetSmokingHabit(uh user.SmokingHabit) *UserUpdateOne {
 	return uuo
 }
 
-// AddQuestionnaireIDs adds the "questionnaires" edge to the UserQuestionnaire entity by IDs.
-func (uuo *UserUpdateOne) AddQuestionnaireIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.AddQuestionnaireIDs(ids...)
+// AddQuestionnaireResponseIDs adds the "questionnaire_responses" edge to the QuestionnaireResponse entity by IDs.
+func (uuo *UserUpdateOne) AddQuestionnaireResponseIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddQuestionnaireResponseIDs(ids...)
 	return uuo
 }
 
-// AddQuestionnaires adds the "questionnaires" edges to the UserQuestionnaire entity.
-func (uuo *UserUpdateOne) AddQuestionnaires(u ...*UserQuestionnaire) *UserUpdateOne {
-	ids := make([]int, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// AddQuestionnaireResponses adds the "questionnaire_responses" edges to the QuestionnaireResponse entity.
+func (uuo *UserUpdateOne) AddQuestionnaireResponses(q ...*QuestionnaireResponse) *UserUpdateOne {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
 	}
-	return uuo.AddQuestionnaireIDs(ids...)
+	return uuo.AddQuestionnaireResponseIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -637,25 +637,25 @@ func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
 }
 
-// ClearQuestionnaires clears all "questionnaires" edges to the UserQuestionnaire entity.
-func (uuo *UserUpdateOne) ClearQuestionnaires() *UserUpdateOne {
-	uuo.mutation.ClearQuestionnaires()
+// ClearQuestionnaireResponses clears all "questionnaire_responses" edges to the QuestionnaireResponse entity.
+func (uuo *UserUpdateOne) ClearQuestionnaireResponses() *UserUpdateOne {
+	uuo.mutation.ClearQuestionnaireResponses()
 	return uuo
 }
 
-// RemoveQuestionnaireIDs removes the "questionnaires" edge to UserQuestionnaire entities by IDs.
-func (uuo *UserUpdateOne) RemoveQuestionnaireIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.RemoveQuestionnaireIDs(ids...)
+// RemoveQuestionnaireResponseIDs removes the "questionnaire_responses" edge to QuestionnaireResponse entities by IDs.
+func (uuo *UserUpdateOne) RemoveQuestionnaireResponseIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveQuestionnaireResponseIDs(ids...)
 	return uuo
 }
 
-// RemoveQuestionnaires removes "questionnaires" edges to UserQuestionnaire entities.
-func (uuo *UserUpdateOne) RemoveQuestionnaires(u ...*UserQuestionnaire) *UserUpdateOne {
-	ids := make([]int, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// RemoveQuestionnaireResponses removes "questionnaire_responses" edges to QuestionnaireResponse entities.
+func (uuo *UserUpdateOne) RemoveQuestionnaireResponses(q ...*QuestionnaireResponse) *UserUpdateOne {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
 	}
-	return uuo.RemoveQuestionnaireIDs(ids...)
+	return uuo.RemoveQuestionnaireResponseIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -776,7 +776,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if err := uuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID))
+	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeString))
 	id, ok := uuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "User.id" for update`)}
@@ -864,28 +864,28 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if value, ok := uuo.mutation.SmokingHabit(); ok {
 		_spec.SetField(user.FieldSmokingHabit, field.TypeEnum, value)
 	}
-	if uuo.mutation.QuestionnairesCleared() {
+	if uuo.mutation.QuestionnaireResponsesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.QuestionnairesTable,
-			Columns: []string{user.QuestionnairesColumn},
+			Table:   user.QuestionnaireResponsesTable,
+			Columns: user.QuestionnaireResponsesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(userquestionnaire.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.RemovedQuestionnairesIDs(); len(nodes) > 0 && !uuo.mutation.QuestionnairesCleared() {
+	if nodes := uuo.mutation.RemovedQuestionnaireResponsesIDs(); len(nodes) > 0 && !uuo.mutation.QuestionnaireResponsesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.QuestionnairesTable,
-			Columns: []string{user.QuestionnairesColumn},
+			Table:   user.QuestionnaireResponsesTable,
+			Columns: user.QuestionnaireResponsesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(userquestionnaire.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -893,15 +893,15 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.QuestionnairesIDs(); len(nodes) > 0 {
+	if nodes := uuo.mutation.QuestionnaireResponsesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.QuestionnairesTable,
-			Columns: []string{user.QuestionnairesColumn},
+			Table:   user.QuestionnaireResponsesTable,
+			Columns: user.QuestionnaireResponsesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(userquestionnaire.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

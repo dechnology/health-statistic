@@ -12,7 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaire"
-	"github.com/eesoymilk/health-statistic-api/ent/userquestionnaire"
+	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
 )
 
 // QuestionnaireCreate is the builder for creating a Questionnaire entity.
@@ -57,19 +57,19 @@ func (qc *QuestionnaireCreate) AddQuestions(q ...*Question) *QuestionnaireCreate
 	return qc.AddQuestionIDs(ids...)
 }
 
-// AddResponseIDs adds the "responses" edge to the UserQuestionnaire entity by IDs.
-func (qc *QuestionnaireCreate) AddResponseIDs(ids ...int) *QuestionnaireCreate {
-	qc.mutation.AddResponseIDs(ids...)
+// AddQuestionnaireResponseIDs adds the "questionnaire_responses" edge to the QuestionnaireResponse entity by IDs.
+func (qc *QuestionnaireCreate) AddQuestionnaireResponseIDs(ids ...int) *QuestionnaireCreate {
+	qc.mutation.AddQuestionnaireResponseIDs(ids...)
 	return qc
 }
 
-// AddResponses adds the "responses" edges to the UserQuestionnaire entity.
-func (qc *QuestionnaireCreate) AddResponses(u ...*UserQuestionnaire) *QuestionnaireCreate {
-	ids := make([]int, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// AddQuestionnaireResponses adds the "questionnaire_responses" edges to the QuestionnaireResponse entity.
+func (qc *QuestionnaireCreate) AddQuestionnaireResponses(q ...*QuestionnaireResponse) *QuestionnaireCreate {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
 	}
-	return qc.AddResponseIDs(ids...)
+	return qc.AddQuestionnaireResponseIDs(ids...)
 }
 
 // Mutation returns the QuestionnaireMutation object of the builder.
@@ -171,15 +171,15 @@ func (qc *QuestionnaireCreate) createSpec() (*Questionnaire, *sqlgraph.CreateSpe
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := qc.mutation.ResponsesIDs(); len(nodes) > 0 {
+	if nodes := qc.mutation.QuestionnaireResponsesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   questionnaire.ResponsesTable,
-			Columns: []string{questionnaire.ResponsesColumn},
+			Table:   questionnaire.QuestionnaireResponsesTable,
+			Columns: questionnaire.QuestionnaireResponsesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(userquestionnaire.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

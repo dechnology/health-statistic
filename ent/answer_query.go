@@ -13,7 +13,7 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent/answer"
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
 	"github.com/eesoymilk/health-statistic-api/ent/question"
-	"github.com/eesoymilk/health-statistic-api/ent/userquestionnaire"
+	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
 )
 
 // AnswerQuery is the builder for querying Answer entities.
@@ -24,7 +24,7 @@ type AnswerQuery struct {
 	inters                []Interceptor
 	predicates            []predicate.Answer
 	withQuestion          *QuestionQuery
-	withUserQuestionnaire *UserQuestionnaireQuery
+	withUserQuestionnaire *QuestionnaireResponseQuery
 	withFKs               bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -85,8 +85,8 @@ func (aq *AnswerQuery) QueryQuestion() *QuestionQuery {
 }
 
 // QueryUserQuestionnaire chains the current query on the "user_questionnaire" edge.
-func (aq *AnswerQuery) QueryUserQuestionnaire() *UserQuestionnaireQuery {
-	query := (&UserQuestionnaireClient{config: aq.config}).Query()
+func (aq *AnswerQuery) QueryUserQuestionnaire() *QuestionnaireResponseQuery {
+	query := (&QuestionnaireResponseClient{config: aq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := aq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -97,7 +97,7 @@ func (aq *AnswerQuery) QueryUserQuestionnaire() *UserQuestionnaireQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(answer.Table, answer.FieldID, selector),
-			sqlgraph.To(userquestionnaire.Table, userquestionnaire.FieldID),
+			sqlgraph.To(questionnaireresponse.Table, questionnaireresponse.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, answer.UserQuestionnaireTable, answer.UserQuestionnaireColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
@@ -319,8 +319,8 @@ func (aq *AnswerQuery) WithQuestion(opts ...func(*QuestionQuery)) *AnswerQuery {
 
 // WithUserQuestionnaire tells the query-builder to eager-load the nodes that are connected to
 // the "user_questionnaire" edge. The optional arguments are used to configure the query builder of the edge.
-func (aq *AnswerQuery) WithUserQuestionnaire(opts ...func(*UserQuestionnaireQuery)) *AnswerQuery {
-	query := (&UserQuestionnaireClient{config: aq.config}).Query()
+func (aq *AnswerQuery) WithUserQuestionnaire(opts ...func(*QuestionnaireResponseQuery)) *AnswerQuery {
+	query := (&QuestionnaireResponseClient{config: aq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -444,7 +444,7 @@ func (aq *AnswerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Answe
 	}
 	if query := aq.withUserQuestionnaire; query != nil {
 		if err := aq.loadUserQuestionnaire(ctx, query, nodes, nil,
-			func(n *Answer, e *UserQuestionnaire) { n.Edges.UserQuestionnaire = e }); err != nil {
+			func(n *Answer, e *QuestionnaireResponse) { n.Edges.UserQuestionnaire = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -483,14 +483,14 @@ func (aq *AnswerQuery) loadQuestion(ctx context.Context, query *QuestionQuery, n
 	}
 	return nil
 }
-func (aq *AnswerQuery) loadUserQuestionnaire(ctx context.Context, query *UserQuestionnaireQuery, nodes []*Answer, init func(*Answer), assign func(*Answer, *UserQuestionnaire)) error {
+func (aq *AnswerQuery) loadUserQuestionnaire(ctx context.Context, query *QuestionnaireResponseQuery, nodes []*Answer, init func(*Answer), assign func(*Answer, *QuestionnaireResponse)) error {
 	ids := make([]int, 0, len(nodes))
 	nodeids := make(map[int][]*Answer)
 	for i := range nodes {
-		if nodes[i].user_questionnaire_answers == nil {
+		if nodes[i].questionnaire_response_answers == nil {
 			continue
 		}
-		fk := *nodes[i].user_questionnaire_answers
+		fk := *nodes[i].questionnaire_response_answers
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -499,7 +499,7 @@ func (aq *AnswerQuery) loadUserQuestionnaire(ctx context.Context, query *UserQue
 	if len(ids) == 0 {
 		return nil
 	}
-	query.Where(userquestionnaire.IDIn(ids...))
+	query.Where(questionnaireresponse.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
@@ -507,7 +507,7 @@ func (aq *AnswerQuery) loadUserQuestionnaire(ctx context.Context, query *UserQue
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_questionnaire_answers" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "questionnaire_response_answers" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

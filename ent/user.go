@@ -10,14 +10,13 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
-	"github.com/google/uuid"
 )
 
 // User is the model entity for the User schema.
 type User struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID uuid.UUID `json:"id,omitempty"`
+	ID string `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -58,20 +57,20 @@ type User struct {
 
 // UserEdges holds the relations/edges for other nodes in the graph.
 type UserEdges struct {
-	// Questionnaires holds the value of the questionnaires edge.
-	Questionnaires []*UserQuestionnaire `json:"questionnaires,omitempty"`
+	// QuestionnaireResponses holds the value of the questionnaire_responses edge.
+	QuestionnaireResponses []*QuestionnaireResponse `json:"questionnaire_responses,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool
 }
 
-// QuestionnairesOrErr returns the Questionnaires value or an error if the edge
+// QuestionnaireResponsesOrErr returns the QuestionnaireResponses value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) QuestionnairesOrErr() ([]*UserQuestionnaire, error) {
+func (e UserEdges) QuestionnaireResponsesOrErr() ([]*QuestionnaireResponse, error) {
 	if e.loadedTypes[0] {
-		return e.Questionnaires, nil
+		return e.QuestionnaireResponses, nil
 	}
-	return nil, &NotLoadedError{edge: "questionnaires"}
+	return nil, &NotLoadedError{edge: "questionnaire_responses"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -85,12 +84,10 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case user.FieldBirthYear:
 			values[i] = new(sql.NullInt64)
-		case user.FieldGender, user.FieldEducationLevel, user.FieldOccupation, user.FieldMarriage, user.FieldMedicalHistory, user.FieldMedicationStatus, user.FieldEarCondition, user.FieldEyesightCondition, user.FieldSmokingHabit:
+		case user.FieldID, user.FieldGender, user.FieldEducationLevel, user.FieldOccupation, user.FieldMarriage, user.FieldMedicalHistory, user.FieldMedicationStatus, user.FieldEarCondition, user.FieldEyesightCondition, user.FieldSmokingHabit:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case user.FieldID:
-			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -107,10 +104,10 @@ func (u *User) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case user.FieldID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
-			} else if value != nil {
-				u.ID = *value
+			} else if value.Valid {
+				u.ID = value.String
 			}
 		case user.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -221,9 +218,9 @@ func (u *User) Value(name string) (ent.Value, error) {
 	return u.selectValues.Get(name)
 }
 
-// QueryQuestionnaires queries the "questionnaires" edge of the User entity.
-func (u *User) QueryQuestionnaires() *UserQuestionnaireQuery {
-	return NewUserClient(u.config).QueryQuestionnaires(u)
+// QueryQuestionnaireResponses queries the "questionnaire_responses" edge of the User entity.
+func (u *User) QueryQuestionnaireResponses() *QuestionnaireResponseQuery {
+	return NewUserClient(u.config).QueryQuestionnaireResponses(u)
 }
 
 // Update returns a builder for updating this User.

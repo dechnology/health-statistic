@@ -18,10 +18,10 @@ type Tx struct {
 	Question *QuestionClient
 	// Questionnaire is the client for interacting with the Questionnaire builders.
 	Questionnaire *QuestionnaireClient
+	// QuestionnaireResponse is the client for interacting with the QuestionnaireResponse builders.
+	QuestionnaireResponse *QuestionnaireResponseClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
-	// UserQuestionnaire is the client for interacting with the UserQuestionnaire builders.
-	UserQuestionnaire *UserQuestionnaireClient
 
 	// lazily loaded.
 	client     *Client
@@ -156,8 +156,8 @@ func (tx *Tx) init() {
 	tx.Answer = NewAnswerClient(tx.config)
 	tx.Question = NewQuestionClient(tx.config)
 	tx.Questionnaire = NewQuestionnaireClient(tx.config)
+	tx.QuestionnaireResponse = NewQuestionnaireResponseClient(tx.config)
 	tx.User = NewUserClient(tx.config)
-	tx.UserQuestionnaire = NewUserQuestionnaireClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

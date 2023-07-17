@@ -45,6 +45,18 @@ func (f QuestionnaireFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Valu
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QuestionnaireMutation", m)
 }
 
+// The QuestionnaireResponseFunc type is an adapter to allow the use of ordinary
+// function as QuestionnaireResponse mutator.
+type QuestionnaireResponseFunc func(context.Context, *ent.QuestionnaireResponseMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f QuestionnaireResponseFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.QuestionnaireResponseMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QuestionnaireResponseMutation", m)
+}
+
 // The UserFunc type is an adapter to allow the use of ordinary
 // function as User mutator.
 type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)
@@ -55,18 +67,6 @@ func (f UserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
-}
-
-// The UserQuestionnaireFunc type is an adapter to allow the use of ordinary
-// function as UserQuestionnaire mutator.
-type UserQuestionnaireFunc func(context.Context, *ent.UserQuestionnaireMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f UserQuestionnaireFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.UserQuestionnaireMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserQuestionnaireMutation", m)
 }
 
 // Condition is a hook condition function.

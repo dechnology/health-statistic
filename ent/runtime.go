@@ -7,9 +7,9 @@ import (
 
 	"github.com/eesoymilk/health-statistic-api/ent/answer"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaire"
+	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
 	"github.com/eesoymilk/health-statistic-api/ent/schema"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
-	"github.com/eesoymilk/health-statistic-api/ent/userquestionnaire"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -28,6 +28,12 @@ func init() {
 	questionnaireDescCreatedAt := questionnaireFields[1].Descriptor()
 	// questionnaire.DefaultCreatedAt holds the default value on creation for the created_at field.
 	questionnaire.DefaultCreatedAt = questionnaireDescCreatedAt.Default.(func() time.Time)
+	questionnaireresponseFields := schema.QuestionnaireResponse{}.Fields()
+	_ = questionnaireresponseFields
+	// questionnaireresponseDescCreatedAt is the schema descriptor for created_at field.
+	questionnaireresponseDescCreatedAt := questionnaireresponseFields[0].Descriptor()
+	// questionnaireresponse.DefaultCreatedAt holds the default value on creation for the created_at field.
+	questionnaireresponse.DefaultCreatedAt = questionnaireresponseDescCreatedAt.Default.(func() time.Time)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescCreatedAt is the schema descriptor for created_at field.
@@ -60,10 +66,4 @@ func init() {
 	userDescMedicationStatus := userFields[11].Descriptor()
 	// user.MedicationStatusValidator is a validator for the "medication_status" field. It is called by the builders before save.
 	user.MedicationStatusValidator = userDescMedicationStatus.Validators[0].(func(string) error)
-	userquestionnaireFields := schema.UserQuestionnaire{}.Fields()
-	_ = userquestionnaireFields
-	// userquestionnaireDescCreatedAt is the schema descriptor for created_at field.
-	userquestionnaireDescCreatedAt := userquestionnaireFields[0].Descriptor()
-	// userquestionnaire.DefaultCreatedAt holds the default value on creation for the created_at field.
-	userquestionnaire.DefaultCreatedAt = userquestionnaireDescCreatedAt.Default.(func() time.Time)
 }

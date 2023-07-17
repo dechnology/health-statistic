@@ -14,18 +14,18 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
 	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaire"
-	"github.com/eesoymilk/health-statistic-api/ent/userquestionnaire"
+	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
 )
 
 // QuestionnaireQuery is the builder for querying Questionnaire entities.
 type QuestionnaireQuery struct {
 	config
-	ctx           *QueryContext
-	order         []questionnaire.OrderOption
-	inters        []Interceptor
-	predicates    []predicate.Questionnaire
-	withQuestions *QuestionQuery
-	withResponses *UserQuestionnaireQuery
+	ctx                        *QueryContext
+	order                      []questionnaire.OrderOption
+	inters                     []Interceptor
+	predicates                 []predicate.Questionnaire
+	withQuestions              *QuestionQuery
+	withQuestionnaireResponses *QuestionnaireResponseQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -84,9 +84,9 @@ func (qq *QuestionnaireQuery) QueryQuestions() *QuestionQuery {
 	return query
 }
 
-// QueryResponses chains the current query on the "responses" edge.
-func (qq *QuestionnaireQuery) QueryResponses() *UserQuestionnaireQuery {
-	query := (&UserQuestionnaireClient{config: qq.config}).Query()
+// QueryQuestionnaireResponses chains the current query on the "questionnaire_responses" edge.
+func (qq *QuestionnaireQuery) QueryQuestionnaireResponses() *QuestionnaireResponseQuery {
+	query := (&QuestionnaireResponseClient{config: qq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := qq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -97,8 +97,8 @@ func (qq *QuestionnaireQuery) QueryResponses() *UserQuestionnaireQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(questionnaire.Table, questionnaire.FieldID, selector),
-			sqlgraph.To(userquestionnaire.Table, userquestionnaire.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, questionnaire.ResponsesTable, questionnaire.ResponsesColumn),
+			sqlgraph.To(questionnaireresponse.Table, questionnaireresponse.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, questionnaire.QuestionnaireResponsesTable, questionnaire.QuestionnaireResponsesPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(qq.driver.Dialect(), step)
 		return fromU, nil
@@ -293,13 +293,13 @@ func (qq *QuestionnaireQuery) Clone() *QuestionnaireQuery {
 		return nil
 	}
 	return &QuestionnaireQuery{
-		config:        qq.config,
-		ctx:           qq.ctx.Clone(),
-		order:         append([]questionnaire.OrderOption{}, qq.order...),
-		inters:        append([]Interceptor{}, qq.inters...),
-		predicates:    append([]predicate.Questionnaire{}, qq.predicates...),
-		withQuestions: qq.withQuestions.Clone(),
-		withResponses: qq.withResponses.Clone(),
+		config:                     qq.config,
+		ctx:                        qq.ctx.Clone(),
+		order:                      append([]questionnaire.OrderOption{}, qq.order...),
+		inters:                     append([]Interceptor{}, qq.inters...),
+		predicates:                 append([]predicate.Questionnaire{}, qq.predicates...),
+		withQuestions:              qq.withQuestions.Clone(),
+		withQuestionnaireResponses: qq.withQuestionnaireResponses.Clone(),
 		// clone intermediate query.
 		sql:  qq.sql.Clone(),
 		path: qq.path,
@@ -317,14 +317,14 @@ func (qq *QuestionnaireQuery) WithQuestions(opts ...func(*QuestionQuery)) *Quest
 	return qq
 }
 
-// WithResponses tells the query-builder to eager-load the nodes that are connected to
-// the "responses" edge. The optional arguments are used to configure the query builder of the edge.
-func (qq *QuestionnaireQuery) WithResponses(opts ...func(*UserQuestionnaireQuery)) *QuestionnaireQuery {
-	query := (&UserQuestionnaireClient{config: qq.config}).Query()
+// WithQuestionnaireResponses tells the query-builder to eager-load the nodes that are connected to
+// the "questionnaire_responses" edge. The optional arguments are used to configure the query builder of the edge.
+func (qq *QuestionnaireQuery) WithQuestionnaireResponses(opts ...func(*QuestionnaireResponseQuery)) *QuestionnaireQuery {
+	query := (&QuestionnaireResponseClient{config: qq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	qq.withResponses = query
+	qq.withQuestionnaireResponses = query
 	return qq
 }
 
@@ -408,7 +408,7 @@ func (qq *QuestionnaireQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 		_spec       = qq.querySpec()
 		loadedTypes = [2]bool{
 			qq.withQuestions != nil,
-			qq.withResponses != nil,
+			qq.withQuestionnaireResponses != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -436,10 +436,12 @@ func (qq *QuestionnaireQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 			return nil, err
 		}
 	}
-	if query := qq.withResponses; query != nil {
-		if err := qq.loadResponses(ctx, query, nodes,
-			func(n *Questionnaire) { n.Edges.Responses = []*UserQuestionnaire{} },
-			func(n *Questionnaire, e *UserQuestionnaire) { n.Edges.Responses = append(n.Edges.Responses, e) }); err != nil {
+	if query := qq.withQuestionnaireResponses; query != nil {
+		if err := qq.loadQuestionnaireResponses(ctx, query, nodes,
+			func(n *Questionnaire) { n.Edges.QuestionnaireResponses = []*QuestionnaireResponse{} },
+			func(n *Questionnaire, e *QuestionnaireResponse) {
+				n.Edges.QuestionnaireResponses = append(n.Edges.QuestionnaireResponses, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -477,34 +479,64 @@ func (qq *QuestionnaireQuery) loadQuestions(ctx context.Context, query *Question
 	}
 	return nil
 }
-func (qq *QuestionnaireQuery) loadResponses(ctx context.Context, query *UserQuestionnaireQuery, nodes []*Questionnaire, init func(*Questionnaire), assign func(*Questionnaire, *UserQuestionnaire)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int]*Questionnaire)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
+func (qq *QuestionnaireQuery) loadQuestionnaireResponses(ctx context.Context, query *QuestionnaireResponseQuery, nodes []*Questionnaire, init func(*Questionnaire), assign func(*Questionnaire, *QuestionnaireResponse)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*Questionnaire)
+	nids := make(map[int]map[*Questionnaire]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
 		if init != nil {
-			init(nodes[i])
+			init(node)
 		}
 	}
-	query.withFKs = true
-	query.Where(predicate.UserQuestionnaire(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(questionnaire.ResponsesColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(questionnaire.QuestionnaireResponsesTable)
+		s.Join(joinT).On(s.C(questionnaireresponse.FieldID), joinT.C(questionnaire.QuestionnaireResponsesPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(questionnaire.QuestionnaireResponsesPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(questionnaire.QuestionnaireResponsesPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Questionnaire]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*QuestionnaireResponse](ctx, query, qr, query.inters)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.questionnaire_responses
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "questionnaire_responses" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		nodes, ok := nids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "questionnaire_responses" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected "questionnaire_responses" node returned %v`, n.ID)
 		}
-		assign(node, n)
+		for kn := range nodes {
+			assign(kn, n)
+		}
 	}
 	return nil
 }
