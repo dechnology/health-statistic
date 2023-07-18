@@ -216,10 +216,10 @@ func (qu *QuestionnaireUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if qu.mutation.QuestionnaireResponsesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   questionnaire.QuestionnaireResponsesTable,
-			Columns: questionnaire.QuestionnaireResponsesPrimaryKey,
+			Columns: []string{questionnaire.QuestionnaireResponsesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
@@ -229,10 +229,10 @@ func (qu *QuestionnaireUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if nodes := qu.mutation.RemovedQuestionnaireResponsesIDs(); len(nodes) > 0 && !qu.mutation.QuestionnaireResponsesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   questionnaire.QuestionnaireResponsesTable,
-			Columns: questionnaire.QuestionnaireResponsesPrimaryKey,
+			Columns: []string{questionnaire.QuestionnaireResponsesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
@@ -245,10 +245,10 @@ func (qu *QuestionnaireUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if nodes := qu.mutation.QuestionnaireResponsesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   questionnaire.QuestionnaireResponsesTable,
-			Columns: questionnaire.QuestionnaireResponsesPrimaryKey,
+			Columns: []string{questionnaire.QuestionnaireResponsesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
@@ -495,10 +495,10 @@ func (quo *QuestionnaireUpdateOne) sqlSave(ctx context.Context) (_node *Question
 	}
 	if quo.mutation.QuestionnaireResponsesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   questionnaire.QuestionnaireResponsesTable,
-			Columns: questionnaire.QuestionnaireResponsesPrimaryKey,
+			Columns: []string{questionnaire.QuestionnaireResponsesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
@@ -508,10 +508,10 @@ func (quo *QuestionnaireUpdateOne) sqlSave(ctx context.Context) (_node *Question
 	}
 	if nodes := quo.mutation.RemovedQuestionnaireResponsesIDs(); len(nodes) > 0 && !quo.mutation.QuestionnaireResponsesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   questionnaire.QuestionnaireResponsesTable,
-			Columns: questionnaire.QuestionnaireResponsesPrimaryKey,
+			Columns: []string{questionnaire.QuestionnaireResponsesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
@@ -524,10 +524,10 @@ func (quo *QuestionnaireUpdateOne) sqlSave(ctx context.Context) (_node *Question
 	}
 	if nodes := quo.mutation.QuestionnaireResponsesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   questionnaire.QuestionnaireResponsesTable,
-			Columns: questionnaire.QuestionnaireResponsesPrimaryKey,
+			Columns: []string{questionnaire.QuestionnaireResponsesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),

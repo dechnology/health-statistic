@@ -61,23 +61,23 @@ func (ac *AnswerCreate) SetQuestion(q *Question) *AnswerCreate {
 	return ac.SetQuestionID(q.ID)
 }
 
-// SetUserQuestionnaireID sets the "user_questionnaire" edge to the QuestionnaireResponse entity by ID.
-func (ac *AnswerCreate) SetUserQuestionnaireID(id int) *AnswerCreate {
-	ac.mutation.SetUserQuestionnaireID(id)
+// SetQuestionnaireResponseID sets the "questionnaire_response" edge to the QuestionnaireResponse entity by ID.
+func (ac *AnswerCreate) SetQuestionnaireResponseID(id int) *AnswerCreate {
+	ac.mutation.SetQuestionnaireResponseID(id)
 	return ac
 }
 
-// SetNillableUserQuestionnaireID sets the "user_questionnaire" edge to the QuestionnaireResponse entity by ID if the given value is not nil.
-func (ac *AnswerCreate) SetNillableUserQuestionnaireID(id *int) *AnswerCreate {
+// SetNillableQuestionnaireResponseID sets the "questionnaire_response" edge to the QuestionnaireResponse entity by ID if the given value is not nil.
+func (ac *AnswerCreate) SetNillableQuestionnaireResponseID(id *int) *AnswerCreate {
 	if id != nil {
-		ac = ac.SetUserQuestionnaireID(*id)
+		ac = ac.SetQuestionnaireResponseID(*id)
 	}
 	return ac
 }
 
-// SetUserQuestionnaire sets the "user_questionnaire" edge to the QuestionnaireResponse entity.
-func (ac *AnswerCreate) SetUserQuestionnaire(q *QuestionnaireResponse) *AnswerCreate {
-	return ac.SetUserQuestionnaireID(q.ID)
+// SetQuestionnaireResponse sets the "questionnaire_response" edge to the QuestionnaireResponse entity.
+func (ac *AnswerCreate) SetQuestionnaireResponse(q *QuestionnaireResponse) *AnswerCreate {
+	return ac.SetQuestionnaireResponseID(q.ID)
 }
 
 // Mutation returns the AnswerMutation object of the builder.
@@ -180,12 +180,12 @@ func (ac *AnswerCreate) createSpec() (*Answer, *sqlgraph.CreateSpec) {
 		_node.question_answers = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := ac.mutation.UserQuestionnaireIDs(); len(nodes) > 0 {
+	if nodes := ac.mutation.QuestionnaireResponseIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   answer.UserQuestionnaireTable,
-			Columns: []string{answer.UserQuestionnaireColumn},
+			Table:   answer.QuestionnaireResponseTable,
+			Columns: []string{answer.QuestionnaireResponseColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),

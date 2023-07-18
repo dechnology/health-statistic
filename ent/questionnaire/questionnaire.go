@@ -31,11 +31,13 @@ const (
 	QuestionsInverseTable = "questions"
 	// QuestionsColumn is the table column denoting the questions relation/edge.
 	QuestionsColumn = "questionnaire_questions"
-	// QuestionnaireResponsesTable is the table that holds the questionnaire_responses relation/edge. The primary key declared below.
-	QuestionnaireResponsesTable = "questionnaire_questionnaire_responses"
+	// QuestionnaireResponsesTable is the table that holds the questionnaire_responses relation/edge.
+	QuestionnaireResponsesTable = "questionnaire_responses"
 	// QuestionnaireResponsesInverseTable is the table name for the QuestionnaireResponse entity.
 	// It exists in this package in order to avoid circular dependency with the "questionnaireresponse" package.
 	QuestionnaireResponsesInverseTable = "questionnaire_responses"
+	// QuestionnaireResponsesColumn is the table column denoting the questionnaire_responses relation/edge.
+	QuestionnaireResponsesColumn = "questionnaire_questionnaire_responses"
 )
 
 // Columns holds all SQL columns for questionnaire fields.
@@ -44,12 +46,6 @@ var Columns = []string{
 	FieldName,
 	FieldCreatedAt,
 }
-
-var (
-	// QuestionnaireResponsesPrimaryKey and QuestionnaireResponsesColumn2 are the table columns denoting the
-	// primary key for the questionnaire_responses relation (M2M).
-	QuestionnaireResponsesPrimaryKey = []string{"questionnaire_id", "questionnaire_response_id"}
-)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -122,6 +118,6 @@ func newQuestionnaireResponsesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(QuestionnaireResponsesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, QuestionnaireResponsesTable, QuestionnaireResponsesPrimaryKey...),
+		sqlgraph.Edge(sqlgraph.O2M, false, QuestionnaireResponsesTable, QuestionnaireResponsesColumn),
 	)
 }

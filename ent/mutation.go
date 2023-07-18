@@ -38,19 +38,19 @@ const (
 // AnswerMutation represents an operation that mutates the Answer nodes in the graph.
 type AnswerMutation struct {
 	config
-	op                        Op
-	typ                       string
-	id                        *int
-	created_at                *time.Time
-	body                      *string
-	clearedFields             map[string]struct{}
-	question                  *int
-	clearedquestion           bool
-	user_questionnaire        *int
-	cleareduser_questionnaire bool
-	done                      bool
-	oldValue                  func(context.Context) (*Answer, error)
-	predicates                []predicate.Answer
+	op                            Op
+	typ                           string
+	id                            *int
+	created_at                    *time.Time
+	body                          *string
+	clearedFields                 map[string]struct{}
+	question                      *int
+	clearedquestion               bool
+	questionnaire_response        *int
+	clearedquestionnaire_response bool
+	done                          bool
+	oldValue                      func(context.Context) (*Answer, error)
+	predicates                    []predicate.Answer
 }
 
 var _ ent.Mutation = (*AnswerMutation)(nil)
@@ -262,43 +262,43 @@ func (m *AnswerMutation) ResetQuestion() {
 	m.clearedquestion = false
 }
 
-// SetUserQuestionnaireID sets the "user_questionnaire" edge to the QuestionnaireResponse entity by id.
-func (m *AnswerMutation) SetUserQuestionnaireID(id int) {
-	m.user_questionnaire = &id
+// SetQuestionnaireResponseID sets the "questionnaire_response" edge to the QuestionnaireResponse entity by id.
+func (m *AnswerMutation) SetQuestionnaireResponseID(id int) {
+	m.questionnaire_response = &id
 }
 
-// ClearUserQuestionnaire clears the "user_questionnaire" edge to the QuestionnaireResponse entity.
-func (m *AnswerMutation) ClearUserQuestionnaire() {
-	m.cleareduser_questionnaire = true
+// ClearQuestionnaireResponse clears the "questionnaire_response" edge to the QuestionnaireResponse entity.
+func (m *AnswerMutation) ClearQuestionnaireResponse() {
+	m.clearedquestionnaire_response = true
 }
 
-// UserQuestionnaireCleared reports if the "user_questionnaire" edge to the QuestionnaireResponse entity was cleared.
-func (m *AnswerMutation) UserQuestionnaireCleared() bool {
-	return m.cleareduser_questionnaire
+// QuestionnaireResponseCleared reports if the "questionnaire_response" edge to the QuestionnaireResponse entity was cleared.
+func (m *AnswerMutation) QuestionnaireResponseCleared() bool {
+	return m.clearedquestionnaire_response
 }
 
-// UserQuestionnaireID returns the "user_questionnaire" edge ID in the mutation.
-func (m *AnswerMutation) UserQuestionnaireID() (id int, exists bool) {
-	if m.user_questionnaire != nil {
-		return *m.user_questionnaire, true
+// QuestionnaireResponseID returns the "questionnaire_response" edge ID in the mutation.
+func (m *AnswerMutation) QuestionnaireResponseID() (id int, exists bool) {
+	if m.questionnaire_response != nil {
+		return *m.questionnaire_response, true
 	}
 	return
 }
 
-// UserQuestionnaireIDs returns the "user_questionnaire" edge IDs in the mutation.
+// QuestionnaireResponseIDs returns the "questionnaire_response" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// UserQuestionnaireID instead. It exists only for internal usage by the builders.
-func (m *AnswerMutation) UserQuestionnaireIDs() (ids []int) {
-	if id := m.user_questionnaire; id != nil {
+// QuestionnaireResponseID instead. It exists only for internal usage by the builders.
+func (m *AnswerMutation) QuestionnaireResponseIDs() (ids []int) {
+	if id := m.questionnaire_response; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetUserQuestionnaire resets all changes to the "user_questionnaire" edge.
-func (m *AnswerMutation) ResetUserQuestionnaire() {
-	m.user_questionnaire = nil
-	m.cleareduser_questionnaire = false
+// ResetQuestionnaireResponse resets all changes to the "questionnaire_response" edge.
+func (m *AnswerMutation) ResetQuestionnaireResponse() {
+	m.questionnaire_response = nil
+	m.clearedquestionnaire_response = false
 }
 
 // Where appends a list predicates to the AnswerMutation builder.
@@ -455,8 +455,8 @@ func (m *AnswerMutation) AddedEdges() []string {
 	if m.question != nil {
 		edges = append(edges, answer.EdgeQuestion)
 	}
-	if m.user_questionnaire != nil {
-		edges = append(edges, answer.EdgeUserQuestionnaire)
+	if m.questionnaire_response != nil {
+		edges = append(edges, answer.EdgeQuestionnaireResponse)
 	}
 	return edges
 }
@@ -469,8 +469,8 @@ func (m *AnswerMutation) AddedIDs(name string) []ent.Value {
 		if id := m.question; id != nil {
 			return []ent.Value{*id}
 		}
-	case answer.EdgeUserQuestionnaire:
-		if id := m.user_questionnaire; id != nil {
+	case answer.EdgeQuestionnaireResponse:
+		if id := m.questionnaire_response; id != nil {
 			return []ent.Value{*id}
 		}
 	}
@@ -495,8 +495,8 @@ func (m *AnswerMutation) ClearedEdges() []string {
 	if m.clearedquestion {
 		edges = append(edges, answer.EdgeQuestion)
 	}
-	if m.cleareduser_questionnaire {
-		edges = append(edges, answer.EdgeUserQuestionnaire)
+	if m.clearedquestionnaire_response {
+		edges = append(edges, answer.EdgeQuestionnaireResponse)
 	}
 	return edges
 }
@@ -507,8 +507,8 @@ func (m *AnswerMutation) EdgeCleared(name string) bool {
 	switch name {
 	case answer.EdgeQuestion:
 		return m.clearedquestion
-	case answer.EdgeUserQuestionnaire:
-		return m.cleareduser_questionnaire
+	case answer.EdgeQuestionnaireResponse:
+		return m.clearedquestionnaire_response
 	}
 	return false
 }
@@ -520,8 +520,8 @@ func (m *AnswerMutation) ClearEdge(name string) error {
 	case answer.EdgeQuestion:
 		m.ClearQuestion()
 		return nil
-	case answer.EdgeUserQuestionnaire:
-		m.ClearUserQuestionnaire()
+	case answer.EdgeQuestionnaireResponse:
+		m.ClearQuestionnaireResponse()
 		return nil
 	}
 	return fmt.Errorf("unknown Answer unique edge %s", name)
@@ -534,8 +534,8 @@ func (m *AnswerMutation) ResetEdge(name string) error {
 	case answer.EdgeQuestion:
 		m.ResetQuestion()
 		return nil
-	case answer.EdgeUserQuestionnaire:
-		m.ResetUserQuestionnaire()
+	case answer.EdgeQuestionnaireResponse:
+		m.ResetQuestionnaireResponse()
 		return nil
 	}
 	return fmt.Errorf("unknown Answer edge %s", name)
@@ -1637,11 +1637,9 @@ type QuestionnaireResponseMutation struct {
 	id                   *int
 	created_at           *time.Time
 	clearedFields        map[string]struct{}
-	user                 map[string]struct{}
-	removeduser          map[string]struct{}
+	user                 *string
 	cleareduser          bool
-	questionnaire        map[int]struct{}
-	removedquestionnaire map[int]struct{}
+	questionnaire        *int
 	clearedquestionnaire bool
 	answers              map[int]struct{}
 	removedanswers       map[int]struct{}
@@ -1785,14 +1783,9 @@ func (m *QuestionnaireResponseMutation) ResetCreatedAt() {
 	m.created_at = nil
 }
 
-// AddUserIDs adds the "user" edge to the User entity by ids.
-func (m *QuestionnaireResponseMutation) AddUserIDs(ids ...string) {
-	if m.user == nil {
-		m.user = make(map[string]struct{})
-	}
-	for i := range ids {
-		m.user[ids[i]] = struct{}{}
-	}
+// SetUserID sets the "user" edge to the User entity by id.
+func (m *QuestionnaireResponseMutation) SetUserID(id string) {
+	m.user = &id
 }
 
 // ClearUser clears the "user" edge to the User entity.
@@ -1805,29 +1798,20 @@ func (m *QuestionnaireResponseMutation) UserCleared() bool {
 	return m.cleareduser
 }
 
-// RemoveUserIDs removes the "user" edge to the User entity by IDs.
-func (m *QuestionnaireResponseMutation) RemoveUserIDs(ids ...string) {
-	if m.removeduser == nil {
-		m.removeduser = make(map[string]struct{})
-	}
-	for i := range ids {
-		delete(m.user, ids[i])
-		m.removeduser[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedUser returns the removed IDs of the "user" edge to the User entity.
-func (m *QuestionnaireResponseMutation) RemovedUserIDs() (ids []string) {
-	for id := range m.removeduser {
-		ids = append(ids, id)
+// UserID returns the "user" edge ID in the mutation.
+func (m *QuestionnaireResponseMutation) UserID() (id string, exists bool) {
+	if m.user != nil {
+		return *m.user, true
 	}
 	return
 }
 
 // UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
 func (m *QuestionnaireResponseMutation) UserIDs() (ids []string) {
-	for id := range m.user {
-		ids = append(ids, id)
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
 	}
 	return
 }
@@ -1836,17 +1820,11 @@ func (m *QuestionnaireResponseMutation) UserIDs() (ids []string) {
 func (m *QuestionnaireResponseMutation) ResetUser() {
 	m.user = nil
 	m.cleareduser = false
-	m.removeduser = nil
 }
 
-// AddQuestionnaireIDs adds the "questionnaire" edge to the Questionnaire entity by ids.
-func (m *QuestionnaireResponseMutation) AddQuestionnaireIDs(ids ...int) {
-	if m.questionnaire == nil {
-		m.questionnaire = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.questionnaire[ids[i]] = struct{}{}
-	}
+// SetQuestionnaireID sets the "questionnaire" edge to the Questionnaire entity by id.
+func (m *QuestionnaireResponseMutation) SetQuestionnaireID(id int) {
+	m.questionnaire = &id
 }
 
 // ClearQuestionnaire clears the "questionnaire" edge to the Questionnaire entity.
@@ -1859,29 +1837,20 @@ func (m *QuestionnaireResponseMutation) QuestionnaireCleared() bool {
 	return m.clearedquestionnaire
 }
 
-// RemoveQuestionnaireIDs removes the "questionnaire" edge to the Questionnaire entity by IDs.
-func (m *QuestionnaireResponseMutation) RemoveQuestionnaireIDs(ids ...int) {
-	if m.removedquestionnaire == nil {
-		m.removedquestionnaire = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.questionnaire, ids[i])
-		m.removedquestionnaire[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedQuestionnaire returns the removed IDs of the "questionnaire" edge to the Questionnaire entity.
-func (m *QuestionnaireResponseMutation) RemovedQuestionnaireIDs() (ids []int) {
-	for id := range m.removedquestionnaire {
-		ids = append(ids, id)
+// QuestionnaireID returns the "questionnaire" edge ID in the mutation.
+func (m *QuestionnaireResponseMutation) QuestionnaireID() (id int, exists bool) {
+	if m.questionnaire != nil {
+		return *m.questionnaire, true
 	}
 	return
 }
 
 // QuestionnaireIDs returns the "questionnaire" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// QuestionnaireID instead. It exists only for internal usage by the builders.
 func (m *QuestionnaireResponseMutation) QuestionnaireIDs() (ids []int) {
-	for id := range m.questionnaire {
-		ids = append(ids, id)
+	if id := m.questionnaire; id != nil {
+		ids = append(ids, *id)
 	}
 	return
 }
@@ -1890,7 +1859,6 @@ func (m *QuestionnaireResponseMutation) QuestionnaireIDs() (ids []int) {
 func (m *QuestionnaireResponseMutation) ResetQuestionnaire() {
 	m.questionnaire = nil
 	m.clearedquestionnaire = false
-	m.removedquestionnaire = nil
 }
 
 // AddAnswerIDs adds the "answers" edge to the Answer entity by ids.
@@ -2098,17 +2066,13 @@ func (m *QuestionnaireResponseMutation) AddedEdges() []string {
 func (m *QuestionnaireResponseMutation) AddedIDs(name string) []ent.Value {
 	switch name {
 	case questionnaireresponse.EdgeUser:
-		ids := make([]ent.Value, 0, len(m.user))
-		for id := range m.user {
-			ids = append(ids, id)
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
 		}
-		return ids
 	case questionnaireresponse.EdgeQuestionnaire:
-		ids := make([]ent.Value, 0, len(m.questionnaire))
-		for id := range m.questionnaire {
-			ids = append(ids, id)
+		if id := m.questionnaire; id != nil {
+			return []ent.Value{*id}
 		}
-		return ids
 	case questionnaireresponse.EdgeAnswers:
 		ids := make([]ent.Value, 0, len(m.answers))
 		for id := range m.answers {
@@ -2122,12 +2086,6 @@ func (m *QuestionnaireResponseMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *QuestionnaireResponseMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 3)
-	if m.removeduser != nil {
-		edges = append(edges, questionnaireresponse.EdgeUser)
-	}
-	if m.removedquestionnaire != nil {
-		edges = append(edges, questionnaireresponse.EdgeQuestionnaire)
-	}
 	if m.removedanswers != nil {
 		edges = append(edges, questionnaireresponse.EdgeAnswers)
 	}
@@ -2138,18 +2096,6 @@ func (m *QuestionnaireResponseMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *QuestionnaireResponseMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case questionnaireresponse.EdgeUser:
-		ids := make([]ent.Value, 0, len(m.removeduser))
-		for id := range m.removeduser {
-			ids = append(ids, id)
-		}
-		return ids
-	case questionnaireresponse.EdgeQuestionnaire:
-		ids := make([]ent.Value, 0, len(m.removedquestionnaire))
-		for id := range m.removedquestionnaire {
-			ids = append(ids, id)
-		}
-		return ids
 	case questionnaireresponse.EdgeAnswers:
 		ids := make([]ent.Value, 0, len(m.removedanswers))
 		for id := range m.removedanswers {
@@ -2193,6 +2139,12 @@ func (m *QuestionnaireResponseMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *QuestionnaireResponseMutation) ClearEdge(name string) error {
 	switch name {
+	case questionnaireresponse.EdgeUser:
+		m.ClearUser()
+		return nil
+	case questionnaireresponse.EdgeQuestionnaire:
+		m.ClearQuestionnaire()
+		return nil
 	}
 	return fmt.Errorf("unknown QuestionnaireResponse unique edge %s", name)
 }

@@ -337,15 +337,15 @@ func (c *AnswerClient) QueryQuestion(a *Answer) *QuestionQuery {
 	return query
 }
 
-// QueryUserQuestionnaire queries the user_questionnaire edge of a Answer.
-func (c *AnswerClient) QueryUserQuestionnaire(a *Answer) *QuestionnaireResponseQuery {
+// QueryQuestionnaireResponse queries the questionnaire_response edge of a Answer.
+func (c *AnswerClient) QueryQuestionnaireResponse(a *Answer) *QuestionnaireResponseQuery {
 	query := (&QuestionnaireResponseClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := a.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(answer.Table, answer.FieldID, id),
 			sqlgraph.To(questionnaireresponse.Table, questionnaireresponse.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, answer.UserQuestionnaireTable, answer.UserQuestionnaireColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, answer.QuestionnaireResponseTable, answer.QuestionnaireResponseColumn),
 		)
 		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
 		return fromV, nil
@@ -645,7 +645,7 @@ func (c *QuestionnaireClient) QueryQuestionnaireResponses(q *Questionnaire) *Que
 		step := sqlgraph.NewStep(
 			sqlgraph.From(questionnaire.Table, questionnaire.FieldID, id),
 			sqlgraph.To(questionnaireresponse.Table, questionnaireresponse.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, questionnaire.QuestionnaireResponsesTable, questionnaire.QuestionnaireResponsesPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, questionnaire.QuestionnaireResponsesTable, questionnaire.QuestionnaireResponsesColumn),
 		)
 		fromV = sqlgraph.Neighbors(q.driver.Dialect(), step)
 		return fromV, nil
@@ -779,7 +779,7 @@ func (c *QuestionnaireResponseClient) QueryUser(qr *QuestionnaireResponse) *User
 		step := sqlgraph.NewStep(
 			sqlgraph.From(questionnaireresponse.Table, questionnaireresponse.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, questionnaireresponse.UserTable, questionnaireresponse.UserPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, questionnaireresponse.UserTable, questionnaireresponse.UserColumn),
 		)
 		fromV = sqlgraph.Neighbors(qr.driver.Dialect(), step)
 		return fromV, nil
@@ -795,7 +795,7 @@ func (c *QuestionnaireResponseClient) QueryQuestionnaire(qr *QuestionnaireRespon
 		step := sqlgraph.NewStep(
 			sqlgraph.From(questionnaireresponse.Table, questionnaireresponse.FieldID, id),
 			sqlgraph.To(questionnaire.Table, questionnaire.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, questionnaireresponse.QuestionnaireTable, questionnaireresponse.QuestionnairePrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, questionnaireresponse.QuestionnaireTable, questionnaireresponse.QuestionnaireColumn),
 		)
 		fromV = sqlgraph.Neighbors(qr.driver.Dialect(), step)
 		return fromV, nil
@@ -945,7 +945,7 @@ func (c *UserClient) QueryQuestionnaireResponses(u *User) *QuestionnaireResponse
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(questionnaireresponse.Table, questionnaireresponse.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, user.QuestionnaireResponsesTable, user.QuestionnaireResponsesPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.QuestionnaireResponsesTable, user.QuestionnaireResponsesColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

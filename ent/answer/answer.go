@@ -20,8 +20,8 @@ const (
 	FieldBody = "body"
 	// EdgeQuestion holds the string denoting the question edge name in mutations.
 	EdgeQuestion = "question"
-	// EdgeUserQuestionnaire holds the string denoting the user_questionnaire edge name in mutations.
-	EdgeUserQuestionnaire = "user_questionnaire"
+	// EdgeQuestionnaireResponse holds the string denoting the questionnaire_response edge name in mutations.
+	EdgeQuestionnaireResponse = "questionnaire_response"
 	// Table holds the table name of the answer in the database.
 	Table = "answers"
 	// QuestionTable is the table that holds the question relation/edge.
@@ -31,13 +31,13 @@ const (
 	QuestionInverseTable = "questions"
 	// QuestionColumn is the table column denoting the question relation/edge.
 	QuestionColumn = "question_answers"
-	// UserQuestionnaireTable is the table that holds the user_questionnaire relation/edge.
-	UserQuestionnaireTable = "answers"
-	// UserQuestionnaireInverseTable is the table name for the QuestionnaireResponse entity.
+	// QuestionnaireResponseTable is the table that holds the questionnaire_response relation/edge.
+	QuestionnaireResponseTable = "answers"
+	// QuestionnaireResponseInverseTable is the table name for the QuestionnaireResponse entity.
 	// It exists in this package in order to avoid circular dependency with the "questionnaireresponse" package.
-	UserQuestionnaireInverseTable = "questionnaire_responses"
-	// UserQuestionnaireColumn is the table column denoting the user_questionnaire relation/edge.
-	UserQuestionnaireColumn = "questionnaire_response_answers"
+	QuestionnaireResponseInverseTable = "questionnaire_responses"
+	// QuestionnaireResponseColumn is the table column denoting the questionnaire_response relation/edge.
+	QuestionnaireResponseColumn = "questionnaire_response_answers"
 )
 
 // Columns holds all SQL columns for answer fields.
@@ -99,10 +99,10 @@ func ByQuestionField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
-// ByUserQuestionnaireField orders the results by user_questionnaire field.
-func ByUserQuestionnaireField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByQuestionnaireResponseField orders the results by questionnaire_response field.
+func ByQuestionnaireResponseField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newUserQuestionnaireStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborTerms(s, newQuestionnaireResponseStep(), sql.OrderByField(field, opts...))
 	}
 }
 func newQuestionStep() *sqlgraph.Step {
@@ -112,10 +112,10 @@ func newQuestionStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2O, true, QuestionTable, QuestionColumn),
 	)
 }
-func newUserQuestionnaireStep() *sqlgraph.Step {
+func newQuestionnaireResponseStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(UserQuestionnaireInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, UserQuestionnaireTable, UserQuestionnaireColumn),
+		sqlgraph.To(QuestionnaireResponseInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, QuestionnaireResponseTable, QuestionnaireResponseColumn),
 	)
 }

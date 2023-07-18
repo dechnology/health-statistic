@@ -24,9 +24,11 @@ func (QuestionnaireResponse) Fields() []ent.Field {
 func (QuestionnaireResponse) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("user", User.Type).
-			Ref("questionnaire_responses"),
+			Ref("questionnaire_responses").
+			Unique(),
 		edge.From("questionnaire", Questionnaire.Type).
-			Ref("questionnaire_responses"),
+			Ref("questionnaire_responses").
+			Unique(),
 		edge.To("answers", Answer.Type),
 	}
 }

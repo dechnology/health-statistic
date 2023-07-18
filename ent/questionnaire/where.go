@@ -198,7 +198,7 @@ func HasQuestionnaireResponses() predicate.Questionnaire {
 	return predicate.Questionnaire(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, QuestionnaireResponsesTable, QuestionnaireResponsesPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, QuestionnaireResponsesTable, QuestionnaireResponsesColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})

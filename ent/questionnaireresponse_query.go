@@ -28,6 +28,7 @@ type QuestionnaireResponseQuery struct {
 	withUser          *UserQuery
 	withQuestionnaire *QuestionnaireQuery
 	withAnswers       *AnswerQuery
+	withFKs           bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -78,7 +79,7 @@ func (qrq *QuestionnaireResponseQuery) QueryUser() *UserQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(questionnaireresponse.Table, questionnaireresponse.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, questionnaireresponse.UserTable, questionnaireresponse.UserPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, questionnaireresponse.UserTable, questionnaireresponse.UserColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(qrq.driver.Dialect(), step)
 		return fromU, nil
@@ -100,7 +101,7 @@ func (qrq *QuestionnaireResponseQuery) QueryQuestionnaire() *QuestionnaireQuery 
 		step := sqlgraph.NewStep(
 			sqlgraph.From(questionnaireresponse.Table, questionnaireresponse.FieldID, selector),
 			sqlgraph.To(questionnaire.Table, questionnaire.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, questionnaireresponse.QuestionnaireTable, questionnaireresponse.QuestionnairePrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, questionnaireresponse.QuestionnaireTable, questionnaireresponse.QuestionnaireColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(qrq.driver.Dialect(), step)
 		return fromU, nil
@@ -441,6 +442,7 @@ func (qrq *QuestionnaireResponseQuery) prepareQuery(ctx context.Context) error {
 func (qrq *QuestionnaireResponseQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*QuestionnaireResponse, error) {
 	var (
 		nodes       = []*QuestionnaireResponse{}
+		withFKs     = qrq.withFKs
 		_spec       = qrq.querySpec()
 		loadedTypes = [3]bool{
 			qrq.withUser != nil,
@@ -448,6 +450,12 @@ func (qrq *QuestionnaireResponseQuery) sqlAll(ctx context.Context, hooks ...quer
 			qrq.withAnswers != nil,
 		}
 	)
+	if qrq.withUser != nil || qrq.withQuestionnaire != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, questionnaireresponse.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*QuestionnaireResponse).scanValues(nil, columns)
 	}
@@ -467,18 +475,14 @@ func (qrq *QuestionnaireResponseQuery) sqlAll(ctx context.Context, hooks ...quer
 		return nodes, nil
 	}
 	if query := qrq.withUser; query != nil {
-		if err := qrq.loadUser(ctx, query, nodes,
-			func(n *QuestionnaireResponse) { n.Edges.User = []*User{} },
-			func(n *QuestionnaireResponse, e *User) { n.Edges.User = append(n.Edges.User, e) }); err != nil {
+		if err := qrq.loadUser(ctx, query, nodes, nil,
+			func(n *QuestionnaireResponse, e *User) { n.Edges.User = e }); err != nil {
 			return nil, err
 		}
 	}
 	if query := qrq.withQuestionnaire; query != nil {
-		if err := qrq.loadQuestionnaire(ctx, query, nodes,
-			func(n *QuestionnaireResponse) { n.Edges.Questionnaire = []*Questionnaire{} },
-			func(n *QuestionnaireResponse, e *Questionnaire) {
-				n.Edges.Questionnaire = append(n.Edges.Questionnaire, e)
-			}); err != nil {
+		if err := qrq.loadQuestionnaire(ctx, query, nodes, nil,
+			func(n *QuestionnaireResponse, e *Questionnaire) { n.Edges.Questionnaire = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -493,123 +497,65 @@ func (qrq *QuestionnaireResponseQuery) sqlAll(ctx context.Context, hooks ...quer
 }
 
 func (qrq *QuestionnaireResponseQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*QuestionnaireResponse, init func(*QuestionnaireResponse), assign func(*QuestionnaireResponse, *User)) error {
-	edgeIDs := make([]driver.Value, len(nodes))
-	byID := make(map[int]*QuestionnaireResponse)
-	nids := make(map[string]map[*QuestionnaireResponse]struct{})
-	for i, node := range nodes {
-		edgeIDs[i] = node.ID
-		byID[node.ID] = node
-		if init != nil {
-			init(node)
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*QuestionnaireResponse)
+	for i := range nodes {
+		if nodes[i].user_questionnaire_responses == nil {
+			continue
 		}
+		fk := *nodes[i].user_questionnaire_responses
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
-	query.Where(func(s *sql.Selector) {
-		joinT := sql.Table(questionnaireresponse.UserTable)
-		s.Join(joinT).On(s.C(user.FieldID), joinT.C(questionnaireresponse.UserPrimaryKey[0]))
-		s.Where(sql.InValues(joinT.C(questionnaireresponse.UserPrimaryKey[1]), edgeIDs...))
-		columns := s.SelectedColumns()
-		s.Select(joinT.C(questionnaireresponse.UserPrimaryKey[1]))
-		s.AppendSelect(columns...)
-		s.SetDistinct(false)
-	})
-	if err := query.prepareQuery(ctx); err != nil {
-		return err
+	if len(ids) == 0 {
+		return nil
 	}
-	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
-		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
-			assign := spec.Assign
-			values := spec.ScanValues
-			spec.ScanValues = func(columns []string) ([]any, error) {
-				values, err := values(columns[1:])
-				if err != nil {
-					return nil, err
-				}
-				return append([]any{new(sql.NullInt64)}, values...), nil
-			}
-			spec.Assign = func(columns []string, values []any) error {
-				outValue := int(values[0].(*sql.NullInt64).Int64)
-				inValue := values[1].(*sql.NullString).String
-				if nids[inValue] == nil {
-					nids[inValue] = map[*QuestionnaireResponse]struct{}{byID[outValue]: {}}
-					return assign(columns[1:], values[1:])
-				}
-				nids[inValue][byID[outValue]] = struct{}{}
-				return nil
-			}
-		})
-	})
-	neighbors, err := withInterceptors[[]*User](ctx, query, qr, query.inters)
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		nodes, ok := nids[n.ID]
+		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected "user" node returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "user_questionnaire_responses" returned %v`, n.ID)
 		}
-		for kn := range nodes {
-			assign(kn, n)
+		for i := range nodes {
+			assign(nodes[i], n)
 		}
 	}
 	return nil
 }
 func (qrq *QuestionnaireResponseQuery) loadQuestionnaire(ctx context.Context, query *QuestionnaireQuery, nodes []*QuestionnaireResponse, init func(*QuestionnaireResponse), assign func(*QuestionnaireResponse, *Questionnaire)) error {
-	edgeIDs := make([]driver.Value, len(nodes))
-	byID := make(map[int]*QuestionnaireResponse)
-	nids := make(map[int]map[*QuestionnaireResponse]struct{})
-	for i, node := range nodes {
-		edgeIDs[i] = node.ID
-		byID[node.ID] = node
-		if init != nil {
-			init(node)
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*QuestionnaireResponse)
+	for i := range nodes {
+		if nodes[i].questionnaire_questionnaire_responses == nil {
+			continue
 		}
+		fk := *nodes[i].questionnaire_questionnaire_responses
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
-	query.Where(func(s *sql.Selector) {
-		joinT := sql.Table(questionnaireresponse.QuestionnaireTable)
-		s.Join(joinT).On(s.C(questionnaire.FieldID), joinT.C(questionnaireresponse.QuestionnairePrimaryKey[0]))
-		s.Where(sql.InValues(joinT.C(questionnaireresponse.QuestionnairePrimaryKey[1]), edgeIDs...))
-		columns := s.SelectedColumns()
-		s.Select(joinT.C(questionnaireresponse.QuestionnairePrimaryKey[1]))
-		s.AppendSelect(columns...)
-		s.SetDistinct(false)
-	})
-	if err := query.prepareQuery(ctx); err != nil {
-		return err
+	if len(ids) == 0 {
+		return nil
 	}
-	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
-		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
-			assign := spec.Assign
-			values := spec.ScanValues
-			spec.ScanValues = func(columns []string) ([]any, error) {
-				values, err := values(columns[1:])
-				if err != nil {
-					return nil, err
-				}
-				return append([]any{new(sql.NullInt64)}, values...), nil
-			}
-			spec.Assign = func(columns []string, values []any) error {
-				outValue := int(values[0].(*sql.NullInt64).Int64)
-				inValue := int(values[1].(*sql.NullInt64).Int64)
-				if nids[inValue] == nil {
-					nids[inValue] = map[*QuestionnaireResponse]struct{}{byID[outValue]: {}}
-					return assign(columns[1:], values[1:])
-				}
-				nids[inValue][byID[outValue]] = struct{}{}
-				return nil
-			}
-		})
-	})
-	neighbors, err := withInterceptors[[]*Questionnaire](ctx, query, qr, query.inters)
+	query.Where(questionnaire.IDIn(ids...))
+	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		nodes, ok := nids[n.ID]
+		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected "questionnaire" node returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "questionnaire_questionnaire_responses" returned %v`, n.ID)
 		}
-		for kn := range nodes {
-			assign(kn, n)
+		for i := range nodes {
+			assign(nodes[i], n)
 		}
 	}
 	return nil

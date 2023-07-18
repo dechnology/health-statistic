@@ -7,36 +7,50 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-/********************************  TODO  ********************************/
-/*	1. GET  	/users													*/
-/*		- fetch all users 												*/
-/*	2. POST 	/users													*/
-/*		- create a new user 											*/
-/*	3. GET  	/users/{id}												*/
-/*		- fetch a specific user 										*/
-/*	4. PUT  	/users/{id}												*/
-/*		- update a specific user 										*/
-/*	5. DELETE	/users/{id}												*/
-/*		- delete a specific user 										*/
-/* ====================================================================	*/
-/*	6. GET  	/questionnaires											*/
-/*		- fetch all questionnaires 										*/
-/*	7. POST 	/questionnaires											*/
-/*		- create a new questionnaire 									*/
-/*	8. GET  	/questionnaires/{id}									*/
-/*		- fetch a specific questionnaire and its reponses				*/
-/*  9. POST		/questionnaires/{id}									*/
-/*		- create a questionnaire response								*/
-/* 10. DELETE	/questionnaires/{id}									*/
-/*		- delete a specific questionnaire 								*/
-/* ====================================================================	*/
-/* 11. GET		/responses												*/
-/*		- fetch all responses											*/
-/* 12. GET		/responses/{id}											*/
-/*		- fetch a specific response										*/
-/* 13. DELETE	/responses/{id}											*/
-/*		- delete a specific response									*/
-/************************************************************************/
+/**********************************  TODO  **********************/
+/*	1. GET  	/users											*/
+/*		- fetch all users 										*/
+/*	2. POST 	/users											*/
+/*		- create a new user 									*/
+/*	3. GET  	/users/{id}										*/
+/*		- fetch a specific user 								*/
+/*	4. PUT  	/users/{id}										*/
+/*		- update a specific user 								*/
+/*	5. DELETE	/users/{id}										*/
+/*		- delete a specific user 								*/
+/* ============================================================ */
+/*	6. GET  	/questionnaires									*/
+/*		- fetch all questionnaires 								*/
+/*	7. POST 	/questionnaires									*/
+/*		- create a new empty questionnaire						*/
+/*	8. GET  	/questionnaires/{id}							*/
+/*		- fetch a specific questionnaire and its reponses		*/
+/*  9. DELETE	/questionnaires/{id}							*/
+/*		- delete a specific questionnaire 						*/
+/* ============================================================ */
+/* 10. GET  	/questionnaires/{id}/questions					*/
+/*		- fetch all questions in a specific questionnaire		*/
+/* 11. POST 	/questionnaires/{id}/questions					*/
+/*		- create a new question for a specific questionnaire 	*/
+/* 12. GET  	/questionnaires/{id}/responses					*/
+/*		- fetch all responses in a specific questionnaire		*/
+/* 13. POST 	/questionnaires/{id}/responses					*/
+/*		- create a new response for a specific questionnaire 	*/
+/* ============================================================ */
+/* 12. GET		/responses										*/
+/*		- fetch all responses									*/
+/* 14. GET		/responses/{id}									*/
+/*		- fetch a specific response								*/
+/* 15. DELETE	/responses/{id}									*/
+/*		- delete a specific response							*/
+/* ============================================================ */
+/* 16. GET		/questions										*/
+/*		- fetch all questions									*/
+/* 18. GET		/questions/{id}									*/
+/*		- fetch a specific question								*/
+/* 19. DELETE	/questions/{id}									*/
+/*		- delete a specific question							*/
+/****************************************************************/
 
 // New registers the routes and returns the router.
 func New(db *ent.Client) *gin.Engine {
@@ -68,29 +82,47 @@ func New(db *ent.Client) *gin.Engine {
 		userGroup := v1.Group("/users")
 		{
 			h := handlers.UserHandler{DB: db}
-			userGroup.GET("/", h.GetAllUsers)
-			userGroup.GET("/:id", h.GetUserById)
+			userGroup.GET("/", h.GetUsers)
 			userGroup.POST("/", h.CreateUser)
+			userGroup.GET("/:id", h.GetUser)
 			userGroup.PUT("/:id", h.UpdateUser)
-			userGroup.DELETE("/:id", h.DeleteUserById)
+			userGroup.DELETE("/:id", h.DeleteUser)
 		}
 
 		questionnaireGroup := v1.Group("/questionnaires")
 		{
 			h := handlers.QuestionnaireHandler{DB: db}
-			questionnaireGroup.GET("/", h.GetAllQuestionnaires)
-			questionnaireGroup.GET("/:id", h.GetQuestionnaireById)
+			questionnaireGroup.GET("/", h.GetQuestionnaires)
 			questionnaireGroup.POST("/", h.CreateQuestionnaire)
-			questionnaireGroup.POST("/:id", h.CreateResponse)
-			questionnaireGroup.DELETE("/:id", h.DeleteQuestionnaireById)
 
+			subGroup := questionnaireGroup.Group("/:id")
+			{
+				subGroup.GET("/", h.GetQuestionnaire)
+				subGroup.DELETE("/", h.DeleteQuestionnaire)
+				subGroup.GET("/questions", h.GetQuestions)
+				subGroup.POST("/questions", h.CreateQuestion)
+				subGroup.GET("/responses", h.GetResponses)
+				subGroup.POST("/responses", h.CreateResponse)
+
+			}
 		}
 
+		responseGroup := v1.Group("/responses")
+		{
+			h := handlers.ResponseHandler{DB: db}
+			responseGroup.GET("/", h.GetResponses)
+			responseGroup.GET("/:id", h.GetResponse)
+			responseGroup.DELETE("/:id", h.DeleteResponse)
+		}
+
+		questionGroup := v1.Group("/questions")
+		{
+			h := handlers.QuestionHandler{DB: db}
+			questionGroup.GET("/", h.GetQuestions)
+			questionGroup.GET("/:id", h.GetQuestion)
+			questionGroup.DELETE("/:id", h.DeleteQuestion)
+		}
 	}
 
 	return r
-}
-
-func fecthAllUsers(c *gin.Context) {
-
 }

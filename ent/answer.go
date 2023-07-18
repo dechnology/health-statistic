@@ -35,8 +35,8 @@ type Answer struct {
 type AnswerEdges struct {
 	// Question holds the value of the question edge.
 	Question *Question `json:"question,omitempty"`
-	// UserQuestionnaire holds the value of the user_questionnaire edge.
-	UserQuestionnaire *QuestionnaireResponse `json:"user_questionnaire,omitempty"`
+	// QuestionnaireResponse holds the value of the questionnaire_response edge.
+	QuestionnaireResponse *QuestionnaireResponse `json:"questionnaire_response,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool
@@ -55,17 +55,17 @@ func (e AnswerEdges) QuestionOrErr() (*Question, error) {
 	return nil, &NotLoadedError{edge: "question"}
 }
 
-// UserQuestionnaireOrErr returns the UserQuestionnaire value or an error if the edge
+// QuestionnaireResponseOrErr returns the QuestionnaireResponse value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e AnswerEdges) UserQuestionnaireOrErr() (*QuestionnaireResponse, error) {
+func (e AnswerEdges) QuestionnaireResponseOrErr() (*QuestionnaireResponse, error) {
 	if e.loadedTypes[1] {
-		if e.UserQuestionnaire == nil {
+		if e.QuestionnaireResponse == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: questionnaireresponse.Label}
 		}
-		return e.UserQuestionnaire, nil
+		return e.QuestionnaireResponse, nil
 	}
-	return nil, &NotLoadedError{edge: "user_questionnaire"}
+	return nil, &NotLoadedError{edge: "questionnaire_response"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -148,9 +148,9 @@ func (a *Answer) QueryQuestion() *QuestionQuery {
 	return NewAnswerClient(a.config).QueryQuestion(a)
 }
 
-// QueryUserQuestionnaire queries the "user_questionnaire" edge of the Answer entity.
-func (a *Answer) QueryUserQuestionnaire() *QuestionnaireResponseQuery {
-	return NewAnswerClient(a.config).QueryUserQuestionnaire(a)
+// QueryQuestionnaireResponse queries the "questionnaire_response" edge of the Answer entity.
+func (a *Answer) QueryQuestionnaireResponse() *QuestionnaireResponseQuery {
+	return NewAnswerClient(a.config).QueryQuestionnaireResponse(a)
 }
 
 // Update returns a builder for updating this Answer.

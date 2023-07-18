@@ -33,7 +33,8 @@ type UserBody struct {
 	SmokingHabit                 string  `json:"smoking_habit"`
 }
 
-func (h *UserHandler) GetAllUsers(c *gin.Context) {
+// GET		/users
+func (h *UserHandler) GetUsers(c *gin.Context) {
 	users, err := h.DB.User.Query().All(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -42,7 +43,8 @@ func (h *UserHandler) GetAllUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, users)
 }
 
-func (h *UserHandler) GetUserById(c *gin.Context) {
+// GET		/users/:id
+func (h *UserHandler) GetUser(c *gin.Context) {
 	user, err := h.DB.User.Get(c.Request.Context(), c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -51,6 +53,7 @@ func (h *UserHandler) GetUserById(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
+// POST		/users
 func (h *UserHandler) CreateUser(c *gin.Context) {
 	var body UserBody
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -93,6 +96,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, userNode)
 }
 
+// PUT		/users/:id
 func (h *UserHandler) UpdateUser(c *gin.Context) {
 	var body UserBody
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -140,7 +144,8 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, updatedUserNode)
 }
 
-func (h *UserHandler) DeleteUserById(c *gin.Context) {
+// DELETE 	/users/:id
+func (h *UserHandler) DeleteUser(c *gin.Context) {
 	if err := h.DB.User.DeleteOneID(c.Param("id")).Exec(c.Request.Context()); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

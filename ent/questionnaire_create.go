@@ -173,10 +173,10 @@ func (qc *QuestionnaireCreate) createSpec() (*Questionnaire, *sqlgraph.CreateSpe
 	}
 	if nodes := qc.mutation.QuestionnaireResponsesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   questionnaire.QuestionnaireResponsesTable,
-			Columns: questionnaire.QuestionnaireResponsesPrimaryKey,
+			Columns: []string{questionnaire.QuestionnaireResponsesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),

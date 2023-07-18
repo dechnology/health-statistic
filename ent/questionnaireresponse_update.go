@@ -45,34 +45,42 @@ func (qru *QuestionnaireResponseUpdate) SetNillableCreatedAt(t *time.Time) *Ques
 	return qru
 }
 
-// AddUserIDs adds the "user" edge to the User entity by IDs.
-func (qru *QuestionnaireResponseUpdate) AddUserIDs(ids ...string) *QuestionnaireResponseUpdate {
-	qru.mutation.AddUserIDs(ids...)
+// SetUserID sets the "user" edge to the User entity by ID.
+func (qru *QuestionnaireResponseUpdate) SetUserID(id string) *QuestionnaireResponseUpdate {
+	qru.mutation.SetUserID(id)
 	return qru
 }
 
-// AddUser adds the "user" edges to the User entity.
-func (qru *QuestionnaireResponseUpdate) AddUser(u ...*User) *QuestionnaireResponseUpdate {
-	ids := make([]string, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (qru *QuestionnaireResponseUpdate) SetNillableUserID(id *string) *QuestionnaireResponseUpdate {
+	if id != nil {
+		qru = qru.SetUserID(*id)
 	}
-	return qru.AddUserIDs(ids...)
-}
-
-// AddQuestionnaireIDs adds the "questionnaire" edge to the Questionnaire entity by IDs.
-func (qru *QuestionnaireResponseUpdate) AddQuestionnaireIDs(ids ...int) *QuestionnaireResponseUpdate {
-	qru.mutation.AddQuestionnaireIDs(ids...)
 	return qru
 }
 
-// AddQuestionnaire adds the "questionnaire" edges to the Questionnaire entity.
-func (qru *QuestionnaireResponseUpdate) AddQuestionnaire(q ...*Questionnaire) *QuestionnaireResponseUpdate {
-	ids := make([]int, len(q))
-	for i := range q {
-		ids[i] = q[i].ID
+// SetUser sets the "user" edge to the User entity.
+func (qru *QuestionnaireResponseUpdate) SetUser(u *User) *QuestionnaireResponseUpdate {
+	return qru.SetUserID(u.ID)
+}
+
+// SetQuestionnaireID sets the "questionnaire" edge to the Questionnaire entity by ID.
+func (qru *QuestionnaireResponseUpdate) SetQuestionnaireID(id int) *QuestionnaireResponseUpdate {
+	qru.mutation.SetQuestionnaireID(id)
+	return qru
+}
+
+// SetNillableQuestionnaireID sets the "questionnaire" edge to the Questionnaire entity by ID if the given value is not nil.
+func (qru *QuestionnaireResponseUpdate) SetNillableQuestionnaireID(id *int) *QuestionnaireResponseUpdate {
+	if id != nil {
+		qru = qru.SetQuestionnaireID(*id)
 	}
-	return qru.AddQuestionnaireIDs(ids...)
+	return qru
+}
+
+// SetQuestionnaire sets the "questionnaire" edge to the Questionnaire entity.
+func (qru *QuestionnaireResponseUpdate) SetQuestionnaire(q *Questionnaire) *QuestionnaireResponseUpdate {
+	return qru.SetQuestionnaireID(q.ID)
 }
 
 // AddAnswerIDs adds the "answers" edge to the Answer entity by IDs.
@@ -95,46 +103,16 @@ func (qru *QuestionnaireResponseUpdate) Mutation() *QuestionnaireResponseMutatio
 	return qru.mutation
 }
 
-// ClearUser clears all "user" edges to the User entity.
+// ClearUser clears the "user" edge to the User entity.
 func (qru *QuestionnaireResponseUpdate) ClearUser() *QuestionnaireResponseUpdate {
 	qru.mutation.ClearUser()
 	return qru
 }
 
-// RemoveUserIDs removes the "user" edge to User entities by IDs.
-func (qru *QuestionnaireResponseUpdate) RemoveUserIDs(ids ...string) *QuestionnaireResponseUpdate {
-	qru.mutation.RemoveUserIDs(ids...)
-	return qru
-}
-
-// RemoveUser removes "user" edges to User entities.
-func (qru *QuestionnaireResponseUpdate) RemoveUser(u ...*User) *QuestionnaireResponseUpdate {
-	ids := make([]string, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
-	}
-	return qru.RemoveUserIDs(ids...)
-}
-
-// ClearQuestionnaire clears all "questionnaire" edges to the Questionnaire entity.
+// ClearQuestionnaire clears the "questionnaire" edge to the Questionnaire entity.
 func (qru *QuestionnaireResponseUpdate) ClearQuestionnaire() *QuestionnaireResponseUpdate {
 	qru.mutation.ClearQuestionnaire()
 	return qru
-}
-
-// RemoveQuestionnaireIDs removes the "questionnaire" edge to Questionnaire entities by IDs.
-func (qru *QuestionnaireResponseUpdate) RemoveQuestionnaireIDs(ids ...int) *QuestionnaireResponseUpdate {
-	qru.mutation.RemoveQuestionnaireIDs(ids...)
-	return qru
-}
-
-// RemoveQuestionnaire removes "questionnaire" edges to Questionnaire entities.
-func (qru *QuestionnaireResponseUpdate) RemoveQuestionnaire(q ...*Questionnaire) *QuestionnaireResponseUpdate {
-	ids := make([]int, len(q))
-	for i := range q {
-		ids[i] = q[i].ID
-	}
-	return qru.RemoveQuestionnaireIDs(ids...)
 }
 
 // ClearAnswers clears all "answers" edges to the Answer entity.
@@ -199,39 +177,23 @@ func (qru *QuestionnaireResponseUpdate) sqlSave(ctx context.Context) (n int, err
 	}
 	if qru.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   questionnaireresponse.UserTable,
-			Columns: questionnaireresponse.UserPrimaryKey,
+			Columns: []string{questionnaireresponse.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
 			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := qru.mutation.RemovedUserIDs(); len(nodes) > 0 && !qru.mutation.UserCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   questionnaireresponse.UserTable,
-			Columns: questionnaireresponse.UserPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := qru.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   questionnaireresponse.UserTable,
-			Columns: questionnaireresponse.UserPrimaryKey,
+			Columns: []string{questionnaireresponse.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
@@ -244,39 +206,23 @@ func (qru *QuestionnaireResponseUpdate) sqlSave(ctx context.Context) (n int, err
 	}
 	if qru.mutation.QuestionnaireCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   questionnaireresponse.QuestionnaireTable,
-			Columns: questionnaireresponse.QuestionnairePrimaryKey,
+			Columns: []string{questionnaireresponse.QuestionnaireColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(questionnaire.FieldID, field.TypeInt),
 			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := qru.mutation.RemovedQuestionnaireIDs(); len(nodes) > 0 && !qru.mutation.QuestionnaireCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   questionnaireresponse.QuestionnaireTable,
-			Columns: questionnaireresponse.QuestionnairePrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(questionnaire.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := qru.mutation.QuestionnaireIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   questionnaireresponse.QuestionnaireTable,
-			Columns: questionnaireresponse.QuestionnairePrimaryKey,
+			Columns: []string{questionnaireresponse.QuestionnaireColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(questionnaire.FieldID, field.TypeInt),
@@ -366,34 +312,42 @@ func (qruo *QuestionnaireResponseUpdateOne) SetNillableCreatedAt(t *time.Time) *
 	return qruo
 }
 
-// AddUserIDs adds the "user" edge to the User entity by IDs.
-func (qruo *QuestionnaireResponseUpdateOne) AddUserIDs(ids ...string) *QuestionnaireResponseUpdateOne {
-	qruo.mutation.AddUserIDs(ids...)
+// SetUserID sets the "user" edge to the User entity by ID.
+func (qruo *QuestionnaireResponseUpdateOne) SetUserID(id string) *QuestionnaireResponseUpdateOne {
+	qruo.mutation.SetUserID(id)
 	return qruo
 }
 
-// AddUser adds the "user" edges to the User entity.
-func (qruo *QuestionnaireResponseUpdateOne) AddUser(u ...*User) *QuestionnaireResponseUpdateOne {
-	ids := make([]string, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (qruo *QuestionnaireResponseUpdateOne) SetNillableUserID(id *string) *QuestionnaireResponseUpdateOne {
+	if id != nil {
+		qruo = qruo.SetUserID(*id)
 	}
-	return qruo.AddUserIDs(ids...)
-}
-
-// AddQuestionnaireIDs adds the "questionnaire" edge to the Questionnaire entity by IDs.
-func (qruo *QuestionnaireResponseUpdateOne) AddQuestionnaireIDs(ids ...int) *QuestionnaireResponseUpdateOne {
-	qruo.mutation.AddQuestionnaireIDs(ids...)
 	return qruo
 }
 
-// AddQuestionnaire adds the "questionnaire" edges to the Questionnaire entity.
-func (qruo *QuestionnaireResponseUpdateOne) AddQuestionnaire(q ...*Questionnaire) *QuestionnaireResponseUpdateOne {
-	ids := make([]int, len(q))
-	for i := range q {
-		ids[i] = q[i].ID
+// SetUser sets the "user" edge to the User entity.
+func (qruo *QuestionnaireResponseUpdateOne) SetUser(u *User) *QuestionnaireResponseUpdateOne {
+	return qruo.SetUserID(u.ID)
+}
+
+// SetQuestionnaireID sets the "questionnaire" edge to the Questionnaire entity by ID.
+func (qruo *QuestionnaireResponseUpdateOne) SetQuestionnaireID(id int) *QuestionnaireResponseUpdateOne {
+	qruo.mutation.SetQuestionnaireID(id)
+	return qruo
+}
+
+// SetNillableQuestionnaireID sets the "questionnaire" edge to the Questionnaire entity by ID if the given value is not nil.
+func (qruo *QuestionnaireResponseUpdateOne) SetNillableQuestionnaireID(id *int) *QuestionnaireResponseUpdateOne {
+	if id != nil {
+		qruo = qruo.SetQuestionnaireID(*id)
 	}
-	return qruo.AddQuestionnaireIDs(ids...)
+	return qruo
+}
+
+// SetQuestionnaire sets the "questionnaire" edge to the Questionnaire entity.
+func (qruo *QuestionnaireResponseUpdateOne) SetQuestionnaire(q *Questionnaire) *QuestionnaireResponseUpdateOne {
+	return qruo.SetQuestionnaireID(q.ID)
 }
 
 // AddAnswerIDs adds the "answers" edge to the Answer entity by IDs.
@@ -416,46 +370,16 @@ func (qruo *QuestionnaireResponseUpdateOne) Mutation() *QuestionnaireResponseMut
 	return qruo.mutation
 }
 
-// ClearUser clears all "user" edges to the User entity.
+// ClearUser clears the "user" edge to the User entity.
 func (qruo *QuestionnaireResponseUpdateOne) ClearUser() *QuestionnaireResponseUpdateOne {
 	qruo.mutation.ClearUser()
 	return qruo
 }
 
-// RemoveUserIDs removes the "user" edge to User entities by IDs.
-func (qruo *QuestionnaireResponseUpdateOne) RemoveUserIDs(ids ...string) *QuestionnaireResponseUpdateOne {
-	qruo.mutation.RemoveUserIDs(ids...)
-	return qruo
-}
-
-// RemoveUser removes "user" edges to User entities.
-func (qruo *QuestionnaireResponseUpdateOne) RemoveUser(u ...*User) *QuestionnaireResponseUpdateOne {
-	ids := make([]string, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
-	}
-	return qruo.RemoveUserIDs(ids...)
-}
-
-// ClearQuestionnaire clears all "questionnaire" edges to the Questionnaire entity.
+// ClearQuestionnaire clears the "questionnaire" edge to the Questionnaire entity.
 func (qruo *QuestionnaireResponseUpdateOne) ClearQuestionnaire() *QuestionnaireResponseUpdateOne {
 	qruo.mutation.ClearQuestionnaire()
 	return qruo
-}
-
-// RemoveQuestionnaireIDs removes the "questionnaire" edge to Questionnaire entities by IDs.
-func (qruo *QuestionnaireResponseUpdateOne) RemoveQuestionnaireIDs(ids ...int) *QuestionnaireResponseUpdateOne {
-	qruo.mutation.RemoveQuestionnaireIDs(ids...)
-	return qruo
-}
-
-// RemoveQuestionnaire removes "questionnaire" edges to Questionnaire entities.
-func (qruo *QuestionnaireResponseUpdateOne) RemoveQuestionnaire(q ...*Questionnaire) *QuestionnaireResponseUpdateOne {
-	ids := make([]int, len(q))
-	for i := range q {
-		ids[i] = q[i].ID
-	}
-	return qruo.RemoveQuestionnaireIDs(ids...)
 }
 
 // ClearAnswers clears all "answers" edges to the Answer entity.
@@ -550,39 +474,23 @@ func (qruo *QuestionnaireResponseUpdateOne) sqlSave(ctx context.Context) (_node 
 	}
 	if qruo.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   questionnaireresponse.UserTable,
-			Columns: questionnaireresponse.UserPrimaryKey,
+			Columns: []string{questionnaireresponse.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
 			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := qruo.mutation.RemovedUserIDs(); len(nodes) > 0 && !qruo.mutation.UserCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   questionnaireresponse.UserTable,
-			Columns: questionnaireresponse.UserPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := qruo.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   questionnaireresponse.UserTable,
-			Columns: questionnaireresponse.UserPrimaryKey,
+			Columns: []string{questionnaireresponse.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
@@ -595,39 +503,23 @@ func (qruo *QuestionnaireResponseUpdateOne) sqlSave(ctx context.Context) (_node 
 	}
 	if qruo.mutation.QuestionnaireCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   questionnaireresponse.QuestionnaireTable,
-			Columns: questionnaireresponse.QuestionnairePrimaryKey,
+			Columns: []string{questionnaireresponse.QuestionnaireColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(questionnaire.FieldID, field.TypeInt),
 			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := qruo.mutation.RemovedQuestionnaireIDs(); len(nodes) > 0 && !qruo.mutation.QuestionnaireCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   questionnaireresponse.QuestionnaireTable,
-			Columns: questionnaireresponse.QuestionnairePrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(questionnaire.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := qruo.mutation.QuestionnaireIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   questionnaireresponse.QuestionnaireTable,
-			Columns: questionnaireresponse.QuestionnairePrimaryKey,
+			Columns: []string{questionnaireresponse.QuestionnaireColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(questionnaire.FieldID, field.TypeInt),

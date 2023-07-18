@@ -69,23 +69,23 @@ func (au *AnswerUpdate) SetQuestion(q *Question) *AnswerUpdate {
 	return au.SetQuestionID(q.ID)
 }
 
-// SetUserQuestionnaireID sets the "user_questionnaire" edge to the QuestionnaireResponse entity by ID.
-func (au *AnswerUpdate) SetUserQuestionnaireID(id int) *AnswerUpdate {
-	au.mutation.SetUserQuestionnaireID(id)
+// SetQuestionnaireResponseID sets the "questionnaire_response" edge to the QuestionnaireResponse entity by ID.
+func (au *AnswerUpdate) SetQuestionnaireResponseID(id int) *AnswerUpdate {
+	au.mutation.SetQuestionnaireResponseID(id)
 	return au
 }
 
-// SetNillableUserQuestionnaireID sets the "user_questionnaire" edge to the QuestionnaireResponse entity by ID if the given value is not nil.
-func (au *AnswerUpdate) SetNillableUserQuestionnaireID(id *int) *AnswerUpdate {
+// SetNillableQuestionnaireResponseID sets the "questionnaire_response" edge to the QuestionnaireResponse entity by ID if the given value is not nil.
+func (au *AnswerUpdate) SetNillableQuestionnaireResponseID(id *int) *AnswerUpdate {
 	if id != nil {
-		au = au.SetUserQuestionnaireID(*id)
+		au = au.SetQuestionnaireResponseID(*id)
 	}
 	return au
 }
 
-// SetUserQuestionnaire sets the "user_questionnaire" edge to the QuestionnaireResponse entity.
-func (au *AnswerUpdate) SetUserQuestionnaire(q *QuestionnaireResponse) *AnswerUpdate {
-	return au.SetUserQuestionnaireID(q.ID)
+// SetQuestionnaireResponse sets the "questionnaire_response" edge to the QuestionnaireResponse entity.
+func (au *AnswerUpdate) SetQuestionnaireResponse(q *QuestionnaireResponse) *AnswerUpdate {
+	return au.SetQuestionnaireResponseID(q.ID)
 }
 
 // Mutation returns the AnswerMutation object of the builder.
@@ -99,9 +99,9 @@ func (au *AnswerUpdate) ClearQuestion() *AnswerUpdate {
 	return au
 }
 
-// ClearUserQuestionnaire clears the "user_questionnaire" edge to the QuestionnaireResponse entity.
-func (au *AnswerUpdate) ClearUserQuestionnaire() *AnswerUpdate {
-	au.mutation.ClearUserQuestionnaire()
+// ClearQuestionnaireResponse clears the "questionnaire_response" edge to the QuestionnaireResponse entity.
+func (au *AnswerUpdate) ClearQuestionnaireResponse() *AnswerUpdate {
+	au.mutation.ClearQuestionnaireResponse()
 	return au
 }
 
@@ -176,12 +176,12 @@ func (au *AnswerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if au.mutation.UserQuestionnaireCleared() {
+	if au.mutation.QuestionnaireResponseCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   answer.UserQuestionnaireTable,
-			Columns: []string{answer.UserQuestionnaireColumn},
+			Table:   answer.QuestionnaireResponseTable,
+			Columns: []string{answer.QuestionnaireResponseColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
@@ -189,12 +189,12 @@ func (au *AnswerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := au.mutation.UserQuestionnaireIDs(); len(nodes) > 0 {
+	if nodes := au.mutation.QuestionnaireResponseIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   answer.UserQuestionnaireTable,
-			Columns: []string{answer.UserQuestionnaireColumn},
+			Table:   answer.QuestionnaireResponseTable,
+			Columns: []string{answer.QuestionnaireResponseColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
@@ -264,23 +264,23 @@ func (auo *AnswerUpdateOne) SetQuestion(q *Question) *AnswerUpdateOne {
 	return auo.SetQuestionID(q.ID)
 }
 
-// SetUserQuestionnaireID sets the "user_questionnaire" edge to the QuestionnaireResponse entity by ID.
-func (auo *AnswerUpdateOne) SetUserQuestionnaireID(id int) *AnswerUpdateOne {
-	auo.mutation.SetUserQuestionnaireID(id)
+// SetQuestionnaireResponseID sets the "questionnaire_response" edge to the QuestionnaireResponse entity by ID.
+func (auo *AnswerUpdateOne) SetQuestionnaireResponseID(id int) *AnswerUpdateOne {
+	auo.mutation.SetQuestionnaireResponseID(id)
 	return auo
 }
 
-// SetNillableUserQuestionnaireID sets the "user_questionnaire" edge to the QuestionnaireResponse entity by ID if the given value is not nil.
-func (auo *AnswerUpdateOne) SetNillableUserQuestionnaireID(id *int) *AnswerUpdateOne {
+// SetNillableQuestionnaireResponseID sets the "questionnaire_response" edge to the QuestionnaireResponse entity by ID if the given value is not nil.
+func (auo *AnswerUpdateOne) SetNillableQuestionnaireResponseID(id *int) *AnswerUpdateOne {
 	if id != nil {
-		auo = auo.SetUserQuestionnaireID(*id)
+		auo = auo.SetQuestionnaireResponseID(*id)
 	}
 	return auo
 }
 
-// SetUserQuestionnaire sets the "user_questionnaire" edge to the QuestionnaireResponse entity.
-func (auo *AnswerUpdateOne) SetUserQuestionnaire(q *QuestionnaireResponse) *AnswerUpdateOne {
-	return auo.SetUserQuestionnaireID(q.ID)
+// SetQuestionnaireResponse sets the "questionnaire_response" edge to the QuestionnaireResponse entity.
+func (auo *AnswerUpdateOne) SetQuestionnaireResponse(q *QuestionnaireResponse) *AnswerUpdateOne {
+	return auo.SetQuestionnaireResponseID(q.ID)
 }
 
 // Mutation returns the AnswerMutation object of the builder.
@@ -294,9 +294,9 @@ func (auo *AnswerUpdateOne) ClearQuestion() *AnswerUpdateOne {
 	return auo
 }
 
-// ClearUserQuestionnaire clears the "user_questionnaire" edge to the QuestionnaireResponse entity.
-func (auo *AnswerUpdateOne) ClearUserQuestionnaire() *AnswerUpdateOne {
-	auo.mutation.ClearUserQuestionnaire()
+// ClearQuestionnaireResponse clears the "questionnaire_response" edge to the QuestionnaireResponse entity.
+func (auo *AnswerUpdateOne) ClearQuestionnaireResponse() *AnswerUpdateOne {
+	auo.mutation.ClearQuestionnaireResponse()
 	return auo
 }
 
@@ -401,12 +401,12 @@ func (auo *AnswerUpdateOne) sqlSave(ctx context.Context) (_node *Answer, err err
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if auo.mutation.UserQuestionnaireCleared() {
+	if auo.mutation.QuestionnaireResponseCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   answer.UserQuestionnaireTable,
-			Columns: []string{answer.UserQuestionnaireColumn},
+			Table:   answer.QuestionnaireResponseTable,
+			Columns: []string{answer.QuestionnaireResponseColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
@@ -414,12 +414,12 @@ func (auo *AnswerUpdateOne) sqlSave(ctx context.Context) (_node *Answer, err err
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := auo.mutation.UserQuestionnaireIDs(); len(nodes) > 0 {
+	if nodes := auo.mutation.QuestionnaireResponseIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   answer.UserQuestionnaireTable,
-			Columns: []string{answer.UserQuestionnaireColumn},
+			Table:   answer.QuestionnaireResponseTable,
+			Columns: []string{answer.QuestionnaireResponseColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),

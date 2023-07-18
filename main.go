@@ -12,6 +12,7 @@ package main
 /************************************/
 
 import (
+	"context"
 	"log"
 	"os"
 
@@ -32,10 +33,10 @@ func main() {
 	db := db.New()
 	defer db.Close()
 
-	// // for migration
-	// if err := db.Schema.Create(context.Background()); err != nil {
-	// 	log.Fatalf("failed creating schema resources: %v", err)
-	// }
+	// for migration
+	if err := db.Schema.Create(context.Background()); err != nil {
+		log.Fatalf("failed creating schema resources: %v", err)
+	}
 
 	r := router.New(db)
 	r.Run()

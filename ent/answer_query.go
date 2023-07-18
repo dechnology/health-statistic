@@ -19,13 +19,13 @@ import (
 // AnswerQuery is the builder for querying Answer entities.
 type AnswerQuery struct {
 	config
-	ctx                   *QueryContext
-	order                 []answer.OrderOption
-	inters                []Interceptor
-	predicates            []predicate.Answer
-	withQuestion          *QuestionQuery
-	withUserQuestionnaire *QuestionnaireResponseQuery
-	withFKs               bool
+	ctx                       *QueryContext
+	order                     []answer.OrderOption
+	inters                    []Interceptor
+	predicates                []predicate.Answer
+	withQuestion              *QuestionQuery
+	withQuestionnaireResponse *QuestionnaireResponseQuery
+	withFKs                   bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -84,8 +84,8 @@ func (aq *AnswerQuery) QueryQuestion() *QuestionQuery {
 	return query
 }
 
-// QueryUserQuestionnaire chains the current query on the "user_questionnaire" edge.
-func (aq *AnswerQuery) QueryUserQuestionnaire() *QuestionnaireResponseQuery {
+// QueryQuestionnaireResponse chains the current query on the "questionnaire_response" edge.
+func (aq *AnswerQuery) QueryQuestionnaireResponse() *QuestionnaireResponseQuery {
 	query := (&QuestionnaireResponseClient{config: aq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := aq.prepareQuery(ctx); err != nil {
@@ -98,7 +98,7 @@ func (aq *AnswerQuery) QueryUserQuestionnaire() *QuestionnaireResponseQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(answer.Table, answer.FieldID, selector),
 			sqlgraph.To(questionnaireresponse.Table, questionnaireresponse.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, answer.UserQuestionnaireTable, answer.UserQuestionnaireColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, answer.QuestionnaireResponseTable, answer.QuestionnaireResponseColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
 		return fromU, nil
@@ -293,13 +293,13 @@ func (aq *AnswerQuery) Clone() *AnswerQuery {
 		return nil
 	}
 	return &AnswerQuery{
-		config:                aq.config,
-		ctx:                   aq.ctx.Clone(),
-		order:                 append([]answer.OrderOption{}, aq.order...),
-		inters:                append([]Interceptor{}, aq.inters...),
-		predicates:            append([]predicate.Answer{}, aq.predicates...),
-		withQuestion:          aq.withQuestion.Clone(),
-		withUserQuestionnaire: aq.withUserQuestionnaire.Clone(),
+		config:                    aq.config,
+		ctx:                       aq.ctx.Clone(),
+		order:                     append([]answer.OrderOption{}, aq.order...),
+		inters:                    append([]Interceptor{}, aq.inters...),
+		predicates:                append([]predicate.Answer{}, aq.predicates...),
+		withQuestion:              aq.withQuestion.Clone(),
+		withQuestionnaireResponse: aq.withQuestionnaireResponse.Clone(),
 		// clone intermediate query.
 		sql:  aq.sql.Clone(),
 		path: aq.path,
@@ -317,14 +317,14 @@ func (aq *AnswerQuery) WithQuestion(opts ...func(*QuestionQuery)) *AnswerQuery {
 	return aq
 }
 
-// WithUserQuestionnaire tells the query-builder to eager-load the nodes that are connected to
-// the "user_questionnaire" edge. The optional arguments are used to configure the query builder of the edge.
-func (aq *AnswerQuery) WithUserQuestionnaire(opts ...func(*QuestionnaireResponseQuery)) *AnswerQuery {
+// WithQuestionnaireResponse tells the query-builder to eager-load the nodes that are connected to
+// the "questionnaire_response" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AnswerQuery) WithQuestionnaireResponse(opts ...func(*QuestionnaireResponseQuery)) *AnswerQuery {
 	query := (&QuestionnaireResponseClient{config: aq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	aq.withUserQuestionnaire = query
+	aq.withQuestionnaireResponse = query
 	return aq
 }
 
@@ -409,10 +409,10 @@ func (aq *AnswerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Answe
 		_spec       = aq.querySpec()
 		loadedTypes = [2]bool{
 			aq.withQuestion != nil,
-			aq.withUserQuestionnaire != nil,
+			aq.withQuestionnaireResponse != nil,
 		}
 	)
-	if aq.withQuestion != nil || aq.withUserQuestionnaire != nil {
+	if aq.withQuestion != nil || aq.withQuestionnaireResponse != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -442,9 +442,9 @@ func (aq *AnswerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Answe
 			return nil, err
 		}
 	}
-	if query := aq.withUserQuestionnaire; query != nil {
-		if err := aq.loadUserQuestionnaire(ctx, query, nodes, nil,
-			func(n *Answer, e *QuestionnaireResponse) { n.Edges.UserQuestionnaire = e }); err != nil {
+	if query := aq.withQuestionnaireResponse; query != nil {
+		if err := aq.loadQuestionnaireResponse(ctx, query, nodes, nil,
+			func(n *Answer, e *QuestionnaireResponse) { n.Edges.QuestionnaireResponse = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -483,7 +483,7 @@ func (aq *AnswerQuery) loadQuestion(ctx context.Context, query *QuestionQuery, n
 	}
 	return nil
 }
-func (aq *AnswerQuery) loadUserQuestionnaire(ctx context.Context, query *QuestionnaireResponseQuery, nodes []*Answer, init func(*Answer), assign func(*Answer, *QuestionnaireResponse)) error {
+func (aq *AnswerQuery) loadQuestionnaireResponse(ctx context.Context, query *QuestionnaireResponseQuery, nodes []*Answer, init func(*Answer), assign func(*Answer, *QuestionnaireResponse)) error {
 	ids := make([]int, 0, len(nodes))
 	nodeids := make(map[int][]*Answer)
 	for i := range nodes {

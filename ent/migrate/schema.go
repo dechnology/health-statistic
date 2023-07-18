@@ -73,12 +73,28 @@ var (
 	QuestionnaireResponsesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
+		{Name: "questionnaire_questionnaire_responses", Type: field.TypeInt, Nullable: true},
+		{Name: "user_questionnaire_responses", Type: field.TypeString, Nullable: true},
 	}
 	// QuestionnaireResponsesTable holds the schema information for the "questionnaire_responses" table.
 	QuestionnaireResponsesTable = &schema.Table{
 		Name:       "questionnaire_responses",
 		Columns:    QuestionnaireResponsesColumns,
 		PrimaryKey: []*schema.Column{QuestionnaireResponsesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "questionnaire_responses_questionnaires_questionnaire_responses",
+				Columns:    []*schema.Column{QuestionnaireResponsesColumns[2]},
+				RefColumns: []*schema.Column{QuestionnairesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "questionnaire_responses_users_questionnaire_responses",
+				Columns:    []*schema.Column{QuestionnaireResponsesColumns[3]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
@@ -106,56 +122,6 @@ var (
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
-	// QuestionnaireQuestionnaireResponsesColumns holds the columns for the "questionnaire_questionnaire_responses" table.
-	QuestionnaireQuestionnaireResponsesColumns = []*schema.Column{
-		{Name: "questionnaire_id", Type: field.TypeInt},
-		{Name: "questionnaire_response_id", Type: field.TypeInt},
-	}
-	// QuestionnaireQuestionnaireResponsesTable holds the schema information for the "questionnaire_questionnaire_responses" table.
-	QuestionnaireQuestionnaireResponsesTable = &schema.Table{
-		Name:       "questionnaire_questionnaire_responses",
-		Columns:    QuestionnaireQuestionnaireResponsesColumns,
-		PrimaryKey: []*schema.Column{QuestionnaireQuestionnaireResponsesColumns[0], QuestionnaireQuestionnaireResponsesColumns[1]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "questionnaire_questionnaire_responses_questionnaire_id",
-				Columns:    []*schema.Column{QuestionnaireQuestionnaireResponsesColumns[0]},
-				RefColumns: []*schema.Column{QuestionnairesColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-			{
-				Symbol:     "questionnaire_questionnaire_responses_questionnaire_response_id",
-				Columns:    []*schema.Column{QuestionnaireQuestionnaireResponsesColumns[1]},
-				RefColumns: []*schema.Column{QuestionnaireResponsesColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-		},
-	}
-	// UserQuestionnaireResponsesColumns holds the columns for the "user_questionnaire_responses" table.
-	UserQuestionnaireResponsesColumns = []*schema.Column{
-		{Name: "user_id", Type: field.TypeString},
-		{Name: "questionnaire_response_id", Type: field.TypeInt},
-	}
-	// UserQuestionnaireResponsesTable holds the schema information for the "user_questionnaire_responses" table.
-	UserQuestionnaireResponsesTable = &schema.Table{
-		Name:       "user_questionnaire_responses",
-		Columns:    UserQuestionnaireResponsesColumns,
-		PrimaryKey: []*schema.Column{UserQuestionnaireResponsesColumns[0], UserQuestionnaireResponsesColumns[1]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "user_questionnaire_responses_user_id",
-				Columns:    []*schema.Column{UserQuestionnaireResponsesColumns[0]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-			{
-				Symbol:     "user_questionnaire_responses_questionnaire_response_id",
-				Columns:    []*schema.Column{UserQuestionnaireResponsesColumns[1]},
-				RefColumns: []*schema.Column{QuestionnaireResponsesColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-		},
-	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AnswersTable,
@@ -163,8 +129,6 @@ var (
 		QuestionnairesTable,
 		QuestionnaireResponsesTable,
 		UsersTable,
-		QuestionnaireQuestionnaireResponsesTable,
-		UserQuestionnaireResponsesTable,
 	}
 )
 
@@ -172,8 +136,6 @@ func init() {
 	AnswersTable.ForeignKeys[0].RefTable = QuestionsTable
 	AnswersTable.ForeignKeys[1].RefTable = QuestionnaireResponsesTable
 	QuestionsTable.ForeignKeys[0].RefTable = QuestionnairesTable
-	QuestionnaireQuestionnaireResponsesTable.ForeignKeys[0].RefTable = QuestionnairesTable
-	QuestionnaireQuestionnaireResponsesTable.ForeignKeys[1].RefTable = QuestionnaireResponsesTable
-	UserQuestionnaireResponsesTable.ForeignKeys[0].RefTable = UsersTable
-	UserQuestionnaireResponsesTable.ForeignKeys[1].RefTable = QuestionnaireResponsesTable
+	QuestionnaireResponsesTable.ForeignKeys[0].RefTable = QuestionnairesTable
+	QuestionnaireResponsesTable.ForeignKeys[1].RefTable = UsersTable
 }

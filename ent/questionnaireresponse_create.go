@@ -37,34 +37,42 @@ func (qrc *QuestionnaireResponseCreate) SetNillableCreatedAt(t *time.Time) *Ques
 	return qrc
 }
 
-// AddUserIDs adds the "user" edge to the User entity by IDs.
-func (qrc *QuestionnaireResponseCreate) AddUserIDs(ids ...string) *QuestionnaireResponseCreate {
-	qrc.mutation.AddUserIDs(ids...)
+// SetUserID sets the "user" edge to the User entity by ID.
+func (qrc *QuestionnaireResponseCreate) SetUserID(id string) *QuestionnaireResponseCreate {
+	qrc.mutation.SetUserID(id)
 	return qrc
 }
 
-// AddUser adds the "user" edges to the User entity.
-func (qrc *QuestionnaireResponseCreate) AddUser(u ...*User) *QuestionnaireResponseCreate {
-	ids := make([]string, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (qrc *QuestionnaireResponseCreate) SetNillableUserID(id *string) *QuestionnaireResponseCreate {
+	if id != nil {
+		qrc = qrc.SetUserID(*id)
 	}
-	return qrc.AddUserIDs(ids...)
-}
-
-// AddQuestionnaireIDs adds the "questionnaire" edge to the Questionnaire entity by IDs.
-func (qrc *QuestionnaireResponseCreate) AddQuestionnaireIDs(ids ...int) *QuestionnaireResponseCreate {
-	qrc.mutation.AddQuestionnaireIDs(ids...)
 	return qrc
 }
 
-// AddQuestionnaire adds the "questionnaire" edges to the Questionnaire entity.
-func (qrc *QuestionnaireResponseCreate) AddQuestionnaire(q ...*Questionnaire) *QuestionnaireResponseCreate {
-	ids := make([]int, len(q))
-	for i := range q {
-		ids[i] = q[i].ID
+// SetUser sets the "user" edge to the User entity.
+func (qrc *QuestionnaireResponseCreate) SetUser(u *User) *QuestionnaireResponseCreate {
+	return qrc.SetUserID(u.ID)
+}
+
+// SetQuestionnaireID sets the "questionnaire" edge to the Questionnaire entity by ID.
+func (qrc *QuestionnaireResponseCreate) SetQuestionnaireID(id int) *QuestionnaireResponseCreate {
+	qrc.mutation.SetQuestionnaireID(id)
+	return qrc
+}
+
+// SetNillableQuestionnaireID sets the "questionnaire" edge to the Questionnaire entity by ID if the given value is not nil.
+func (qrc *QuestionnaireResponseCreate) SetNillableQuestionnaireID(id *int) *QuestionnaireResponseCreate {
+	if id != nil {
+		qrc = qrc.SetQuestionnaireID(*id)
 	}
-	return qrc.AddQuestionnaireIDs(ids...)
+	return qrc
+}
+
+// SetQuestionnaire sets the "questionnaire" edge to the Questionnaire entity.
+func (qrc *QuestionnaireResponseCreate) SetQuestionnaire(q *Questionnaire) *QuestionnaireResponseCreate {
+	return qrc.SetQuestionnaireID(q.ID)
 }
 
 // AddAnswerIDs adds the "answers" edge to the Answer entity by IDs.
@@ -160,10 +168,10 @@ func (qrc *QuestionnaireResponseCreate) createSpec() (*QuestionnaireResponse, *s
 	}
 	if nodes := qrc.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   questionnaireresponse.UserTable,
-			Columns: questionnaireresponse.UserPrimaryKey,
+			Columns: []string{questionnaireresponse.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
@@ -172,14 +180,15 @@ func (qrc *QuestionnaireResponseCreate) createSpec() (*QuestionnaireResponse, *s
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_node.user_questionnaire_responses = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := qrc.mutation.QuestionnaireIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   questionnaireresponse.QuestionnaireTable,
-			Columns: questionnaireresponse.QuestionnairePrimaryKey,
+			Columns: []string{questionnaireresponse.QuestionnaireColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(questionnaire.FieldID, field.TypeInt),
@@ -188,6 +197,7 @@ func (qrc *QuestionnaireResponseCreate) createSpec() (*QuestionnaireResponse, *s
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_node.questionnaire_questionnaire_responses = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := qrc.mutation.AnswersIDs(); len(nodes) > 0 {
