@@ -22,25 +22,12 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// @title           Swagger Example API
+// @title           Health Statistic API
 // @version         1.0
-// @description     This is a sample server celler server.
+// @description     This is a sample server for Health Statistic API.
 // @termsOfService  http://swagger.io/terms/
-
-// @contact.name   API Support
-// @contact.url    http://www.swagger.io/support
-// @contact.email  support@swagger.io
-
-// @license.name  Apache 2.0
-// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
-
 // @host      localhost:8080
 // @BasePath  /api/v1
-
-// @securityDefinitions.basic  BasicAuth
-
-// @externalDocs.description  OpenAPI
-// @externalDocs.url          https://swagger.io/resources/open-api/
 func main() {
 	// Loading environment variables when not using a docker container
 	if os.Getenv("RUNNING_IN_DOCKER") == "" {
