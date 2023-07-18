@@ -1,6 +1,9 @@
 package handlers
 
-import "github.com/eesoymilk/health-statistic-api/ent"
+import (
+	"github.com/eesoymilk/health-statistic-api/ent"
+	"github.com/google/uuid"
+)
 
 type QuestionnaireHandler struct {
 	DB *ent.Client
@@ -20,8 +23,8 @@ type Question struct {
 }
 
 type Answer struct {
-	QuestionId int    `json:"question_id"`
-	Body       string `json:"body"`
+	QuestionId uuid.UUID `json:"question_id"`
+	Body       string    `json:"body"`
 }
 
 type QuestionnaireBody struct {

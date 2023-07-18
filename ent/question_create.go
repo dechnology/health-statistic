@@ -12,6 +12,7 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent/answer"
 	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaire"
+	"github.com/google/uuid"
 )
 
 // QuestionCreate is the builder for creating a Question entity.
@@ -33,14 +34,28 @@ func (qc *QuestionCreate) SetType(s string) *QuestionCreate {
 	return qc
 }
 
+// SetID sets the "id" field.
+func (qc *QuestionCreate) SetID(u uuid.UUID) *QuestionCreate {
+	qc.mutation.SetID(u)
+	return qc
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (qc *QuestionCreate) SetNillableID(u *uuid.UUID) *QuestionCreate {
+	if u != nil {
+		qc.SetID(*u)
+	}
+	return qc
+}
+
 // SetQuestionnaireID sets the "questionnaire" edge to the Questionnaire entity by ID.
-func (qc *QuestionCreate) SetQuestionnaireID(id int) *QuestionCreate {
+func (qc *QuestionCreate) SetQuestionnaireID(id uuid.UUID) *QuestionCreate {
 	qc.mutation.SetQuestionnaireID(id)
 	return qc
 }
 
 // SetNillableQuestionnaireID sets the "questionnaire" edge to the Questionnaire entity by ID if the given value is not nil.
-func (qc *QuestionCreate) SetNillableQuestionnaireID(id *int) *QuestionCreate {
+func (qc *QuestionCreate) SetNillableQuestionnaireID(id *uuid.UUID) *QuestionCreate {
 	if id != nil {
 		qc = qc.SetQuestionnaireID(*id)
 	}
@@ -53,14 +68,14 @@ func (qc *QuestionCreate) SetQuestionnaire(q *Questionnaire) *QuestionCreate {
 }
 
 // AddAnswerIDs adds the "answers" edge to the Answer entity by IDs.
-func (qc *QuestionCreate) AddAnswerIDs(ids ...int) *QuestionCreate {
+func (qc *QuestionCreate) AddAnswerIDs(ids ...uuid.UUID) *QuestionCreate {
 	qc.mutation.AddAnswerIDs(ids...)
 	return qc
 }
 
 // AddAnswers adds the "answers" edges to the Answer entity.
 func (qc *QuestionCreate) AddAnswers(a ...*Answer) *QuestionCreate {
-	ids := make([]int, len(a))
+	ids := make([]uuid.UUID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -74,6 +89,7 @@ func (qc *QuestionCreate) Mutation() *QuestionMutation {
 
 // Save creates the Question in the database.
 func (qc *QuestionCreate) Save(ctx context.Context) (*Question, error) {
+	qc.defaults()
 	return withHooks(ctx, qc.sqlSave, qc.mutation, qc.hooks)
 }
 
@@ -99,6 +115,14 @@ func (qc *QuestionCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (qc *QuestionCreate) defaults() {
+	if _, ok := qc.mutation.ID(); !ok {
+		v := question.DefaultID()
+		qc.mutation.SetID(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (qc *QuestionCreate) check() error {
 	if _, ok := qc.mutation.Body(); !ok {
@@ -121,8 +145,13 @@ func (qc *QuestionCreate) sqlSave(ctx context.Context) (*Question, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
+	}
 	qc.mutation.id = &_node.ID
 	qc.mutation.done = true
 	return _node, nil
@@ -131,8 +160,12 @@ func (qc *QuestionCreate) sqlSave(ctx context.Context) (*Question, error) {
 func (qc *QuestionCreate) createSpec() (*Question, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Question{config: qc.config}
-		_spec = sqlgraph.NewCreateSpec(question.Table, sqlgraph.NewFieldSpec(question.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(question.Table, sqlgraph.NewFieldSpec(question.FieldID, field.TypeUUID))
 	)
+	if id, ok := qc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = &id
+	}
 	if value, ok := qc.mutation.Body(); ok {
 		_spec.SetField(question.FieldBody, field.TypeString, value)
 		_node.Body = value
@@ -149,7 +182,7 @@ func (qc *QuestionCreate) createSpec() (*Question, *sqlgraph.CreateSpec) {
 			Columns: []string{question.QuestionnaireColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(questionnaire.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaire.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -166,7 +199,7 @@ func (qc *QuestionCreate) createSpec() (*Question, *sqlgraph.CreateSpec) {
 			Columns: []string{question.AnswersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(answer.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(answer.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -191,6 +224,7 @@ func (qcb *QuestionCreateBulk) Save(ctx context.Context) ([]*Question, error) {
 	for i := range qcb.builders {
 		func(i int, root context.Context) {
 			builder := qcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*QuestionMutation)
 				if !ok {
@@ -217,10 +251,6 @@ func (qcb *QuestionCreateBulk) Save(ctx context.Context) ([]*Question, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})

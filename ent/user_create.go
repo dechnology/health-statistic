@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
+	"github.com/google/uuid"
 )
 
 // UserCreate is the builder for creating a User entity.
@@ -156,14 +157,14 @@ func (uc *UserCreate) SetID(s string) *UserCreate {
 }
 
 // AddQuestionnaireResponseIDs adds the "questionnaire_responses" edge to the QuestionnaireResponse entity by IDs.
-func (uc *UserCreate) AddQuestionnaireResponseIDs(ids ...int) *UserCreate {
+func (uc *UserCreate) AddQuestionnaireResponseIDs(ids ...uuid.UUID) *UserCreate {
 	uc.mutation.AddQuestionnaireResponseIDs(ids...)
 	return uc
 }
 
 // AddQuestionnaireResponses adds the "questionnaire_responses" edges to the QuestionnaireResponse entity.
 func (uc *UserCreate) AddQuestionnaireResponses(q ...*QuestionnaireResponse) *UserCreate {
-	ids := make([]int, len(q))
+	ids := make([]uuid.UUID, len(q))
 	for i := range q {
 		ids[i] = q[i].ID
 	}
@@ -426,7 +427,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Columns: []string{user.QuestionnaireResponsesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

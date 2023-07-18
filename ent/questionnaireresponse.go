@@ -12,19 +12,20 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaire"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
+	"github.com/google/uuid"
 )
 
 // QuestionnaireResponse is the model entity for the QuestionnaireResponse schema.
 type QuestionnaireResponse struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the QuestionnaireResponseQuery when eager-loading is set.
 	Edges                                 QuestionnaireResponseEdges `json:"edges"`
-	questionnaire_questionnaire_responses *int
+	questionnaire_questionnaire_responses *uuid.UUID
 	user_questionnaire_responses          *string
 	selectValues                          sql.SelectValues
 }
@@ -82,12 +83,12 @@ func (*QuestionnaireResponse) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case questionnaireresponse.FieldID:
-			values[i] = new(sql.NullInt64)
 		case questionnaireresponse.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
+		case questionnaireresponse.FieldID:
+			values[i] = new(uuid.UUID)
 		case questionnaireresponse.ForeignKeys[0]: // questionnaire_questionnaire_responses
-			values[i] = new(sql.NullInt64)
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case questionnaireresponse.ForeignKeys[1]: // user_questionnaire_responses
 			values[i] = new(sql.NullString)
 		default:
@@ -106,11 +107,11 @@ func (qr *QuestionnaireResponse) assignValues(columns []string, values []any) er
 	for i := range columns {
 		switch columns[i] {
 		case questionnaireresponse.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value != nil {
+				qr.ID = *value
 			}
-			qr.ID = int(value.Int64)
 		case questionnaireresponse.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -118,11 +119,11 @@ func (qr *QuestionnaireResponse) assignValues(columns []string, values []any) er
 				qr.CreatedAt = value.Time
 			}
 		case questionnaireresponse.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field questionnaire_questionnaire_responses", value)
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field questionnaire_questionnaire_responses", values[i])
 			} else if value.Valid {
-				qr.questionnaire_questionnaire_responses = new(int)
-				*qr.questionnaire_questionnaire_responses = int(value.Int64)
+				qr.questionnaire_questionnaire_responses = new(uuid.UUID)
+				*qr.questionnaire_questionnaire_responses = *value.S.(*uuid.UUID)
 			}
 		case questionnaireresponse.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullString); !ok {

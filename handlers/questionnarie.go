@@ -5,13 +5,11 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 
 	"github.com/eesoymilk/health-statistic-api/ent"
-	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaire"
-	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // GET		/questionnaires
@@ -19,6 +17,9 @@ func (h *QuestionnaireHandler) GetQuestionnaires(c *gin.Context) {
 	questionnaires, err := h.DB.Questionnaire.
 		Query().
 		WithQuestions().
+		WithQuestionnaireResponses(func(qr *ent.QuestionnaireResponseQuery) {
+			qr.WithUser().WithAnswers().All(c.Request.Context())
+		}).
 		All(c.Request.Context())
 
 	if err != nil {
@@ -31,7 +32,7 @@ func (h *QuestionnaireHandler) GetQuestionnaires(c *gin.Context) {
 
 // GET		/questionnaires/:id
 func (h *QuestionnaireHandler) GetQuestionnaire(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := uuid.Parse(c.Param("id"))
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -43,7 +44,7 @@ func (h *QuestionnaireHandler) GetQuestionnaire(c *gin.Context) {
 		Where(questionnaire.ID(id)).
 		WithQuestions().
 		WithQuestionnaireResponses(func(qr *ent.QuestionnaireResponseQuery) {
-			qr.WithAnswers()
+			qr.WithUser().WithAnswers().All(c.Request.Context())
 		}).
 		Only(c.Request.Context())
 
@@ -100,7 +101,7 @@ func (h *QuestionnaireHandler) CreateQuestionnaire(c *gin.Context) {
 
 // DELETE	/questionnaires/:id
 func (h *QuestionnaireHandler) DeleteQuestionnaire(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := uuid.Parse(c.Param("id"))
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -114,31 +115,9 @@ func (h *QuestionnaireHandler) DeleteQuestionnaire(c *gin.Context) {
 	c.JSON(http.StatusNoContent, nil)
 }
 
-// GET		/questionnaires/:id/questions
-func (h *QuestionnaireHandler) GetQuestions(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	questions, err := h.DB.Question.
-		Query().
-		Where(question.HasQuestionnaireWith(questionnaire.ID(id))).
-		All(c.Request.Context())
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, questions)
-}
-
-// POST		/questionnaires/:id/questions
+// POST		/questionnaires/:id/new/question
 func (h *QuestionnaireHandler) CreateQuestion(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -165,32 +144,9 @@ func (h *QuestionnaireHandler) CreateQuestion(c *gin.Context) {
 	c.JSON(http.StatusOK, questionNode)
 }
 
-// GET		/questionnaires/:id/responses
-func (h *QuestionnaireHandler) GetResponses(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	responses, err := h.DB.QuestionnaireResponse.
-		Query().
-		Where(questionnaireresponse.HasQuestionnaireWith(questionnaire.ID(id))).
-		WithAnswers().
-		All(c.Request.Context())
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, responses)
-}
-
-// POST		/questionnaires/:id/responses
+// POST		/questionnaires/:id/new/response
 func (h *QuestionnaireHandler) CreateResponse(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

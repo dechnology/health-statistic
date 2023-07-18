@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // GET		/questions
@@ -25,7 +25,7 @@ func (h *QuestionHandler) GetQuestions(c *gin.Context) {
 
 // GET		/questions/:id
 func (h *QuestionHandler) GetQuestion(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := uuid.Parse(c.Param("id"))
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -48,7 +48,7 @@ func (h *QuestionHandler) GetQuestion(c *gin.Context) {
 
 // DELETE	/questions/:id
 func (h *QuestionHandler) DeleteQuestion(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := uuid.Parse(c.Param("id"))
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -64,7 +64,7 @@ func (h *QuestionHandler) DeleteQuestion(c *gin.Context) {
 }
 
 // func (h *QuestionHandler) CreateQuestion(c *gin.Context) {
-// 	questionnaireId, err := strconv.Atoi(c.Param("id"))
+// 	questionnaireId, err := uuid.Parse(c.Param("id"))
 
 // 	if err != nil {
 // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

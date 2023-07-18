@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // GET		/responses
@@ -25,7 +25,7 @@ func (h *ResponseHandler) GetResponses(c *gin.Context) {
 
 // GET		/responses/:id
 func (h *ResponseHandler) GetResponse(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := uuid.Parse(c.Param("id"))
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -48,7 +48,7 @@ func (h *ResponseHandler) GetResponse(c *gin.Context) {
 
 // DELETE	/responses/:id
 func (h *ResponseHandler) DeleteResponse(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := uuid.Parse(c.Param("id"))
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

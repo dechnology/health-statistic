@@ -14,6 +14,7 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
+	"github.com/google/uuid"
 )
 
 // UserUpdate is the builder for updating User entities.
@@ -183,14 +184,14 @@ func (uu *UserUpdate) SetSmokingHabit(uh user.SmokingHabit) *UserUpdate {
 }
 
 // AddQuestionnaireResponseIDs adds the "questionnaire_responses" edge to the QuestionnaireResponse entity by IDs.
-func (uu *UserUpdate) AddQuestionnaireResponseIDs(ids ...int) *UserUpdate {
+func (uu *UserUpdate) AddQuestionnaireResponseIDs(ids ...uuid.UUID) *UserUpdate {
 	uu.mutation.AddQuestionnaireResponseIDs(ids...)
 	return uu
 }
 
 // AddQuestionnaireResponses adds the "questionnaire_responses" edges to the QuestionnaireResponse entity.
 func (uu *UserUpdate) AddQuestionnaireResponses(q ...*QuestionnaireResponse) *UserUpdate {
-	ids := make([]int, len(q))
+	ids := make([]uuid.UUID, len(q))
 	for i := range q {
 		ids[i] = q[i].ID
 	}
@@ -209,14 +210,14 @@ func (uu *UserUpdate) ClearQuestionnaireResponses() *UserUpdate {
 }
 
 // RemoveQuestionnaireResponseIDs removes the "questionnaire_responses" edge to QuestionnaireResponse entities by IDs.
-func (uu *UserUpdate) RemoveQuestionnaireResponseIDs(ids ...int) *UserUpdate {
+func (uu *UserUpdate) RemoveQuestionnaireResponseIDs(ids ...uuid.UUID) *UserUpdate {
 	uu.mutation.RemoveQuestionnaireResponseIDs(ids...)
 	return uu
 }
 
 // RemoveQuestionnaireResponses removes "questionnaire_responses" edges to QuestionnaireResponse entities.
 func (uu *UserUpdate) RemoveQuestionnaireResponses(q ...*QuestionnaireResponse) *UserUpdate {
-	ids := make([]int, len(q))
+	ids := make([]uuid.UUID, len(q))
 	for i := range q {
 		ids[i] = q[i].ID
 	}
@@ -407,7 +408,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{user.QuestionnaireResponsesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -420,7 +421,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{user.QuestionnaireResponsesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -436,7 +437,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{user.QuestionnaireResponsesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -618,14 +619,14 @@ func (uuo *UserUpdateOne) SetSmokingHabit(uh user.SmokingHabit) *UserUpdateOne {
 }
 
 // AddQuestionnaireResponseIDs adds the "questionnaire_responses" edge to the QuestionnaireResponse entity by IDs.
-func (uuo *UserUpdateOne) AddQuestionnaireResponseIDs(ids ...int) *UserUpdateOne {
+func (uuo *UserUpdateOne) AddQuestionnaireResponseIDs(ids ...uuid.UUID) *UserUpdateOne {
 	uuo.mutation.AddQuestionnaireResponseIDs(ids...)
 	return uuo
 }
 
 // AddQuestionnaireResponses adds the "questionnaire_responses" edges to the QuestionnaireResponse entity.
 func (uuo *UserUpdateOne) AddQuestionnaireResponses(q ...*QuestionnaireResponse) *UserUpdateOne {
-	ids := make([]int, len(q))
+	ids := make([]uuid.UUID, len(q))
 	for i := range q {
 		ids[i] = q[i].ID
 	}
@@ -644,14 +645,14 @@ func (uuo *UserUpdateOne) ClearQuestionnaireResponses() *UserUpdateOne {
 }
 
 // RemoveQuestionnaireResponseIDs removes the "questionnaire_responses" edge to QuestionnaireResponse entities by IDs.
-func (uuo *UserUpdateOne) RemoveQuestionnaireResponseIDs(ids ...int) *UserUpdateOne {
+func (uuo *UserUpdateOne) RemoveQuestionnaireResponseIDs(ids ...uuid.UUID) *UserUpdateOne {
 	uuo.mutation.RemoveQuestionnaireResponseIDs(ids...)
 	return uuo
 }
 
 // RemoveQuestionnaireResponses removes "questionnaire_responses" edges to QuestionnaireResponse entities.
 func (uuo *UserUpdateOne) RemoveQuestionnaireResponses(q ...*QuestionnaireResponse) *UserUpdateOne {
-	ids := make([]int, len(q))
+	ids := make([]uuid.UUID, len(q))
 	for i := range q {
 		ids[i] = q[i].ID
 	}
@@ -872,7 +873,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: []string{user.QuestionnaireResponsesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -885,7 +886,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: []string{user.QuestionnaireResponsesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -901,7 +902,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: []string{user.QuestionnaireResponsesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

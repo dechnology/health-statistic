@@ -17,6 +17,7 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaire"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
+	"github.com/google/uuid"
 )
 
 const (
@@ -29,9 +30,12 @@ const (
 
 	// Node types.
 	TypeAnswer                = "Answer"
+	TypeNotification          = "Notification"
+	TypePrice                 = "Price"
 	TypeQuestion              = "Question"
 	TypeQuestionnaire         = "Questionnaire"
 	TypeQuestionnaireResponse = "QuestionnaireResponse"
+	TypeReward                = "Reward"
 	TypeUser                  = "User"
 )
 
@@ -40,13 +44,13 @@ type AnswerMutation struct {
 	config
 	op                            Op
 	typ                           string
-	id                            *int
+	id                            *uuid.UUID
 	created_at                    *time.Time
 	body                          *string
 	clearedFields                 map[string]struct{}
-	question                      *int
+	question                      *uuid.UUID
 	clearedquestion               bool
-	questionnaire_response        *int
+	questionnaire_response        *uuid.UUID
 	clearedquestionnaire_response bool
 	done                          bool
 	oldValue                      func(context.Context) (*Answer, error)
@@ -73,7 +77,7 @@ func newAnswerMutation(c config, op Op, opts ...answerOption) *AnswerMutation {
 }
 
 // withAnswerID sets the ID field of the mutation.
-func withAnswerID(id int) answerOption {
+func withAnswerID(id uuid.UUID) answerOption {
 	return func(m *AnswerMutation) {
 		var (
 			err   error
@@ -123,9 +127,15 @@ func (m AnswerMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Answer entities.
+func (m *AnswerMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *AnswerMutation) ID() (id int, exists bool) {
+func (m *AnswerMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -136,12 +146,12 @@ func (m *AnswerMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *AnswerMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *AnswerMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []uuid.UUID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -224,7 +234,7 @@ func (m *AnswerMutation) ResetBody() {
 }
 
 // SetQuestionID sets the "question" edge to the Question entity by id.
-func (m *AnswerMutation) SetQuestionID(id int) {
+func (m *AnswerMutation) SetQuestionID(id uuid.UUID) {
 	m.question = &id
 }
 
@@ -239,7 +249,7 @@ func (m *AnswerMutation) QuestionCleared() bool {
 }
 
 // QuestionID returns the "question" edge ID in the mutation.
-func (m *AnswerMutation) QuestionID() (id int, exists bool) {
+func (m *AnswerMutation) QuestionID() (id uuid.UUID, exists bool) {
 	if m.question != nil {
 		return *m.question, true
 	}
@@ -249,7 +259,7 @@ func (m *AnswerMutation) QuestionID() (id int, exists bool) {
 // QuestionIDs returns the "question" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // QuestionID instead. It exists only for internal usage by the builders.
-func (m *AnswerMutation) QuestionIDs() (ids []int) {
+func (m *AnswerMutation) QuestionIDs() (ids []uuid.UUID) {
 	if id := m.question; id != nil {
 		ids = append(ids, *id)
 	}
@@ -263,7 +273,7 @@ func (m *AnswerMutation) ResetQuestion() {
 }
 
 // SetQuestionnaireResponseID sets the "questionnaire_response" edge to the QuestionnaireResponse entity by id.
-func (m *AnswerMutation) SetQuestionnaireResponseID(id int) {
+func (m *AnswerMutation) SetQuestionnaireResponseID(id uuid.UUID) {
 	m.questionnaire_response = &id
 }
 
@@ -278,7 +288,7 @@ func (m *AnswerMutation) QuestionnaireResponseCleared() bool {
 }
 
 // QuestionnaireResponseID returns the "questionnaire_response" edge ID in the mutation.
-func (m *AnswerMutation) QuestionnaireResponseID() (id int, exists bool) {
+func (m *AnswerMutation) QuestionnaireResponseID() (id uuid.UUID, exists bool) {
 	if m.questionnaire_response != nil {
 		return *m.questionnaire_response, true
 	}
@@ -288,7 +298,7 @@ func (m *AnswerMutation) QuestionnaireResponseID() (id int, exists bool) {
 // QuestionnaireResponseIDs returns the "questionnaire_response" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // QuestionnaireResponseID instead. It exists only for internal usage by the builders.
-func (m *AnswerMutation) QuestionnaireResponseIDs() (ids []int) {
+func (m *AnswerMutation) QuestionnaireResponseIDs() (ids []uuid.UUID) {
 	if id := m.questionnaire_response; id != nil {
 		ids = append(ids, *id)
 	}
@@ -541,19 +551,547 @@ func (m *AnswerMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Answer edge %s", name)
 }
 
+// NotificationMutation represents an operation that mutates the Notification nodes in the graph.
+type NotificationMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*Notification, error)
+	predicates    []predicate.Notification
+}
+
+var _ ent.Mutation = (*NotificationMutation)(nil)
+
+// notificationOption allows management of the mutation configuration using functional options.
+type notificationOption func(*NotificationMutation)
+
+// newNotificationMutation creates new mutation for the Notification entity.
+func newNotificationMutation(c config, op Op, opts ...notificationOption) *NotificationMutation {
+	m := &NotificationMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeNotification,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withNotificationID sets the ID field of the mutation.
+func withNotificationID(id int) notificationOption {
+	return func(m *NotificationMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Notification
+		)
+		m.oldValue = func(ctx context.Context) (*Notification, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Notification.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withNotification sets the old Notification of the mutation.
+func withNotification(node *Notification) notificationOption {
+	return func(m *NotificationMutation) {
+		m.oldValue = func(context.Context) (*Notification, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m NotificationMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m NotificationMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *NotificationMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *NotificationMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Notification.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// Where appends a list predicates to the NotificationMutation builder.
+func (m *NotificationMutation) Where(ps ...predicate.Notification) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the NotificationMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *NotificationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Notification, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *NotificationMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *NotificationMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Notification).
+func (m *NotificationMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *NotificationMutation) Fields() []string {
+	fields := make([]string, 0, 0)
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *NotificationMutation) Field(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *NotificationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	return nil, fmt.Errorf("unknown Notification field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NotificationMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Notification field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *NotificationMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *NotificationMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NotificationMutation) AddField(name string, value ent.Value) error {
+	return fmt.Errorf("unknown Notification numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *NotificationMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *NotificationMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *NotificationMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Notification nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *NotificationMutation) ResetField(name string) error {
+	return fmt.Errorf("unknown Notification field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *NotificationMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *NotificationMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *NotificationMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *NotificationMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *NotificationMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *NotificationMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *NotificationMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown Notification unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *NotificationMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown Notification edge %s", name)
+}
+
+// PriceMutation represents an operation that mutates the Price nodes in the graph.
+type PriceMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*Price, error)
+	predicates    []predicate.Price
+}
+
+var _ ent.Mutation = (*PriceMutation)(nil)
+
+// priceOption allows management of the mutation configuration using functional options.
+type priceOption func(*PriceMutation)
+
+// newPriceMutation creates new mutation for the Price entity.
+func newPriceMutation(c config, op Op, opts ...priceOption) *PriceMutation {
+	m := &PriceMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePrice,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withPriceID sets the ID field of the mutation.
+func withPriceID(id int) priceOption {
+	return func(m *PriceMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Price
+		)
+		m.oldValue = func(ctx context.Context) (*Price, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Price.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withPrice sets the old Price of the mutation.
+func withPrice(node *Price) priceOption {
+	return func(m *PriceMutation) {
+		m.oldValue = func(context.Context) (*Price, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PriceMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PriceMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *PriceMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *PriceMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Price.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// Where appends a list predicates to the PriceMutation builder.
+func (m *PriceMutation) Where(ps ...predicate.Price) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the PriceMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PriceMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Price, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *PriceMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PriceMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Price).
+func (m *PriceMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *PriceMutation) Fields() []string {
+	fields := make([]string, 0, 0)
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *PriceMutation) Field(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *PriceMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	return nil, fmt.Errorf("unknown Price field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PriceMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Price field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *PriceMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *PriceMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PriceMutation) AddField(name string, value ent.Value) error {
+	return fmt.Errorf("unknown Price numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *PriceMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *PriceMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PriceMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Price nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *PriceMutation) ResetField(name string) error {
+	return fmt.Errorf("unknown Price field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *PriceMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *PriceMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *PriceMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *PriceMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *PriceMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *PriceMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *PriceMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown Price unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *PriceMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown Price edge %s", name)
+}
+
 // QuestionMutation represents an operation that mutates the Question nodes in the graph.
 type QuestionMutation struct {
 	config
 	op                   Op
 	typ                  string
-	id                   *int
+	id                   *uuid.UUID
 	body                 *string
 	_type                *string
 	clearedFields        map[string]struct{}
-	questionnaire        *int
+	questionnaire        *uuid.UUID
 	clearedquestionnaire bool
-	answers              map[int]struct{}
-	removedanswers       map[int]struct{}
+	answers              map[uuid.UUID]struct{}
+	removedanswers       map[uuid.UUID]struct{}
 	clearedanswers       bool
 	done                 bool
 	oldValue             func(context.Context) (*Question, error)
@@ -580,7 +1118,7 @@ func newQuestionMutation(c config, op Op, opts ...questionOption) *QuestionMutat
 }
 
 // withQuestionID sets the ID field of the mutation.
-func withQuestionID(id int) questionOption {
+func withQuestionID(id uuid.UUID) questionOption {
 	return func(m *QuestionMutation) {
 		var (
 			err   error
@@ -630,9 +1168,15 @@ func (m QuestionMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Question entities.
+func (m *QuestionMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *QuestionMutation) ID() (id int, exists bool) {
+func (m *QuestionMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -643,12 +1187,12 @@ func (m *QuestionMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *QuestionMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *QuestionMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []uuid.UUID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -731,7 +1275,7 @@ func (m *QuestionMutation) ResetType() {
 }
 
 // SetQuestionnaireID sets the "questionnaire" edge to the Questionnaire entity by id.
-func (m *QuestionMutation) SetQuestionnaireID(id int) {
+func (m *QuestionMutation) SetQuestionnaireID(id uuid.UUID) {
 	m.questionnaire = &id
 }
 
@@ -746,7 +1290,7 @@ func (m *QuestionMutation) QuestionnaireCleared() bool {
 }
 
 // QuestionnaireID returns the "questionnaire" edge ID in the mutation.
-func (m *QuestionMutation) QuestionnaireID() (id int, exists bool) {
+func (m *QuestionMutation) QuestionnaireID() (id uuid.UUID, exists bool) {
 	if m.questionnaire != nil {
 		return *m.questionnaire, true
 	}
@@ -756,7 +1300,7 @@ func (m *QuestionMutation) QuestionnaireID() (id int, exists bool) {
 // QuestionnaireIDs returns the "questionnaire" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // QuestionnaireID instead. It exists only for internal usage by the builders.
-func (m *QuestionMutation) QuestionnaireIDs() (ids []int) {
+func (m *QuestionMutation) QuestionnaireIDs() (ids []uuid.UUID) {
 	if id := m.questionnaire; id != nil {
 		ids = append(ids, *id)
 	}
@@ -770,9 +1314,9 @@ func (m *QuestionMutation) ResetQuestionnaire() {
 }
 
 // AddAnswerIDs adds the "answers" edge to the Answer entity by ids.
-func (m *QuestionMutation) AddAnswerIDs(ids ...int) {
+func (m *QuestionMutation) AddAnswerIDs(ids ...uuid.UUID) {
 	if m.answers == nil {
-		m.answers = make(map[int]struct{})
+		m.answers = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		m.answers[ids[i]] = struct{}{}
@@ -790,9 +1334,9 @@ func (m *QuestionMutation) AnswersCleared() bool {
 }
 
 // RemoveAnswerIDs removes the "answers" edge to the Answer entity by IDs.
-func (m *QuestionMutation) RemoveAnswerIDs(ids ...int) {
+func (m *QuestionMutation) RemoveAnswerIDs(ids ...uuid.UUID) {
 	if m.removedanswers == nil {
-		m.removedanswers = make(map[int]struct{})
+		m.removedanswers = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		delete(m.answers, ids[i])
@@ -801,7 +1345,7 @@ func (m *QuestionMutation) RemoveAnswerIDs(ids ...int) {
 }
 
 // RemovedAnswers returns the removed IDs of the "answers" edge to the Answer entity.
-func (m *QuestionMutation) RemovedAnswersIDs() (ids []int) {
+func (m *QuestionMutation) RemovedAnswersIDs() (ids []uuid.UUID) {
 	for id := range m.removedanswers {
 		ids = append(ids, id)
 	}
@@ -809,7 +1353,7 @@ func (m *QuestionMutation) RemovedAnswersIDs() (ids []int) {
 }
 
 // AnswersIDs returns the "answers" edge IDs in the mutation.
-func (m *QuestionMutation) AnswersIDs() (ids []int) {
+func (m *QuestionMutation) AnswersIDs() (ids []uuid.UUID) {
 	for id := range m.answers {
 		ids = append(ids, id)
 	}
@@ -1078,15 +1622,15 @@ type QuestionnaireMutation struct {
 	config
 	op                             Op
 	typ                            string
-	id                             *int
+	id                             *uuid.UUID
 	name                           *string
 	created_at                     *time.Time
 	clearedFields                  map[string]struct{}
-	questions                      map[int]struct{}
-	removedquestions               map[int]struct{}
+	questions                      map[uuid.UUID]struct{}
+	removedquestions               map[uuid.UUID]struct{}
 	clearedquestions               bool
-	questionnaire_responses        map[int]struct{}
-	removedquestionnaire_responses map[int]struct{}
+	questionnaire_responses        map[uuid.UUID]struct{}
+	removedquestionnaire_responses map[uuid.UUID]struct{}
 	clearedquestionnaire_responses bool
 	done                           bool
 	oldValue                       func(context.Context) (*Questionnaire, error)
@@ -1113,7 +1657,7 @@ func newQuestionnaireMutation(c config, op Op, opts ...questionnaireOption) *Que
 }
 
 // withQuestionnaireID sets the ID field of the mutation.
-func withQuestionnaireID(id int) questionnaireOption {
+func withQuestionnaireID(id uuid.UUID) questionnaireOption {
 	return func(m *QuestionnaireMutation) {
 		var (
 			err   error
@@ -1163,9 +1707,15 @@ func (m QuestionnaireMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Questionnaire entities.
+func (m *QuestionnaireMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *QuestionnaireMutation) ID() (id int, exists bool) {
+func (m *QuestionnaireMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -1176,12 +1726,12 @@ func (m *QuestionnaireMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *QuestionnaireMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *QuestionnaireMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []uuid.UUID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -1264,9 +1814,9 @@ func (m *QuestionnaireMutation) ResetCreatedAt() {
 }
 
 // AddQuestionIDs adds the "questions" edge to the Question entity by ids.
-func (m *QuestionnaireMutation) AddQuestionIDs(ids ...int) {
+func (m *QuestionnaireMutation) AddQuestionIDs(ids ...uuid.UUID) {
 	if m.questions == nil {
-		m.questions = make(map[int]struct{})
+		m.questions = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		m.questions[ids[i]] = struct{}{}
@@ -1284,9 +1834,9 @@ func (m *QuestionnaireMutation) QuestionsCleared() bool {
 }
 
 // RemoveQuestionIDs removes the "questions" edge to the Question entity by IDs.
-func (m *QuestionnaireMutation) RemoveQuestionIDs(ids ...int) {
+func (m *QuestionnaireMutation) RemoveQuestionIDs(ids ...uuid.UUID) {
 	if m.removedquestions == nil {
-		m.removedquestions = make(map[int]struct{})
+		m.removedquestions = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		delete(m.questions, ids[i])
@@ -1295,7 +1845,7 @@ func (m *QuestionnaireMutation) RemoveQuestionIDs(ids ...int) {
 }
 
 // RemovedQuestions returns the removed IDs of the "questions" edge to the Question entity.
-func (m *QuestionnaireMutation) RemovedQuestionsIDs() (ids []int) {
+func (m *QuestionnaireMutation) RemovedQuestionsIDs() (ids []uuid.UUID) {
 	for id := range m.removedquestions {
 		ids = append(ids, id)
 	}
@@ -1303,7 +1853,7 @@ func (m *QuestionnaireMutation) RemovedQuestionsIDs() (ids []int) {
 }
 
 // QuestionsIDs returns the "questions" edge IDs in the mutation.
-func (m *QuestionnaireMutation) QuestionsIDs() (ids []int) {
+func (m *QuestionnaireMutation) QuestionsIDs() (ids []uuid.UUID) {
 	for id := range m.questions {
 		ids = append(ids, id)
 	}
@@ -1318,9 +1868,9 @@ func (m *QuestionnaireMutation) ResetQuestions() {
 }
 
 // AddQuestionnaireResponseIDs adds the "questionnaire_responses" edge to the QuestionnaireResponse entity by ids.
-func (m *QuestionnaireMutation) AddQuestionnaireResponseIDs(ids ...int) {
+func (m *QuestionnaireMutation) AddQuestionnaireResponseIDs(ids ...uuid.UUID) {
 	if m.questionnaire_responses == nil {
-		m.questionnaire_responses = make(map[int]struct{})
+		m.questionnaire_responses = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		m.questionnaire_responses[ids[i]] = struct{}{}
@@ -1338,9 +1888,9 @@ func (m *QuestionnaireMutation) QuestionnaireResponsesCleared() bool {
 }
 
 // RemoveQuestionnaireResponseIDs removes the "questionnaire_responses" edge to the QuestionnaireResponse entity by IDs.
-func (m *QuestionnaireMutation) RemoveQuestionnaireResponseIDs(ids ...int) {
+func (m *QuestionnaireMutation) RemoveQuestionnaireResponseIDs(ids ...uuid.UUID) {
 	if m.removedquestionnaire_responses == nil {
-		m.removedquestionnaire_responses = make(map[int]struct{})
+		m.removedquestionnaire_responses = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		delete(m.questionnaire_responses, ids[i])
@@ -1349,7 +1899,7 @@ func (m *QuestionnaireMutation) RemoveQuestionnaireResponseIDs(ids ...int) {
 }
 
 // RemovedQuestionnaireResponses returns the removed IDs of the "questionnaire_responses" edge to the QuestionnaireResponse entity.
-func (m *QuestionnaireMutation) RemovedQuestionnaireResponsesIDs() (ids []int) {
+func (m *QuestionnaireMutation) RemovedQuestionnaireResponsesIDs() (ids []uuid.UUID) {
 	for id := range m.removedquestionnaire_responses {
 		ids = append(ids, id)
 	}
@@ -1357,7 +1907,7 @@ func (m *QuestionnaireMutation) RemovedQuestionnaireResponsesIDs() (ids []int) {
 }
 
 // QuestionnaireResponsesIDs returns the "questionnaire_responses" edge IDs in the mutation.
-func (m *QuestionnaireMutation) QuestionnaireResponsesIDs() (ids []int) {
+func (m *QuestionnaireMutation) QuestionnaireResponsesIDs() (ids []uuid.UUID) {
 	for id := range m.questionnaire_responses {
 		ids = append(ids, id)
 	}
@@ -1634,15 +2184,15 @@ type QuestionnaireResponseMutation struct {
 	config
 	op                   Op
 	typ                  string
-	id                   *int
+	id                   *uuid.UUID
 	created_at           *time.Time
 	clearedFields        map[string]struct{}
 	user                 *string
 	cleareduser          bool
-	questionnaire        *int
+	questionnaire        *uuid.UUID
 	clearedquestionnaire bool
-	answers              map[int]struct{}
-	removedanswers       map[int]struct{}
+	answers              map[uuid.UUID]struct{}
+	removedanswers       map[uuid.UUID]struct{}
 	clearedanswers       bool
 	done                 bool
 	oldValue             func(context.Context) (*QuestionnaireResponse, error)
@@ -1669,7 +2219,7 @@ func newQuestionnaireResponseMutation(c config, op Op, opts ...questionnaireresp
 }
 
 // withQuestionnaireResponseID sets the ID field of the mutation.
-func withQuestionnaireResponseID(id int) questionnaireresponseOption {
+func withQuestionnaireResponseID(id uuid.UUID) questionnaireresponseOption {
 	return func(m *QuestionnaireResponseMutation) {
 		var (
 			err   error
@@ -1719,9 +2269,15 @@ func (m QuestionnaireResponseMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of QuestionnaireResponse entities.
+func (m *QuestionnaireResponseMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *QuestionnaireResponseMutation) ID() (id int, exists bool) {
+func (m *QuestionnaireResponseMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -1732,12 +2288,12 @@ func (m *QuestionnaireResponseMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *QuestionnaireResponseMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *QuestionnaireResponseMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []uuid.UUID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -1823,7 +2379,7 @@ func (m *QuestionnaireResponseMutation) ResetUser() {
 }
 
 // SetQuestionnaireID sets the "questionnaire" edge to the Questionnaire entity by id.
-func (m *QuestionnaireResponseMutation) SetQuestionnaireID(id int) {
+func (m *QuestionnaireResponseMutation) SetQuestionnaireID(id uuid.UUID) {
 	m.questionnaire = &id
 }
 
@@ -1838,7 +2394,7 @@ func (m *QuestionnaireResponseMutation) QuestionnaireCleared() bool {
 }
 
 // QuestionnaireID returns the "questionnaire" edge ID in the mutation.
-func (m *QuestionnaireResponseMutation) QuestionnaireID() (id int, exists bool) {
+func (m *QuestionnaireResponseMutation) QuestionnaireID() (id uuid.UUID, exists bool) {
 	if m.questionnaire != nil {
 		return *m.questionnaire, true
 	}
@@ -1848,7 +2404,7 @@ func (m *QuestionnaireResponseMutation) QuestionnaireID() (id int, exists bool) 
 // QuestionnaireIDs returns the "questionnaire" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // QuestionnaireID instead. It exists only for internal usage by the builders.
-func (m *QuestionnaireResponseMutation) QuestionnaireIDs() (ids []int) {
+func (m *QuestionnaireResponseMutation) QuestionnaireIDs() (ids []uuid.UUID) {
 	if id := m.questionnaire; id != nil {
 		ids = append(ids, *id)
 	}
@@ -1862,9 +2418,9 @@ func (m *QuestionnaireResponseMutation) ResetQuestionnaire() {
 }
 
 // AddAnswerIDs adds the "answers" edge to the Answer entity by ids.
-func (m *QuestionnaireResponseMutation) AddAnswerIDs(ids ...int) {
+func (m *QuestionnaireResponseMutation) AddAnswerIDs(ids ...uuid.UUID) {
 	if m.answers == nil {
-		m.answers = make(map[int]struct{})
+		m.answers = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		m.answers[ids[i]] = struct{}{}
@@ -1882,9 +2438,9 @@ func (m *QuestionnaireResponseMutation) AnswersCleared() bool {
 }
 
 // RemoveAnswerIDs removes the "answers" edge to the Answer entity by IDs.
-func (m *QuestionnaireResponseMutation) RemoveAnswerIDs(ids ...int) {
+func (m *QuestionnaireResponseMutation) RemoveAnswerIDs(ids ...uuid.UUID) {
 	if m.removedanswers == nil {
-		m.removedanswers = make(map[int]struct{})
+		m.removedanswers = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		delete(m.answers, ids[i])
@@ -1893,7 +2449,7 @@ func (m *QuestionnaireResponseMutation) RemoveAnswerIDs(ids ...int) {
 }
 
 // RemovedAnswers returns the removed IDs of the "answers" edge to the Answer entity.
-func (m *QuestionnaireResponseMutation) RemovedAnswersIDs() (ids []int) {
+func (m *QuestionnaireResponseMutation) RemovedAnswersIDs() (ids []uuid.UUID) {
 	for id := range m.removedanswers {
 		ids = append(ids, id)
 	}
@@ -1901,7 +2457,7 @@ func (m *QuestionnaireResponseMutation) RemovedAnswersIDs() (ids []int) {
 }
 
 // AnswersIDs returns the "answers" edge IDs in the mutation.
-func (m *QuestionnaireResponseMutation) AnswersIDs() (ids []int) {
+func (m *QuestionnaireResponseMutation) AnswersIDs() (ids []uuid.UUID) {
 	for id := range m.answers {
 		ids = append(ids, id)
 	}
@@ -2166,6 +2722,270 @@ func (m *QuestionnaireResponseMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown QuestionnaireResponse edge %s", name)
 }
 
+// RewardMutation represents an operation that mutates the Reward nodes in the graph.
+type RewardMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*Reward, error)
+	predicates    []predicate.Reward
+}
+
+var _ ent.Mutation = (*RewardMutation)(nil)
+
+// rewardOption allows management of the mutation configuration using functional options.
+type rewardOption func(*RewardMutation)
+
+// newRewardMutation creates new mutation for the Reward entity.
+func newRewardMutation(c config, op Op, opts ...rewardOption) *RewardMutation {
+	m := &RewardMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeReward,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withRewardID sets the ID field of the mutation.
+func withRewardID(id int) rewardOption {
+	return func(m *RewardMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Reward
+		)
+		m.oldValue = func(ctx context.Context) (*Reward, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Reward.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withReward sets the old Reward of the mutation.
+func withReward(node *Reward) rewardOption {
+	return func(m *RewardMutation) {
+		m.oldValue = func(context.Context) (*Reward, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m RewardMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m RewardMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *RewardMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *RewardMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Reward.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// Where appends a list predicates to the RewardMutation builder.
+func (m *RewardMutation) Where(ps ...predicate.Reward) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the RewardMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *RewardMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Reward, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *RewardMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *RewardMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Reward).
+func (m *RewardMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *RewardMutation) Fields() []string {
+	fields := make([]string, 0, 0)
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *RewardMutation) Field(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *RewardMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	return nil, fmt.Errorf("unknown Reward field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *RewardMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Reward field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *RewardMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *RewardMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *RewardMutation) AddField(name string, value ent.Value) error {
+	return fmt.Errorf("unknown Reward numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *RewardMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *RewardMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *RewardMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Reward nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *RewardMutation) ResetField(name string) error {
+	return fmt.Errorf("unknown Reward field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *RewardMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *RewardMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *RewardMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *RewardMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *RewardMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *RewardMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *RewardMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown Reward unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *RewardMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown Reward edge %s", name)
+}
+
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
@@ -2192,8 +3012,8 @@ type UserMutation struct {
 	eyesight_condition              *user.EyesightCondition
 	smoking_habit                   *user.SmokingHabit
 	clearedFields                   map[string]struct{}
-	questionnaire_responses         map[int]struct{}
-	removedquestionnaire_responses  map[int]struct{}
+	questionnaire_responses         map[uuid.UUID]struct{}
+	removedquestionnaire_responses  map[uuid.UUID]struct{}
 	clearedquestionnaire_responses  bool
 	done                            bool
 	oldValue                        func(context.Context) (*User, error)
@@ -2967,9 +3787,9 @@ func (m *UserMutation) ResetSmokingHabit() {
 }
 
 // AddQuestionnaireResponseIDs adds the "questionnaire_responses" edge to the QuestionnaireResponse entity by ids.
-func (m *UserMutation) AddQuestionnaireResponseIDs(ids ...int) {
+func (m *UserMutation) AddQuestionnaireResponseIDs(ids ...uuid.UUID) {
 	if m.questionnaire_responses == nil {
-		m.questionnaire_responses = make(map[int]struct{})
+		m.questionnaire_responses = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		m.questionnaire_responses[ids[i]] = struct{}{}
@@ -2987,9 +3807,9 @@ func (m *UserMutation) QuestionnaireResponsesCleared() bool {
 }
 
 // RemoveQuestionnaireResponseIDs removes the "questionnaire_responses" edge to the QuestionnaireResponse entity by IDs.
-func (m *UserMutation) RemoveQuestionnaireResponseIDs(ids ...int) {
+func (m *UserMutation) RemoveQuestionnaireResponseIDs(ids ...uuid.UUID) {
 	if m.removedquestionnaire_responses == nil {
-		m.removedquestionnaire_responses = make(map[int]struct{})
+		m.removedquestionnaire_responses = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		delete(m.questionnaire_responses, ids[i])
@@ -2998,7 +3818,7 @@ func (m *UserMutation) RemoveQuestionnaireResponseIDs(ids ...int) {
 }
 
 // RemovedQuestionnaireResponses returns the removed IDs of the "questionnaire_responses" edge to the QuestionnaireResponse entity.
-func (m *UserMutation) RemovedQuestionnaireResponsesIDs() (ids []int) {
+func (m *UserMutation) RemovedQuestionnaireResponsesIDs() (ids []uuid.UUID) {
 	for id := range m.removedquestionnaire_responses {
 		ids = append(ids, id)
 	}
@@ -3006,7 +3826,7 @@ func (m *UserMutation) RemovedQuestionnaireResponsesIDs() (ids []int) {
 }
 
 // QuestionnaireResponsesIDs returns the "questionnaire_responses" edge IDs in the mutation.
-func (m *UserMutation) QuestionnaireResponsesIDs() (ids []int) {
+func (m *UserMutation) QuestionnaireResponsesIDs() (ids []uuid.UUID) {
 	for id := range m.questionnaire_responses {
 		ids = append(ids, id)
 	}

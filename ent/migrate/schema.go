@@ -10,11 +10,11 @@ import (
 var (
 	// AnswersColumns holds the columns for the "answers" table.
 	AnswersColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "body", Type: field.TypeString, Size: 2147483647},
-		{Name: "question_answers", Type: field.TypeInt, Nullable: true},
-		{Name: "questionnaire_response_answers", Type: field.TypeInt, Nullable: true},
+		{Name: "question_answers", Type: field.TypeUUID, Nullable: true},
+		{Name: "questionnaire_response_answers", Type: field.TypeUUID, Nullable: true},
 	}
 	// AnswersTable holds the schema information for the "answers" table.
 	AnswersTable = &schema.Table{
@@ -36,12 +36,32 @@ var (
 			},
 		},
 	}
+	// NotificationsColumns holds the columns for the "notifications" table.
+	NotificationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+	}
+	// NotificationsTable holds the schema information for the "notifications" table.
+	NotificationsTable = &schema.Table{
+		Name:       "notifications",
+		Columns:    NotificationsColumns,
+		PrimaryKey: []*schema.Column{NotificationsColumns[0]},
+	}
+	// PricesColumns holds the columns for the "prices" table.
+	PricesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+	}
+	// PricesTable holds the schema information for the "prices" table.
+	PricesTable = &schema.Table{
+		Name:       "prices",
+		Columns:    PricesColumns,
+		PrimaryKey: []*schema.Column{PricesColumns[0]},
+	}
 	// QuestionsColumns holds the columns for the "questions" table.
 	QuestionsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "id", Type: field.TypeUUID},
 		{Name: "body", Type: field.TypeString, Size: 2147483647},
 		{Name: "type", Type: field.TypeString, Size: 2147483647},
-		{Name: "questionnaire_questions", Type: field.TypeInt, Nullable: true},
+		{Name: "questionnaire_questions", Type: field.TypeUUID, Nullable: true},
 	}
 	// QuestionsTable holds the schema information for the "questions" table.
 	QuestionsTable = &schema.Table{
@@ -59,7 +79,7 @@ var (
 	}
 	// QuestionnairesColumns holds the columns for the "questionnaires" table.
 	QuestionnairesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "id", Type: field.TypeUUID},
 		{Name: "name", Type: field.TypeString},
 		{Name: "created_at", Type: field.TypeTime},
 	}
@@ -71,9 +91,9 @@ var (
 	}
 	// QuestionnaireResponsesColumns holds the columns for the "questionnaire_responses" table.
 	QuestionnaireResponsesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
-		{Name: "questionnaire_questionnaire_responses", Type: field.TypeInt, Nullable: true},
+		{Name: "questionnaire_questionnaire_responses", Type: field.TypeUUID, Nullable: true},
 		{Name: "user_questionnaire_responses", Type: field.TypeString, Nullable: true},
 	}
 	// QuestionnaireResponsesTable holds the schema information for the "questionnaire_responses" table.
@@ -95,6 +115,16 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 		},
+	}
+	// RewardsColumns holds the columns for the "rewards" table.
+	RewardsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+	}
+	// RewardsTable holds the schema information for the "rewards" table.
+	RewardsTable = &schema.Table{
+		Name:       "rewards",
+		Columns:    RewardsColumns,
+		PrimaryKey: []*schema.Column{RewardsColumns[0]},
 	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
@@ -125,9 +155,12 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AnswersTable,
+		NotificationsTable,
+		PricesTable,
 		QuestionsTable,
 		QuestionnairesTable,
 		QuestionnaireResponsesTable,
+		RewardsTable,
 		UsersTable,
 	}
 )

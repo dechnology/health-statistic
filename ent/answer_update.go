@@ -15,6 +15,7 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
 	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
+	"github.com/google/uuid"
 )
 
 // AnswerUpdate is the builder for updating Answer entities.
@@ -51,13 +52,13 @@ func (au *AnswerUpdate) SetBody(s string) *AnswerUpdate {
 }
 
 // SetQuestionID sets the "question" edge to the Question entity by ID.
-func (au *AnswerUpdate) SetQuestionID(id int) *AnswerUpdate {
+func (au *AnswerUpdate) SetQuestionID(id uuid.UUID) *AnswerUpdate {
 	au.mutation.SetQuestionID(id)
 	return au
 }
 
 // SetNillableQuestionID sets the "question" edge to the Question entity by ID if the given value is not nil.
-func (au *AnswerUpdate) SetNillableQuestionID(id *int) *AnswerUpdate {
+func (au *AnswerUpdate) SetNillableQuestionID(id *uuid.UUID) *AnswerUpdate {
 	if id != nil {
 		au = au.SetQuestionID(*id)
 	}
@@ -70,13 +71,13 @@ func (au *AnswerUpdate) SetQuestion(q *Question) *AnswerUpdate {
 }
 
 // SetQuestionnaireResponseID sets the "questionnaire_response" edge to the QuestionnaireResponse entity by ID.
-func (au *AnswerUpdate) SetQuestionnaireResponseID(id int) *AnswerUpdate {
+func (au *AnswerUpdate) SetQuestionnaireResponseID(id uuid.UUID) *AnswerUpdate {
 	au.mutation.SetQuestionnaireResponseID(id)
 	return au
 }
 
 // SetNillableQuestionnaireResponseID sets the "questionnaire_response" edge to the QuestionnaireResponse entity by ID if the given value is not nil.
-func (au *AnswerUpdate) SetNillableQuestionnaireResponseID(id *int) *AnswerUpdate {
+func (au *AnswerUpdate) SetNillableQuestionnaireResponseID(id *uuid.UUID) *AnswerUpdate {
 	if id != nil {
 		au = au.SetQuestionnaireResponseID(*id)
 	}
@@ -133,7 +134,7 @@ func (au *AnswerUpdate) ExecX(ctx context.Context) {
 }
 
 func (au *AnswerUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := sqlgraph.NewUpdateSpec(answer.Table, answer.Columns, sqlgraph.NewFieldSpec(answer.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(answer.Table, answer.Columns, sqlgraph.NewFieldSpec(answer.FieldID, field.TypeUUID))
 	if ps := au.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -155,7 +156,7 @@ func (au *AnswerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{answer.QuestionColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(question.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(question.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -168,7 +169,7 @@ func (au *AnswerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{answer.QuestionColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(question.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(question.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -184,7 +185,7 @@ func (au *AnswerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{answer.QuestionnaireResponseColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -197,7 +198,7 @@ func (au *AnswerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{answer.QuestionnaireResponseColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -246,13 +247,13 @@ func (auo *AnswerUpdateOne) SetBody(s string) *AnswerUpdateOne {
 }
 
 // SetQuestionID sets the "question" edge to the Question entity by ID.
-func (auo *AnswerUpdateOne) SetQuestionID(id int) *AnswerUpdateOne {
+func (auo *AnswerUpdateOne) SetQuestionID(id uuid.UUID) *AnswerUpdateOne {
 	auo.mutation.SetQuestionID(id)
 	return auo
 }
 
 // SetNillableQuestionID sets the "question" edge to the Question entity by ID if the given value is not nil.
-func (auo *AnswerUpdateOne) SetNillableQuestionID(id *int) *AnswerUpdateOne {
+func (auo *AnswerUpdateOne) SetNillableQuestionID(id *uuid.UUID) *AnswerUpdateOne {
 	if id != nil {
 		auo = auo.SetQuestionID(*id)
 	}
@@ -265,13 +266,13 @@ func (auo *AnswerUpdateOne) SetQuestion(q *Question) *AnswerUpdateOne {
 }
 
 // SetQuestionnaireResponseID sets the "questionnaire_response" edge to the QuestionnaireResponse entity by ID.
-func (auo *AnswerUpdateOne) SetQuestionnaireResponseID(id int) *AnswerUpdateOne {
+func (auo *AnswerUpdateOne) SetQuestionnaireResponseID(id uuid.UUID) *AnswerUpdateOne {
 	auo.mutation.SetQuestionnaireResponseID(id)
 	return auo
 }
 
 // SetNillableQuestionnaireResponseID sets the "questionnaire_response" edge to the QuestionnaireResponse entity by ID if the given value is not nil.
-func (auo *AnswerUpdateOne) SetNillableQuestionnaireResponseID(id *int) *AnswerUpdateOne {
+func (auo *AnswerUpdateOne) SetNillableQuestionnaireResponseID(id *uuid.UUID) *AnswerUpdateOne {
 	if id != nil {
 		auo = auo.SetQuestionnaireResponseID(*id)
 	}
@@ -341,7 +342,7 @@ func (auo *AnswerUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (auo *AnswerUpdateOne) sqlSave(ctx context.Context) (_node *Answer, err error) {
-	_spec := sqlgraph.NewUpdateSpec(answer.Table, answer.Columns, sqlgraph.NewFieldSpec(answer.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(answer.Table, answer.Columns, sqlgraph.NewFieldSpec(answer.FieldID, field.TypeUUID))
 	id, ok := auo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Answer.id" for update`)}
@@ -380,7 +381,7 @@ func (auo *AnswerUpdateOne) sqlSave(ctx context.Context) (_node *Answer, err err
 			Columns: []string{answer.QuestionColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(question.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(question.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -393,7 +394,7 @@ func (auo *AnswerUpdateOne) sqlSave(ctx context.Context) (_node *Answer, err err
 			Columns: []string{answer.QuestionColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(question.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(question.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -409,7 +410,7 @@ func (auo *AnswerUpdateOne) sqlSave(ctx context.Context) (_node *Answer, err err
 			Columns: []string{answer.QuestionnaireResponseColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -422,7 +423,7 @@ func (auo *AnswerUpdateOne) sqlSave(ctx context.Context) (_node *Answer, err err
 			Columns: []string{answer.QuestionnaireResponseColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

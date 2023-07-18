@@ -9,15 +9,19 @@ import (
 	"log"
 
 	"github.com/eesoymilk/health-statistic-api/ent/migrate"
+	"github.com/google/uuid"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/eesoymilk/health-statistic-api/ent/answer"
+	"github.com/eesoymilk/health-statistic-api/ent/notification"
+	"github.com/eesoymilk/health-statistic-api/ent/price"
 	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaire"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
+	"github.com/eesoymilk/health-statistic-api/ent/reward"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
 )
 
@@ -28,12 +32,18 @@ type Client struct {
 	Schema *migrate.Schema
 	// Answer is the client for interacting with the Answer builders.
 	Answer *AnswerClient
+	// Notification is the client for interacting with the Notification builders.
+	Notification *NotificationClient
+	// Price is the client for interacting with the Price builders.
+	Price *PriceClient
 	// Question is the client for interacting with the Question builders.
 	Question *QuestionClient
 	// Questionnaire is the client for interacting with the Questionnaire builders.
 	Questionnaire *QuestionnaireClient
 	// QuestionnaireResponse is the client for interacting with the QuestionnaireResponse builders.
 	QuestionnaireResponse *QuestionnaireResponseClient
+	// Reward is the client for interacting with the Reward builders.
+	Reward *RewardClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 }
@@ -50,9 +60,12 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Answer = NewAnswerClient(c.config)
+	c.Notification = NewNotificationClient(c.config)
+	c.Price = NewPriceClient(c.config)
 	c.Question = NewQuestionClient(c.config)
 	c.Questionnaire = NewQuestionnaireClient(c.config)
 	c.QuestionnaireResponse = NewQuestionnaireResponseClient(c.config)
+	c.Reward = NewRewardClient(c.config)
 	c.User = NewUserClient(c.config)
 }
 
@@ -137,9 +150,12 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:                   ctx,
 		config:                cfg,
 		Answer:                NewAnswerClient(cfg),
+		Notification:          NewNotificationClient(cfg),
+		Price:                 NewPriceClient(cfg),
 		Question:              NewQuestionClient(cfg),
 		Questionnaire:         NewQuestionnaireClient(cfg),
 		QuestionnaireResponse: NewQuestionnaireResponseClient(cfg),
+		Reward:                NewRewardClient(cfg),
 		User:                  NewUserClient(cfg),
 	}, nil
 }
@@ -161,9 +177,12 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:                   ctx,
 		config:                cfg,
 		Answer:                NewAnswerClient(cfg),
+		Notification:          NewNotificationClient(cfg),
+		Price:                 NewPriceClient(cfg),
 		Question:              NewQuestionClient(cfg),
 		Questionnaire:         NewQuestionnaireClient(cfg),
 		QuestionnaireResponse: NewQuestionnaireResponseClient(cfg),
+		Reward:                NewRewardClient(cfg),
 		User:                  NewUserClient(cfg),
 	}, nil
 }
@@ -193,21 +212,23 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.Answer.Use(hooks...)
-	c.Question.Use(hooks...)
-	c.Questionnaire.Use(hooks...)
-	c.QuestionnaireResponse.Use(hooks...)
-	c.User.Use(hooks...)
+	for _, n := range []interface{ Use(...Hook) }{
+		c.Answer, c.Notification, c.Price, c.Question, c.Questionnaire,
+		c.QuestionnaireResponse, c.Reward, c.User,
+	} {
+		n.Use(hooks...)
+	}
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.Answer.Intercept(interceptors...)
-	c.Question.Intercept(interceptors...)
-	c.Questionnaire.Intercept(interceptors...)
-	c.QuestionnaireResponse.Intercept(interceptors...)
-	c.User.Intercept(interceptors...)
+	for _, n := range []interface{ Intercept(...Interceptor) }{
+		c.Answer, c.Notification, c.Price, c.Question, c.Questionnaire,
+		c.QuestionnaireResponse, c.Reward, c.User,
+	} {
+		n.Intercept(interceptors...)
+	}
 }
 
 // Mutate implements the ent.Mutator interface.
@@ -215,12 +236,18 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *AnswerMutation:
 		return c.Answer.mutate(ctx, m)
+	case *NotificationMutation:
+		return c.Notification.mutate(ctx, m)
+	case *PriceMutation:
+		return c.Price.mutate(ctx, m)
 	case *QuestionMutation:
 		return c.Question.mutate(ctx, m)
 	case *QuestionnaireMutation:
 		return c.Questionnaire.mutate(ctx, m)
 	case *QuestionnaireResponseMutation:
 		return c.QuestionnaireResponse.mutate(ctx, m)
+	case *RewardMutation:
+		return c.Reward.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	default:
@@ -274,7 +301,7 @@ func (c *AnswerClient) UpdateOne(a *Answer) *AnswerUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *AnswerClient) UpdateOneID(id int) *AnswerUpdateOne {
+func (c *AnswerClient) UpdateOneID(id uuid.UUID) *AnswerUpdateOne {
 	mutation := newAnswerMutation(c.config, OpUpdateOne, withAnswerID(id))
 	return &AnswerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -291,7 +318,7 @@ func (c *AnswerClient) DeleteOne(a *Answer) *AnswerDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *AnswerClient) DeleteOneID(id int) *AnswerDeleteOne {
+func (c *AnswerClient) DeleteOneID(id uuid.UUID) *AnswerDeleteOne {
 	builder := c.Delete().Where(answer.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -308,12 +335,12 @@ func (c *AnswerClient) Query() *AnswerQuery {
 }
 
 // Get returns a Answer entity by its id.
-func (c *AnswerClient) Get(ctx context.Context, id int) (*Answer, error) {
+func (c *AnswerClient) Get(ctx context.Context, id uuid.UUID) (*Answer, error) {
 	return c.Query().Where(answer.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *AnswerClient) GetX(ctx context.Context, id int) *Answer {
+func (c *AnswerClient) GetX(ctx context.Context, id uuid.UUID) *Answer {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -378,6 +405,242 @@ func (c *AnswerClient) mutate(ctx context.Context, m *AnswerMutation) (Value, er
 	}
 }
 
+// NotificationClient is a client for the Notification schema.
+type NotificationClient struct {
+	config
+}
+
+// NewNotificationClient returns a client for the Notification from the given config.
+func NewNotificationClient(c config) *NotificationClient {
+	return &NotificationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `notification.Hooks(f(g(h())))`.
+func (c *NotificationClient) Use(hooks ...Hook) {
+	c.hooks.Notification = append(c.hooks.Notification, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `notification.Intercept(f(g(h())))`.
+func (c *NotificationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Notification = append(c.inters.Notification, interceptors...)
+}
+
+// Create returns a builder for creating a Notification entity.
+func (c *NotificationClient) Create() *NotificationCreate {
+	mutation := newNotificationMutation(c.config, OpCreate)
+	return &NotificationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Notification entities.
+func (c *NotificationClient) CreateBulk(builders ...*NotificationCreate) *NotificationCreateBulk {
+	return &NotificationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Notification.
+func (c *NotificationClient) Update() *NotificationUpdate {
+	mutation := newNotificationMutation(c.config, OpUpdate)
+	return &NotificationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *NotificationClient) UpdateOne(n *Notification) *NotificationUpdateOne {
+	mutation := newNotificationMutation(c.config, OpUpdateOne, withNotification(n))
+	return &NotificationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *NotificationClient) UpdateOneID(id int) *NotificationUpdateOne {
+	mutation := newNotificationMutation(c.config, OpUpdateOne, withNotificationID(id))
+	return &NotificationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Notification.
+func (c *NotificationClient) Delete() *NotificationDelete {
+	mutation := newNotificationMutation(c.config, OpDelete)
+	return &NotificationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *NotificationClient) DeleteOne(n *Notification) *NotificationDeleteOne {
+	return c.DeleteOneID(n.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *NotificationClient) DeleteOneID(id int) *NotificationDeleteOne {
+	builder := c.Delete().Where(notification.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &NotificationDeleteOne{builder}
+}
+
+// Query returns a query builder for Notification.
+func (c *NotificationClient) Query() *NotificationQuery {
+	return &NotificationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeNotification},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Notification entity by its id.
+func (c *NotificationClient) Get(ctx context.Context, id int) (*Notification, error) {
+	return c.Query().Where(notification.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *NotificationClient) GetX(ctx context.Context, id int) *Notification {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *NotificationClient) Hooks() []Hook {
+	return c.hooks.Notification
+}
+
+// Interceptors returns the client interceptors.
+func (c *NotificationClient) Interceptors() []Interceptor {
+	return c.inters.Notification
+}
+
+func (c *NotificationClient) mutate(ctx context.Context, m *NotificationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&NotificationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&NotificationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&NotificationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&NotificationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Notification mutation op: %q", m.Op())
+	}
+}
+
+// PriceClient is a client for the Price schema.
+type PriceClient struct {
+	config
+}
+
+// NewPriceClient returns a client for the Price from the given config.
+func NewPriceClient(c config) *PriceClient {
+	return &PriceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `price.Hooks(f(g(h())))`.
+func (c *PriceClient) Use(hooks ...Hook) {
+	c.hooks.Price = append(c.hooks.Price, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `price.Intercept(f(g(h())))`.
+func (c *PriceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Price = append(c.inters.Price, interceptors...)
+}
+
+// Create returns a builder for creating a Price entity.
+func (c *PriceClient) Create() *PriceCreate {
+	mutation := newPriceMutation(c.config, OpCreate)
+	return &PriceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Price entities.
+func (c *PriceClient) CreateBulk(builders ...*PriceCreate) *PriceCreateBulk {
+	return &PriceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Price.
+func (c *PriceClient) Update() *PriceUpdate {
+	mutation := newPriceMutation(c.config, OpUpdate)
+	return &PriceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PriceClient) UpdateOne(pr *Price) *PriceUpdateOne {
+	mutation := newPriceMutation(c.config, OpUpdateOne, withPrice(pr))
+	return &PriceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PriceClient) UpdateOneID(id int) *PriceUpdateOne {
+	mutation := newPriceMutation(c.config, OpUpdateOne, withPriceID(id))
+	return &PriceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Price.
+func (c *PriceClient) Delete() *PriceDelete {
+	mutation := newPriceMutation(c.config, OpDelete)
+	return &PriceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PriceClient) DeleteOne(pr *Price) *PriceDeleteOne {
+	return c.DeleteOneID(pr.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PriceClient) DeleteOneID(id int) *PriceDeleteOne {
+	builder := c.Delete().Where(price.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PriceDeleteOne{builder}
+}
+
+// Query returns a query builder for Price.
+func (c *PriceClient) Query() *PriceQuery {
+	return &PriceQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePrice},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Price entity by its id.
+func (c *PriceClient) Get(ctx context.Context, id int) (*Price, error) {
+	return c.Query().Where(price.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PriceClient) GetX(ctx context.Context, id int) *Price {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *PriceClient) Hooks() []Hook {
+	return c.hooks.Price
+}
+
+// Interceptors returns the client interceptors.
+func (c *PriceClient) Interceptors() []Interceptor {
+	return c.inters.Price
+}
+
+func (c *PriceClient) mutate(ctx context.Context, m *PriceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PriceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PriceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PriceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PriceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Price mutation op: %q", m.Op())
+	}
+}
+
 // QuestionClient is a client for the Question schema.
 type QuestionClient struct {
 	config
@@ -424,7 +687,7 @@ func (c *QuestionClient) UpdateOne(q *Question) *QuestionUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *QuestionClient) UpdateOneID(id int) *QuestionUpdateOne {
+func (c *QuestionClient) UpdateOneID(id uuid.UUID) *QuestionUpdateOne {
 	mutation := newQuestionMutation(c.config, OpUpdateOne, withQuestionID(id))
 	return &QuestionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -441,7 +704,7 @@ func (c *QuestionClient) DeleteOne(q *Question) *QuestionDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *QuestionClient) DeleteOneID(id int) *QuestionDeleteOne {
+func (c *QuestionClient) DeleteOneID(id uuid.UUID) *QuestionDeleteOne {
 	builder := c.Delete().Where(question.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -458,12 +721,12 @@ func (c *QuestionClient) Query() *QuestionQuery {
 }
 
 // Get returns a Question entity by its id.
-func (c *QuestionClient) Get(ctx context.Context, id int) (*Question, error) {
+func (c *QuestionClient) Get(ctx context.Context, id uuid.UUID) (*Question, error) {
 	return c.Query().Where(question.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *QuestionClient) GetX(ctx context.Context, id int) *Question {
+func (c *QuestionClient) GetX(ctx context.Context, id uuid.UUID) *Question {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -574,7 +837,7 @@ func (c *QuestionnaireClient) UpdateOne(q *Questionnaire) *QuestionnaireUpdateOn
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *QuestionnaireClient) UpdateOneID(id int) *QuestionnaireUpdateOne {
+func (c *QuestionnaireClient) UpdateOneID(id uuid.UUID) *QuestionnaireUpdateOne {
 	mutation := newQuestionnaireMutation(c.config, OpUpdateOne, withQuestionnaireID(id))
 	return &QuestionnaireUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -591,7 +854,7 @@ func (c *QuestionnaireClient) DeleteOne(q *Questionnaire) *QuestionnaireDeleteOn
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *QuestionnaireClient) DeleteOneID(id int) *QuestionnaireDeleteOne {
+func (c *QuestionnaireClient) DeleteOneID(id uuid.UUID) *QuestionnaireDeleteOne {
 	builder := c.Delete().Where(questionnaire.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -608,12 +871,12 @@ func (c *QuestionnaireClient) Query() *QuestionnaireQuery {
 }
 
 // Get returns a Questionnaire entity by its id.
-func (c *QuestionnaireClient) Get(ctx context.Context, id int) (*Questionnaire, error) {
+func (c *QuestionnaireClient) Get(ctx context.Context, id uuid.UUID) (*Questionnaire, error) {
 	return c.Query().Where(questionnaire.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *QuestionnaireClient) GetX(ctx context.Context, id int) *Questionnaire {
+func (c *QuestionnaireClient) GetX(ctx context.Context, id uuid.UUID) *Questionnaire {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -724,7 +987,7 @@ func (c *QuestionnaireResponseClient) UpdateOne(qr *QuestionnaireResponse) *Ques
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *QuestionnaireResponseClient) UpdateOneID(id int) *QuestionnaireResponseUpdateOne {
+func (c *QuestionnaireResponseClient) UpdateOneID(id uuid.UUID) *QuestionnaireResponseUpdateOne {
 	mutation := newQuestionnaireResponseMutation(c.config, OpUpdateOne, withQuestionnaireResponseID(id))
 	return &QuestionnaireResponseUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -741,7 +1004,7 @@ func (c *QuestionnaireResponseClient) DeleteOne(qr *QuestionnaireResponse) *Ques
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *QuestionnaireResponseClient) DeleteOneID(id int) *QuestionnaireResponseDeleteOne {
+func (c *QuestionnaireResponseClient) DeleteOneID(id uuid.UUID) *QuestionnaireResponseDeleteOne {
 	builder := c.Delete().Where(questionnaireresponse.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -758,12 +1021,12 @@ func (c *QuestionnaireResponseClient) Query() *QuestionnaireResponseQuery {
 }
 
 // Get returns a QuestionnaireResponse entity by its id.
-func (c *QuestionnaireResponseClient) Get(ctx context.Context, id int) (*QuestionnaireResponse, error) {
+func (c *QuestionnaireResponseClient) Get(ctx context.Context, id uuid.UUID) (*QuestionnaireResponse, error) {
 	return c.Query().Where(questionnaireresponse.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *QuestionnaireResponseClient) GetX(ctx context.Context, id int) *QuestionnaireResponse {
+func (c *QuestionnaireResponseClient) GetX(ctx context.Context, id uuid.UUID) *QuestionnaireResponse {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -841,6 +1104,124 @@ func (c *QuestionnaireResponseClient) mutate(ctx context.Context, m *Questionnai
 		return (&QuestionnaireResponseDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown QuestionnaireResponse mutation op: %q", m.Op())
+	}
+}
+
+// RewardClient is a client for the Reward schema.
+type RewardClient struct {
+	config
+}
+
+// NewRewardClient returns a client for the Reward from the given config.
+func NewRewardClient(c config) *RewardClient {
+	return &RewardClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `reward.Hooks(f(g(h())))`.
+func (c *RewardClient) Use(hooks ...Hook) {
+	c.hooks.Reward = append(c.hooks.Reward, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `reward.Intercept(f(g(h())))`.
+func (c *RewardClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Reward = append(c.inters.Reward, interceptors...)
+}
+
+// Create returns a builder for creating a Reward entity.
+func (c *RewardClient) Create() *RewardCreate {
+	mutation := newRewardMutation(c.config, OpCreate)
+	return &RewardCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Reward entities.
+func (c *RewardClient) CreateBulk(builders ...*RewardCreate) *RewardCreateBulk {
+	return &RewardCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Reward.
+func (c *RewardClient) Update() *RewardUpdate {
+	mutation := newRewardMutation(c.config, OpUpdate)
+	return &RewardUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *RewardClient) UpdateOne(r *Reward) *RewardUpdateOne {
+	mutation := newRewardMutation(c.config, OpUpdateOne, withReward(r))
+	return &RewardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *RewardClient) UpdateOneID(id int) *RewardUpdateOne {
+	mutation := newRewardMutation(c.config, OpUpdateOne, withRewardID(id))
+	return &RewardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Reward.
+func (c *RewardClient) Delete() *RewardDelete {
+	mutation := newRewardMutation(c.config, OpDelete)
+	return &RewardDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *RewardClient) DeleteOne(r *Reward) *RewardDeleteOne {
+	return c.DeleteOneID(r.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *RewardClient) DeleteOneID(id int) *RewardDeleteOne {
+	builder := c.Delete().Where(reward.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &RewardDeleteOne{builder}
+}
+
+// Query returns a query builder for Reward.
+func (c *RewardClient) Query() *RewardQuery {
+	return &RewardQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeReward},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Reward entity by its id.
+func (c *RewardClient) Get(ctx context.Context, id int) (*Reward, error) {
+	return c.Query().Where(reward.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *RewardClient) GetX(ctx context.Context, id int) *Reward {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *RewardClient) Hooks() []Hook {
+	return c.hooks.Reward
+}
+
+// Interceptors returns the client interceptors.
+func (c *RewardClient) Interceptors() []Interceptor {
+	return c.inters.Reward
+}
+
+func (c *RewardClient) mutate(ctx context.Context, m *RewardMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&RewardCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&RewardUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&RewardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&RewardDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Reward mutation op: %q", m.Op())
 	}
 }
 
@@ -981,9 +1362,11 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Answer, Question, Questionnaire, QuestionnaireResponse, User []ent.Hook
+		Answer, Notification, Price, Question, Questionnaire, QuestionnaireResponse,
+		Reward, User []ent.Hook
 	}
 	inters struct {
-		Answer, Question, Questionnaire, QuestionnaireResponse, User []ent.Interceptor
+		Answer, Notification, Price, Question, Questionnaire, QuestionnaireResponse,
+		Reward, User []ent.Interceptor
 	}
 )

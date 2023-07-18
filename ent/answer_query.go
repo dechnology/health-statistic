@@ -14,6 +14,7 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
 	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
+	"github.com/google/uuid"
 )
 
 // AnswerQuery is the builder for querying Answer entities.
@@ -130,8 +131,8 @@ func (aq *AnswerQuery) FirstX(ctx context.Context) *Answer {
 
 // FirstID returns the first Answer ID from the query.
 // Returns a *NotFoundError when no Answer ID was found.
-func (aq *AnswerQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (aq *AnswerQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = aq.Limit(1).IDs(setContextOp(ctx, aq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -143,7 +144,7 @@ func (aq *AnswerQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (aq *AnswerQuery) FirstIDX(ctx context.Context) int {
+func (aq *AnswerQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	id, err := aq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -181,8 +182,8 @@ func (aq *AnswerQuery) OnlyX(ctx context.Context) *Answer {
 // OnlyID is like Only, but returns the only Answer ID in the query.
 // Returns a *NotSingularError when more than one Answer ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (aq *AnswerQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (aq *AnswerQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = aq.Limit(2).IDs(setContextOp(ctx, aq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -198,7 +199,7 @@ func (aq *AnswerQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (aq *AnswerQuery) OnlyIDX(ctx context.Context) int {
+func (aq *AnswerQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	id, err := aq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -226,7 +227,7 @@ func (aq *AnswerQuery) AllX(ctx context.Context) []*Answer {
 }
 
 // IDs executes the query and returns a list of Answer IDs.
-func (aq *AnswerQuery) IDs(ctx context.Context) (ids []int, err error) {
+func (aq *AnswerQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
 	if aq.ctx.Unique == nil && aq.path != nil {
 		aq.Unique(true)
 	}
@@ -238,7 +239,7 @@ func (aq *AnswerQuery) IDs(ctx context.Context) (ids []int, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (aq *AnswerQuery) IDsX(ctx context.Context) []int {
+func (aq *AnswerQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := aq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -452,8 +453,8 @@ func (aq *AnswerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Answe
 }
 
 func (aq *AnswerQuery) loadQuestion(ctx context.Context, query *QuestionQuery, nodes []*Answer, init func(*Answer), assign func(*Answer, *Question)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*Answer)
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Answer)
 	for i := range nodes {
 		if nodes[i].question_answers == nil {
 			continue
@@ -484,8 +485,8 @@ func (aq *AnswerQuery) loadQuestion(ctx context.Context, query *QuestionQuery, n
 	return nil
 }
 func (aq *AnswerQuery) loadQuestionnaireResponse(ctx context.Context, query *QuestionnaireResponseQuery, nodes []*Answer, init func(*Answer), assign func(*Answer, *QuestionnaireResponse)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*Answer)
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Answer)
 	for i := range nodes {
 		if nodes[i].questionnaire_response_answers == nil {
 			continue
@@ -526,7 +527,7 @@ func (aq *AnswerQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (aq *AnswerQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(answer.Table, answer.Columns, sqlgraph.NewFieldSpec(answer.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewQuerySpec(answer.Table, answer.Columns, sqlgraph.NewFieldSpec(answer.FieldID, field.TypeUUID))
 	_spec.From = aq.sql
 	if unique := aq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

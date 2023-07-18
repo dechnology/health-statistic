@@ -10,13 +10,14 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaire"
+	"github.com/google/uuid"
 )
 
 // Question is the model entity for the Question schema.
 type Question struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
 	// Body holds the value of the "body" field.
 	Body string `json:"body,omitempty"`
 	// Type holds the value of the "type" field.
@@ -24,7 +25,7 @@ type Question struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the QuestionQuery when eager-loading is set.
 	Edges                   QuestionEdges `json:"edges"`
-	questionnaire_questions *int
+	questionnaire_questions *uuid.UUID
 	selectValues            sql.SelectValues
 }
 
@@ -66,12 +67,12 @@ func (*Question) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case question.FieldID:
-			values[i] = new(sql.NullInt64)
 		case question.FieldBody, question.FieldType:
 			values[i] = new(sql.NullString)
+		case question.FieldID:
+			values[i] = new(uuid.UUID)
 		case question.ForeignKeys[0]: // questionnaire_questions
-			values[i] = new(sql.NullInt64)
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -88,11 +89,11 @@ func (q *Question) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case question.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value != nil {
+				q.ID = *value
 			}
-			q.ID = int(value.Int64)
 		case question.FieldBody:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field body", values[i])
@@ -106,11 +107,11 @@ func (q *Question) assignValues(columns []string, values []any) error {
 				q.Type = value.String
 			}
 		case question.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field questionnaire_questions", value)
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field questionnaire_questions", values[i])
 			} else if value.Valid {
-				q.questionnaire_questions = new(int)
-				*q.questionnaire_questions = int(value.Int64)
+				q.questionnaire_questions = new(uuid.UUID)
+				*q.questionnaire_questions = *value.S.(*uuid.UUID)
 			}
 		default:
 			q.selectValues.Set(columns[i], values[i])

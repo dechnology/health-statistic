@@ -7,50 +7,45 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-/**********************************  TODO  **********************/
-/*	1. GET  	/users											*/
-/*		- fetch all users 										*/
-/*	2. POST 	/users											*/
-/*		- create a new user 									*/
-/*	3. GET  	/users/{id}										*/
-/*		- fetch a specific user 								*/
-/*	4. PUT  	/users/{id}										*/
-/*		- update a specific user 								*/
-/*	5. DELETE	/users/{id}										*/
-/*		- delete a specific user 								*/
-/* ============================================================ */
-/*	6. GET  	/questionnaires									*/
-/*		- fetch all questionnaires 								*/
-/*	7. POST 	/questionnaires									*/
-/*		- create a new empty questionnaire						*/
-/*	8. GET  	/questionnaires/{id}							*/
-/*		- fetch a specific questionnaire and its reponses		*/
-/*  9. DELETE	/questionnaires/{id}							*/
-/*		- delete a specific questionnaire 						*/
-/* ============================================================ */
-/* 10. GET  	/questionnaires/{id}/questions					*/
-/*		- fetch all questions in a specific questionnaire		*/
-/* 11. POST 	/questionnaires/{id}/questions					*/
-/*		- create a new question for a specific questionnaire 	*/
-/* 12. GET  	/questionnaires/{id}/responses					*/
-/*		- fetch all responses in a specific questionnaire		*/
-/* 13. POST 	/questionnaires/{id}/responses					*/
-/*		- create a new response for a specific questionnaire 	*/
-/* ============================================================ */
-/* 12. GET		/responses										*/
-/*		- fetch all responses									*/
-/* 14. GET		/responses/{id}									*/
-/*		- fetch a specific response								*/
-/* 15. DELETE	/responses/{id}									*/
-/*		- delete a specific response							*/
-/* ============================================================ */
-/* 16. GET		/questions										*/
-/*		- fetch all questions									*/
-/* 18. GET		/questions/{id}									*/
-/*		- fetch a specific question								*/
-/* 19. DELETE	/questions/{id}									*/
-/*		- delete a specific question							*/
-/****************************************************************/
+/**********************************  TODO  **********************************/
+/*	1. GET  	/users														*/
+/*		- fetch all users 													*/
+/*	2. POST 	/users														*/
+/*		- create a new user 												*/
+/*	3. GET  	/users/:id													*/
+/*		- fetch a specific user 											*/
+/*	4. PUT  	/users/:id													*/
+/*		- update a specific user 											*/
+/*	5. DELETE	/users/:id													*/
+/*		- delete a specific user 											*/
+/* ======================================================================== */
+/*	6. GET  	/questionnaires												*/
+/*		- fetch all questionnaires with its questions and responses 		*/
+/*	7. POST 	/questionnaires												*/
+/*		- create a new empty questionnaire									*/
+/*	8. GET  	/questionnaires/:id											*/
+/*		- fetch a specific questionnaire  with its questions and responses	*/
+/*  9. DELETE	/questionnaires/:id											*/
+/*		- delete a specific questionnaire 									*/
+/* 10. POST 	/questionnaires/:id/new/question							*/
+/*		- create a new question for a specific questionnaire 				*/
+/* 11. POST 	/questionnaires/:id/new/response							*/
+/*		- create a new response for a specific questionnaire 				*/
+/* ======================================================================== */
+/* 12. GET		/responses													*/
+/*		- fetch all responses												*/
+/* 14. GET		/responses/:id												*/
+/*		- fetch a specific response											*/
+/* 15. DELETE	/responses/:id												*/
+/*		- delete a specific response										*/
+/* ======================================================================== */
+/* 16. GET		/questions													*/
+/*		- fetch all questions												*/
+/* 18. GET		/questions/:id												*/
+/*		- fetch a specific question											*/
+/* 19. DELETE	/questions/:id												*/
+/*		- delete a specific question										*/
+/****************************************************************************/
 
 // New registers the routes and returns the router.
 func New(db *ent.Client) *gin.Engine {
@@ -95,15 +90,12 @@ func New(db *ent.Client) *gin.Engine {
 			questionnaireGroup.GET("/", h.GetQuestionnaires)
 			questionnaireGroup.POST("/", h.CreateQuestionnaire)
 
-			subGroup := questionnaireGroup.Group("/:id")
+			idGroup := questionnaireGroup.Group("/:id")
 			{
-				subGroup.GET("/", h.GetQuestionnaire)
-				subGroup.DELETE("/", h.DeleteQuestionnaire)
-				subGroup.GET("/questions", h.GetQuestions)
-				subGroup.POST("/questions", h.CreateQuestion)
-				subGroup.GET("/responses", h.GetResponses)
-				subGroup.POST("/responses", h.CreateResponse)
-
+				idGroup.GET("/", h.GetQuestionnaire)
+				idGroup.DELETE("/", h.DeleteQuestionnaire)
+				idGroup.POST("/new/question", h.CreateQuestion)
+				idGroup.POST("/new/response", h.CreateResponse)
 			}
 		}
 

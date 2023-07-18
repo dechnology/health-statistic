@@ -6,10 +6,12 @@ import (
 	"time"
 
 	"github.com/eesoymilk/health-statistic-api/ent/answer"
+	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaire"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
 	"github.com/eesoymilk/health-statistic-api/ent/schema"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
+	"github.com/google/uuid"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -19,21 +21,39 @@ func init() {
 	answerFields := schema.Answer{}.Fields()
 	_ = answerFields
 	// answerDescCreatedAt is the schema descriptor for created_at field.
-	answerDescCreatedAt := answerFields[0].Descriptor()
+	answerDescCreatedAt := answerFields[1].Descriptor()
 	// answer.DefaultCreatedAt holds the default value on creation for the created_at field.
 	answer.DefaultCreatedAt = answerDescCreatedAt.Default.(func() time.Time)
+	// answerDescID is the schema descriptor for id field.
+	answerDescID := answerFields[0].Descriptor()
+	// answer.DefaultID holds the default value on creation for the id field.
+	answer.DefaultID = answerDescID.Default.(func() uuid.UUID)
+	questionFields := schema.Question{}.Fields()
+	_ = questionFields
+	// questionDescID is the schema descriptor for id field.
+	questionDescID := questionFields[0].Descriptor()
+	// question.DefaultID holds the default value on creation for the id field.
+	question.DefaultID = questionDescID.Default.(func() uuid.UUID)
 	questionnaireFields := schema.Questionnaire{}.Fields()
 	_ = questionnaireFields
 	// questionnaireDescCreatedAt is the schema descriptor for created_at field.
-	questionnaireDescCreatedAt := questionnaireFields[1].Descriptor()
+	questionnaireDescCreatedAt := questionnaireFields[2].Descriptor()
 	// questionnaire.DefaultCreatedAt holds the default value on creation for the created_at field.
 	questionnaire.DefaultCreatedAt = questionnaireDescCreatedAt.Default.(func() time.Time)
+	// questionnaireDescID is the schema descriptor for id field.
+	questionnaireDescID := questionnaireFields[0].Descriptor()
+	// questionnaire.DefaultID holds the default value on creation for the id field.
+	questionnaire.DefaultID = questionnaireDescID.Default.(func() uuid.UUID)
 	questionnaireresponseFields := schema.QuestionnaireResponse{}.Fields()
 	_ = questionnaireresponseFields
 	// questionnaireresponseDescCreatedAt is the schema descriptor for created_at field.
-	questionnaireresponseDescCreatedAt := questionnaireresponseFields[0].Descriptor()
+	questionnaireresponseDescCreatedAt := questionnaireresponseFields[1].Descriptor()
 	// questionnaireresponse.DefaultCreatedAt holds the default value on creation for the created_at field.
 	questionnaireresponse.DefaultCreatedAt = questionnaireresponseDescCreatedAt.Default.(func() time.Time)
+	// questionnaireresponseDescID is the schema descriptor for id field.
+	questionnaireresponseDescID := questionnaireresponseFields[0].Descriptor()
+	// questionnaireresponse.DefaultID holds the default value on creation for the id field.
+	questionnaireresponse.DefaultID = questionnaireresponseDescID.Default.(func() uuid.UUID)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescCreatedAt is the schema descriptor for created_at field.

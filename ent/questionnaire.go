@@ -10,13 +10,14 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaire"
+	"github.com/google/uuid"
 )
 
 // Questionnaire is the model entity for the Questionnaire schema.
 type Questionnaire struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -61,12 +62,12 @@ func (*Questionnaire) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case questionnaire.FieldID:
-			values[i] = new(sql.NullInt64)
 		case questionnaire.FieldName:
 			values[i] = new(sql.NullString)
 		case questionnaire.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
+		case questionnaire.FieldID:
+			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -83,11 +84,11 @@ func (q *Questionnaire) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case questionnaire.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value != nil {
+				q.ID = *value
 			}
-			q.ID = int(value.Int64)
 		case questionnaire.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])

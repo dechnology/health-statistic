@@ -15,6 +15,7 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaire"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
+	"github.com/google/uuid"
 )
 
 // QuestionnaireQuery is the builder for querying Questionnaire entities.
@@ -130,8 +131,8 @@ func (qq *QuestionnaireQuery) FirstX(ctx context.Context) *Questionnaire {
 
 // FirstID returns the first Questionnaire ID from the query.
 // Returns a *NotFoundError when no Questionnaire ID was found.
-func (qq *QuestionnaireQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (qq *QuestionnaireQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = qq.Limit(1).IDs(setContextOp(ctx, qq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -143,7 +144,7 @@ func (qq *QuestionnaireQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (qq *QuestionnaireQuery) FirstIDX(ctx context.Context) int {
+func (qq *QuestionnaireQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	id, err := qq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -181,8 +182,8 @@ func (qq *QuestionnaireQuery) OnlyX(ctx context.Context) *Questionnaire {
 // OnlyID is like Only, but returns the only Questionnaire ID in the query.
 // Returns a *NotSingularError when more than one Questionnaire ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (qq *QuestionnaireQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (qq *QuestionnaireQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = qq.Limit(2).IDs(setContextOp(ctx, qq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -198,7 +199,7 @@ func (qq *QuestionnaireQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (qq *QuestionnaireQuery) OnlyIDX(ctx context.Context) int {
+func (qq *QuestionnaireQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	id, err := qq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -226,7 +227,7 @@ func (qq *QuestionnaireQuery) AllX(ctx context.Context) []*Questionnaire {
 }
 
 // IDs executes the query and returns a list of Questionnaire IDs.
-func (qq *QuestionnaireQuery) IDs(ctx context.Context) (ids []int, err error) {
+func (qq *QuestionnaireQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
 	if qq.ctx.Unique == nil && qq.path != nil {
 		qq.Unique(true)
 	}
@@ -238,7 +239,7 @@ func (qq *QuestionnaireQuery) IDs(ctx context.Context) (ids []int, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (qq *QuestionnaireQuery) IDsX(ctx context.Context) []int {
+func (qq *QuestionnaireQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := qq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -450,7 +451,7 @@ func (qq *QuestionnaireQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 
 func (qq *QuestionnaireQuery) loadQuestions(ctx context.Context, query *QuestionQuery, nodes []*Questionnaire, init func(*Questionnaire), assign func(*Questionnaire, *Question)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int]*Questionnaire)
+	nodeids := make(map[uuid.UUID]*Questionnaire)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -481,7 +482,7 @@ func (qq *QuestionnaireQuery) loadQuestions(ctx context.Context, query *Question
 }
 func (qq *QuestionnaireQuery) loadQuestionnaireResponses(ctx context.Context, query *QuestionnaireResponseQuery, nodes []*Questionnaire, init func(*Questionnaire), assign func(*Questionnaire, *QuestionnaireResponse)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int]*Questionnaire)
+	nodeids := make(map[uuid.UUID]*Questionnaire)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -521,7 +522,7 @@ func (qq *QuestionnaireQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (qq *QuestionnaireQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(questionnaire.Table, questionnaire.Columns, sqlgraph.NewFieldSpec(questionnaire.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewQuerySpec(questionnaire.Table, questionnaire.Columns, sqlgraph.NewFieldSpec(questionnaire.FieldID, field.TypeUUID))
 	_spec.From = qq.sql
 	if unique := qq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

@@ -15,6 +15,7 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaire"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
+	"github.com/google/uuid"
 )
 
 // QuestionnaireUpdate is the builder for updating Questionnaire entities.
@@ -51,14 +52,14 @@ func (qu *QuestionnaireUpdate) SetNillableCreatedAt(t *time.Time) *Questionnaire
 }
 
 // AddQuestionIDs adds the "questions" edge to the Question entity by IDs.
-func (qu *QuestionnaireUpdate) AddQuestionIDs(ids ...int) *QuestionnaireUpdate {
+func (qu *QuestionnaireUpdate) AddQuestionIDs(ids ...uuid.UUID) *QuestionnaireUpdate {
 	qu.mutation.AddQuestionIDs(ids...)
 	return qu
 }
 
 // AddQuestions adds the "questions" edges to the Question entity.
 func (qu *QuestionnaireUpdate) AddQuestions(q ...*Question) *QuestionnaireUpdate {
-	ids := make([]int, len(q))
+	ids := make([]uuid.UUID, len(q))
 	for i := range q {
 		ids[i] = q[i].ID
 	}
@@ -66,14 +67,14 @@ func (qu *QuestionnaireUpdate) AddQuestions(q ...*Question) *QuestionnaireUpdate
 }
 
 // AddQuestionnaireResponseIDs adds the "questionnaire_responses" edge to the QuestionnaireResponse entity by IDs.
-func (qu *QuestionnaireUpdate) AddQuestionnaireResponseIDs(ids ...int) *QuestionnaireUpdate {
+func (qu *QuestionnaireUpdate) AddQuestionnaireResponseIDs(ids ...uuid.UUID) *QuestionnaireUpdate {
 	qu.mutation.AddQuestionnaireResponseIDs(ids...)
 	return qu
 }
 
 // AddQuestionnaireResponses adds the "questionnaire_responses" edges to the QuestionnaireResponse entity.
 func (qu *QuestionnaireUpdate) AddQuestionnaireResponses(q ...*QuestionnaireResponse) *QuestionnaireUpdate {
-	ids := make([]int, len(q))
+	ids := make([]uuid.UUID, len(q))
 	for i := range q {
 		ids[i] = q[i].ID
 	}
@@ -92,14 +93,14 @@ func (qu *QuestionnaireUpdate) ClearQuestions() *QuestionnaireUpdate {
 }
 
 // RemoveQuestionIDs removes the "questions" edge to Question entities by IDs.
-func (qu *QuestionnaireUpdate) RemoveQuestionIDs(ids ...int) *QuestionnaireUpdate {
+func (qu *QuestionnaireUpdate) RemoveQuestionIDs(ids ...uuid.UUID) *QuestionnaireUpdate {
 	qu.mutation.RemoveQuestionIDs(ids...)
 	return qu
 }
 
 // RemoveQuestions removes "questions" edges to Question entities.
 func (qu *QuestionnaireUpdate) RemoveQuestions(q ...*Question) *QuestionnaireUpdate {
-	ids := make([]int, len(q))
+	ids := make([]uuid.UUID, len(q))
 	for i := range q {
 		ids[i] = q[i].ID
 	}
@@ -113,14 +114,14 @@ func (qu *QuestionnaireUpdate) ClearQuestionnaireResponses() *QuestionnaireUpdat
 }
 
 // RemoveQuestionnaireResponseIDs removes the "questionnaire_responses" edge to QuestionnaireResponse entities by IDs.
-func (qu *QuestionnaireUpdate) RemoveQuestionnaireResponseIDs(ids ...int) *QuestionnaireUpdate {
+func (qu *QuestionnaireUpdate) RemoveQuestionnaireResponseIDs(ids ...uuid.UUID) *QuestionnaireUpdate {
 	qu.mutation.RemoveQuestionnaireResponseIDs(ids...)
 	return qu
 }
 
 // RemoveQuestionnaireResponses removes "questionnaire_responses" edges to QuestionnaireResponse entities.
 func (qu *QuestionnaireUpdate) RemoveQuestionnaireResponses(q ...*QuestionnaireResponse) *QuestionnaireUpdate {
-	ids := make([]int, len(q))
+	ids := make([]uuid.UUID, len(q))
 	for i := range q {
 		ids[i] = q[i].ID
 	}
@@ -155,7 +156,7 @@ func (qu *QuestionnaireUpdate) ExecX(ctx context.Context) {
 }
 
 func (qu *QuestionnaireUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := sqlgraph.NewUpdateSpec(questionnaire.Table, questionnaire.Columns, sqlgraph.NewFieldSpec(questionnaire.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(questionnaire.Table, questionnaire.Columns, sqlgraph.NewFieldSpec(questionnaire.FieldID, field.TypeUUID))
 	if ps := qu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -177,7 +178,7 @@ func (qu *QuestionnaireUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{questionnaire.QuestionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(question.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(question.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -190,7 +191,7 @@ func (qu *QuestionnaireUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{questionnaire.QuestionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(question.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(question.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -206,7 +207,7 @@ func (qu *QuestionnaireUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{questionnaire.QuestionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(question.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(question.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -222,7 +223,7 @@ func (qu *QuestionnaireUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{questionnaire.QuestionnaireResponsesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -235,7 +236,7 @@ func (qu *QuestionnaireUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{questionnaire.QuestionnaireResponsesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -251,7 +252,7 @@ func (qu *QuestionnaireUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{questionnaire.QuestionnaireResponsesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -300,14 +301,14 @@ func (quo *QuestionnaireUpdateOne) SetNillableCreatedAt(t *time.Time) *Questionn
 }
 
 // AddQuestionIDs adds the "questions" edge to the Question entity by IDs.
-func (quo *QuestionnaireUpdateOne) AddQuestionIDs(ids ...int) *QuestionnaireUpdateOne {
+func (quo *QuestionnaireUpdateOne) AddQuestionIDs(ids ...uuid.UUID) *QuestionnaireUpdateOne {
 	quo.mutation.AddQuestionIDs(ids...)
 	return quo
 }
 
 // AddQuestions adds the "questions" edges to the Question entity.
 func (quo *QuestionnaireUpdateOne) AddQuestions(q ...*Question) *QuestionnaireUpdateOne {
-	ids := make([]int, len(q))
+	ids := make([]uuid.UUID, len(q))
 	for i := range q {
 		ids[i] = q[i].ID
 	}
@@ -315,14 +316,14 @@ func (quo *QuestionnaireUpdateOne) AddQuestions(q ...*Question) *QuestionnaireUp
 }
 
 // AddQuestionnaireResponseIDs adds the "questionnaire_responses" edge to the QuestionnaireResponse entity by IDs.
-func (quo *QuestionnaireUpdateOne) AddQuestionnaireResponseIDs(ids ...int) *QuestionnaireUpdateOne {
+func (quo *QuestionnaireUpdateOne) AddQuestionnaireResponseIDs(ids ...uuid.UUID) *QuestionnaireUpdateOne {
 	quo.mutation.AddQuestionnaireResponseIDs(ids...)
 	return quo
 }
 
 // AddQuestionnaireResponses adds the "questionnaire_responses" edges to the QuestionnaireResponse entity.
 func (quo *QuestionnaireUpdateOne) AddQuestionnaireResponses(q ...*QuestionnaireResponse) *QuestionnaireUpdateOne {
-	ids := make([]int, len(q))
+	ids := make([]uuid.UUID, len(q))
 	for i := range q {
 		ids[i] = q[i].ID
 	}
@@ -341,14 +342,14 @@ func (quo *QuestionnaireUpdateOne) ClearQuestions() *QuestionnaireUpdateOne {
 }
 
 // RemoveQuestionIDs removes the "questions" edge to Question entities by IDs.
-func (quo *QuestionnaireUpdateOne) RemoveQuestionIDs(ids ...int) *QuestionnaireUpdateOne {
+func (quo *QuestionnaireUpdateOne) RemoveQuestionIDs(ids ...uuid.UUID) *QuestionnaireUpdateOne {
 	quo.mutation.RemoveQuestionIDs(ids...)
 	return quo
 }
 
 // RemoveQuestions removes "questions" edges to Question entities.
 func (quo *QuestionnaireUpdateOne) RemoveQuestions(q ...*Question) *QuestionnaireUpdateOne {
-	ids := make([]int, len(q))
+	ids := make([]uuid.UUID, len(q))
 	for i := range q {
 		ids[i] = q[i].ID
 	}
@@ -362,14 +363,14 @@ func (quo *QuestionnaireUpdateOne) ClearQuestionnaireResponses() *QuestionnaireU
 }
 
 // RemoveQuestionnaireResponseIDs removes the "questionnaire_responses" edge to QuestionnaireResponse entities by IDs.
-func (quo *QuestionnaireUpdateOne) RemoveQuestionnaireResponseIDs(ids ...int) *QuestionnaireUpdateOne {
+func (quo *QuestionnaireUpdateOne) RemoveQuestionnaireResponseIDs(ids ...uuid.UUID) *QuestionnaireUpdateOne {
 	quo.mutation.RemoveQuestionnaireResponseIDs(ids...)
 	return quo
 }
 
 // RemoveQuestionnaireResponses removes "questionnaire_responses" edges to QuestionnaireResponse entities.
 func (quo *QuestionnaireUpdateOne) RemoveQuestionnaireResponses(q ...*QuestionnaireResponse) *QuestionnaireUpdateOne {
-	ids := make([]int, len(q))
+	ids := make([]uuid.UUID, len(q))
 	for i := range q {
 		ids[i] = q[i].ID
 	}
@@ -417,7 +418,7 @@ func (quo *QuestionnaireUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (quo *QuestionnaireUpdateOne) sqlSave(ctx context.Context) (_node *Questionnaire, err error) {
-	_spec := sqlgraph.NewUpdateSpec(questionnaire.Table, questionnaire.Columns, sqlgraph.NewFieldSpec(questionnaire.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(questionnaire.Table, questionnaire.Columns, sqlgraph.NewFieldSpec(questionnaire.FieldID, field.TypeUUID))
 	id, ok := quo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Questionnaire.id" for update`)}
@@ -456,7 +457,7 @@ func (quo *QuestionnaireUpdateOne) sqlSave(ctx context.Context) (_node *Question
 			Columns: []string{questionnaire.QuestionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(question.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(question.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -469,7 +470,7 @@ func (quo *QuestionnaireUpdateOne) sqlSave(ctx context.Context) (_node *Question
 			Columns: []string{questionnaire.QuestionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(question.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(question.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -485,7 +486,7 @@ func (quo *QuestionnaireUpdateOne) sqlSave(ctx context.Context) (_node *Question
 			Columns: []string{questionnaire.QuestionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(question.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(question.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -501,7 +502,7 @@ func (quo *QuestionnaireUpdateOne) sqlSave(ctx context.Context) (_node *Question
 			Columns: []string{questionnaire.QuestionnaireResponsesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -514,7 +515,7 @@ func (quo *QuestionnaireUpdateOne) sqlSave(ctx context.Context) (_node *Question
 			Columns: []string{questionnaire.QuestionnaireResponsesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -530,7 +531,7 @@ func (quo *QuestionnaireUpdateOne) sqlSave(ctx context.Context) (_node *Question
 			Columns: []string{questionnaire.QuestionnaireResponsesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

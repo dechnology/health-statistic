@@ -14,6 +14,7 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaire"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
+	"github.com/google/uuid"
 )
 
 // QuestionnaireResponseCreate is the builder for creating a QuestionnaireResponse entity.
@@ -33,6 +34,20 @@ func (qrc *QuestionnaireResponseCreate) SetCreatedAt(t time.Time) *Questionnaire
 func (qrc *QuestionnaireResponseCreate) SetNillableCreatedAt(t *time.Time) *QuestionnaireResponseCreate {
 	if t != nil {
 		qrc.SetCreatedAt(*t)
+	}
+	return qrc
+}
+
+// SetID sets the "id" field.
+func (qrc *QuestionnaireResponseCreate) SetID(u uuid.UUID) *QuestionnaireResponseCreate {
+	qrc.mutation.SetID(u)
+	return qrc
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (qrc *QuestionnaireResponseCreate) SetNillableID(u *uuid.UUID) *QuestionnaireResponseCreate {
+	if u != nil {
+		qrc.SetID(*u)
 	}
 	return qrc
 }
@@ -57,13 +72,13 @@ func (qrc *QuestionnaireResponseCreate) SetUser(u *User) *QuestionnaireResponseC
 }
 
 // SetQuestionnaireID sets the "questionnaire" edge to the Questionnaire entity by ID.
-func (qrc *QuestionnaireResponseCreate) SetQuestionnaireID(id int) *QuestionnaireResponseCreate {
+func (qrc *QuestionnaireResponseCreate) SetQuestionnaireID(id uuid.UUID) *QuestionnaireResponseCreate {
 	qrc.mutation.SetQuestionnaireID(id)
 	return qrc
 }
 
 // SetNillableQuestionnaireID sets the "questionnaire" edge to the Questionnaire entity by ID if the given value is not nil.
-func (qrc *QuestionnaireResponseCreate) SetNillableQuestionnaireID(id *int) *QuestionnaireResponseCreate {
+func (qrc *QuestionnaireResponseCreate) SetNillableQuestionnaireID(id *uuid.UUID) *QuestionnaireResponseCreate {
 	if id != nil {
 		qrc = qrc.SetQuestionnaireID(*id)
 	}
@@ -76,14 +91,14 @@ func (qrc *QuestionnaireResponseCreate) SetQuestionnaire(q *Questionnaire) *Ques
 }
 
 // AddAnswerIDs adds the "answers" edge to the Answer entity by IDs.
-func (qrc *QuestionnaireResponseCreate) AddAnswerIDs(ids ...int) *QuestionnaireResponseCreate {
+func (qrc *QuestionnaireResponseCreate) AddAnswerIDs(ids ...uuid.UUID) *QuestionnaireResponseCreate {
 	qrc.mutation.AddAnswerIDs(ids...)
 	return qrc
 }
 
 // AddAnswers adds the "answers" edges to the Answer entity.
 func (qrc *QuestionnaireResponseCreate) AddAnswers(a ...*Answer) *QuestionnaireResponseCreate {
-	ids := make([]int, len(a))
+	ids := make([]uuid.UUID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -129,6 +144,10 @@ func (qrc *QuestionnaireResponseCreate) defaults() {
 		v := questionnaireresponse.DefaultCreatedAt()
 		qrc.mutation.SetCreatedAt(v)
 	}
+	if _, ok := qrc.mutation.ID(); !ok {
+		v := questionnaireresponse.DefaultID()
+		qrc.mutation.SetID(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -150,8 +169,13 @@ func (qrc *QuestionnaireResponseCreate) sqlSave(ctx context.Context) (*Questionn
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
+	}
 	qrc.mutation.id = &_node.ID
 	qrc.mutation.done = true
 	return _node, nil
@@ -160,8 +184,12 @@ func (qrc *QuestionnaireResponseCreate) sqlSave(ctx context.Context) (*Questionn
 func (qrc *QuestionnaireResponseCreate) createSpec() (*QuestionnaireResponse, *sqlgraph.CreateSpec) {
 	var (
 		_node = &QuestionnaireResponse{config: qrc.config}
-		_spec = sqlgraph.NewCreateSpec(questionnaireresponse.Table, sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(questionnaireresponse.Table, sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeUUID))
 	)
+	if id, ok := qrc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = &id
+	}
 	if value, ok := qrc.mutation.CreatedAt(); ok {
 		_spec.SetField(questionnaireresponse.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -191,7 +219,7 @@ func (qrc *QuestionnaireResponseCreate) createSpec() (*QuestionnaireResponse, *s
 			Columns: []string{questionnaireresponse.QuestionnaireColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(questionnaire.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(questionnaire.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -208,7 +236,7 @@ func (qrc *QuestionnaireResponseCreate) createSpec() (*QuestionnaireResponse, *s
 			Columns: []string{questionnaireresponse.AnswersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(answer.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(answer.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -260,10 +288,6 @@ func (qrcb *QuestionnaireResponseCreateBulk) Save(ctx context.Context) ([]*Quest
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})

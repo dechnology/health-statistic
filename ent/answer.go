@@ -12,13 +12,14 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent/answer"
 	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
+	"github.com/google/uuid"
 )
 
 // Answer is the model entity for the Answer schema.
 type Answer struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Body holds the value of the "body" field.
@@ -26,8 +27,8 @@ type Answer struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AnswerQuery when eager-loading is set.
 	Edges                          AnswerEdges `json:"edges"`
-	question_answers               *int
-	questionnaire_response_answers *int
+	question_answers               *uuid.UUID
+	questionnaire_response_answers *uuid.UUID
 	selectValues                   sql.SelectValues
 }
 
@@ -73,16 +74,16 @@ func (*Answer) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case answer.FieldID:
-			values[i] = new(sql.NullInt64)
 		case answer.FieldBody:
 			values[i] = new(sql.NullString)
 		case answer.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
+		case answer.FieldID:
+			values[i] = new(uuid.UUID)
 		case answer.ForeignKeys[0]: // question_answers
-			values[i] = new(sql.NullInt64)
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case answer.ForeignKeys[1]: // questionnaire_response_answers
-			values[i] = new(sql.NullInt64)
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -99,11 +100,11 @@ func (a *Answer) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case answer.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value != nil {
+				a.ID = *value
 			}
-			a.ID = int(value.Int64)
 		case answer.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -117,18 +118,18 @@ func (a *Answer) assignValues(columns []string, values []any) error {
 				a.Body = value.String
 			}
 		case answer.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field question_answers", value)
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field question_answers", values[i])
 			} else if value.Valid {
-				a.question_answers = new(int)
-				*a.question_answers = int(value.Int64)
+				a.question_answers = new(uuid.UUID)
+				*a.question_answers = *value.S.(*uuid.UUID)
 			}
 		case answer.ForeignKeys[1]:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field questionnaire_response_answers", value)
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field questionnaire_response_answers", values[i])
 			} else if value.Valid {
-				a.questionnaire_response_answers = new(int)
-				*a.questionnaire_response_answers = int(value.Int64)
+				a.questionnaire_response_answers = new(uuid.UUID)
+				*a.questionnaire_response_answers = *value.S.(*uuid.UUID)
 			}
 		default:
 			a.selectValues.Set(columns[i], values[i])
