@@ -5,6 +5,8 @@ import (
 	"github.com/eesoymilk/health-statistic-api/handlers"
 	"github.com/eesoymilk/health-statistic-api/middlewares"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 /**********************************  TODO  **********************************/
@@ -115,6 +117,8 @@ func New(db *ent.Client) *gin.Engine {
 			questionGroup.DELETE("/:id", h.DeleteQuestion)
 		}
 	}
+
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	return r
 }

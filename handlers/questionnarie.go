@@ -12,7 +12,12 @@ import (
 	"github.com/google/uuid"
 )
 
-// GET		/questionnaires
+// @Summary     Get Questionnaires
+// @Description Get all questionnaires from the database.
+// @Tags        Questionnaire
+// @Produce     json
+// @Success 	200 {object} []Questionnaire
+// @Router      /questionnaires [get]
 func (h *QuestionnaireHandler) GetQuestionnaires(c *gin.Context) {
 	questionnaires, err := h.DB.Questionnaire.
 		Query().
@@ -30,7 +35,13 @@ func (h *QuestionnaireHandler) GetQuestionnaires(c *gin.Context) {
 	c.JSON(http.StatusOK, questionnaires)
 }
 
-// GET		/questionnaires/:id
+// @Summary     Get Questionnaire
+// @Description Get a questionnaire by ID.
+// @Tags        Questionnaire
+// @Produce     json
+// @Param		id path string true "The questionnaire's ID"
+// @Success 	200 {object} Questionnaire
+// @Router      /questionnaires/{id} [get]
 func (h *QuestionnaireHandler) GetQuestionnaire(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 
@@ -56,7 +67,14 @@ func (h *QuestionnaireHandler) GetQuestionnaire(c *gin.Context) {
 	c.JSON(http.StatusOK, questionnaireNode)
 }
 
-// POST		/questionnaires
+// @Summary     Create Questionnaire
+// @Description Create a new questionnaire and optionally its questions.
+// @Tags        Questionnaire
+// @Accept		json
+// @Produce     json
+// @Param		questionnaire body QuestionnaireBody true "The questionnaire to be created."
+// @Success 	200 {object} Questionnaire
+// @Router      /questionnaires [post]
 func (h *QuestionnaireHandler) CreateQuestionnaire(c *gin.Context) {
 	var questionnaireBody QuestionnaireBody
 	if err := c.ShouldBindJSON(&questionnaireBody); err != nil {
@@ -99,7 +117,13 @@ func (h *QuestionnaireHandler) CreateQuestionnaire(c *gin.Context) {
 	c.JSON(http.StatusOK, questionnaireNode)
 }
 
-// DELETE	/questionnaires/:id
+// @Summary     Delete Questionnaire
+// @Description Delete a questionnaire by ID
+// @Tags        Questionnaire
+// @Produce     json
+// @Param		id path string true "The questionnaire's ID."
+// @Success 	200
+// @Router      /questionnaires/{id} [delete]
 func (h *QuestionnaireHandler) DeleteQuestionnaire(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 
@@ -115,7 +139,15 @@ func (h *QuestionnaireHandler) DeleteQuestionnaire(c *gin.Context) {
 	c.JSON(http.StatusNoContent, nil)
 }
 
-// POST		/questionnaires/:id/new/question
+// @Summary     Create Question
+// @Description Create a new question for a specified questionnaire
+// @Tags        Questionnaire
+// @Accept		json
+// @Produce     json
+// @Param		id path string true "The questionnaire's ID."
+// @Param		question body QuestionBody true "The question to be created."
+// @Success 	200 {object} ent.Question
+// @Router      /questionnaires/{id}/new/question [post]
 func (h *QuestionnaireHandler) CreateQuestion(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -123,7 +155,7 @@ func (h *QuestionnaireHandler) CreateQuestion(c *gin.Context) {
 		return
 	}
 
-	var questionBody Question
+	var questionBody ent.Question
 	if err := c.ShouldBindJSON(&questionBody); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -144,7 +176,15 @@ func (h *QuestionnaireHandler) CreateQuestion(c *gin.Context) {
 	c.JSON(http.StatusOK, questionNode)
 }
 
-// POST		/questionnaires/:id/new/response
+// @Summary     Create Response
+// @Description Create a new response for a specified questionnaire
+// @Tags        Questionnaire
+// @Accept		json
+// @Produce     json
+// @Param		id path string true "The questionnaire's ID."
+// @Param		response body QuestionnaireResponseBody true "The response to be created."
+// @Success 	200 {object} QuestionnaireResponse
+// @Router      /questionnaires/{id}/new/response [post]
 func (h *QuestionnaireHandler) CreateResponse(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -152,7 +192,7 @@ func (h *QuestionnaireHandler) CreateResponse(c *gin.Context) {
 		return
 	}
 
-	var responseBody ResponseBody
+	var responseBody QuestionnaireResponseBody
 	if err := c.ShouldBindJSON(&responseBody); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

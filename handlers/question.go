@@ -8,7 +8,12 @@ import (
 	"github.com/google/uuid"
 )
 
-// GET		/questions
+// @Summary     Get Questions
+// @Description Get all questions from the database.
+// @Tags        Question
+// @Produce     json
+// @Success 	200 {object} []Question
+// @Router      /questions [get]
 func (h *QuestionHandler) GetQuestions(c *gin.Context) {
 	questions, err := h.DB.Question.
 		Query().
@@ -23,7 +28,13 @@ func (h *QuestionHandler) GetQuestions(c *gin.Context) {
 	c.JSON(http.StatusOK, questions)
 }
 
-// GET		/questions/:id
+// @Summary     Get Question
+// @Description Get a question by ID.
+// @Tags        Question
+// @Produce     json
+// @Param		id path string true "The question's ID"
+// @Success 	200 {object} Question
+// @Router      /questions/{id} [get]
 func (h *QuestionHandler) GetQuestion(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 
@@ -46,7 +57,13 @@ func (h *QuestionHandler) GetQuestion(c *gin.Context) {
 	c.JSON(http.StatusOK, questions)
 }
 
-// DELETE	/questions/:id
+// @Summary     Delete Question
+// @Description Delete a question by ID
+// @Tags        Question
+// @Produce     json
+// @Param		id path string true "The question's ID."
+// @Success 	200
+// @Router      /questions/{id} [delete]
 func (h *QuestionHandler) DeleteQuestion(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 
@@ -62,55 +79,3 @@ func (h *QuestionHandler) DeleteQuestion(c *gin.Context) {
 
 	c.JSON(http.StatusNoContent, nil)
 }
-
-// func (h *QuestionHandler) CreateQuestion(c *gin.Context) {
-// 	questionnaireId, err := uuid.Parse(c.Param("id"))
-
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-// 		return
-// 	}
-
-// 	var questionBody QuestionBody
-// 	if err := c.ShouldBindJSON(&questionBody); err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-// 		return
-// 	}
-
-// 	out, err := json.MarshalIndent(questionBody, "", "  ")
-// 	if err != nil {
-// 		log.Fatal(err)
-// 		os.Exit(1)
-// 	}
-
-// 	log.Print(string(out))
-
-// 	answerNodes := make([]*ent.Answer, 0, len(questionBody.Answers))
-// 	for _, answer := range questionBody.Answers {
-// 		answerNode, err := h.DB.Answer.
-// 			Create().
-// 			SetBody(answer.Body).
-// 			Save(c.Request.Context())
-
-// 		if err != nil {
-// 			c.JSON(http.StatusInternalServerError, gin.H{"err": err.Error()})
-// 			return
-// 		}
-
-// 		answerNodes = append(answerNodes, answerNode)
-// 	}
-
-// 	question, err := h.DB.QuestionnaireQuestion.
-// 		Create().
-// 		AddAnswers(answerNodes...).
-// 		AddQuestionnaireIDs(questionnaireId).
-// 		AddUserIDs(questionBody.UserId).
-// 		Save(c.Request.Context())
-
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-// 		return
-// 	}
-
-// 	c.JSON(http.StatusOK, question)
-// }

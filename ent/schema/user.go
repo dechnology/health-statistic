@@ -24,6 +24,8 @@ func (User) Fields() []ent.Field {
 		field.Time("updated_at").
 			Default(time.Now).
 			UpdateDefault(time.Now),
+		field.String("first_name").MaxLen(30),
+		field.String("last_name").MaxLen(30),
 		field.Int("birth_year").
 			Positive(),
 		field.Float("height").
