@@ -15,9 +15,9 @@ jobs:
       matrix:
         include:
           - dockerfile: ./docker/api/Dockerfile
-            image: ${{ env.REGISTRY }}/${{ github.actor }}/db
+            image: ghcr.io/eesoymilk/health-statistic/db
           - dockerfile: ./docker/db/Dockerfile
-            image: ${{ env.REGISTRY }}/${{ github.actor }}/api
+            image: ghcr.io/eesoymilk/health-statistic/api
     steps:
       - name: Checkout GitHub Action
         uses: actions/checkout@main
