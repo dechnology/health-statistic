@@ -12,6 +12,7 @@ jobs:
   build-and-push-images:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         include:
           - dockerfile: ./docker/api/Dockerfile
