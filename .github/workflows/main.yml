@@ -72,7 +72,7 @@ jobs:
           source: "docker-compose.yml"
           target: ~/health-statistic
 
-      - name: SSH to Kamatera and deploy
+      - name: SSH to EC2 and deploy
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.EC2_HOST }}
