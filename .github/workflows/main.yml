@@ -1,5 +1,5 @@
 name: deploy-images-to-gh-registry
-run-name: ${{ github.actor }} is pushing to GitHub registry
+run-name: ${{ github.actor }} is deploying...
 
 on: push
 
@@ -70,7 +70,7 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           port: ${{ secrets.EC2_PORT }}
           source: docker-compose.yml
-          target: ~/health-statistic
+          target: ./health-statistic
 
       - name: SSH to EC2 and deploy
         uses: appleboy/ssh-action@v0.1.10
@@ -86,5 +86,5 @@ jobs:
             export POSTGRES_PASSWORD=${{ env.POSTGRES_PASSWORD }}
             export AUTH0_ISSUER_URL=${{ env.AUTH0_ISSUER_URL }}
             export AUTH0_AUDIENCE=${{ env.AUTH0_AUDIENCE }}
-            cd ~/health-statistic
+            cd health-statistic
             docker compose up
