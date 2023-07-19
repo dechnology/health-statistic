@@ -50,3 +50,28 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  # deploy:
+  #   needs: build-and-push-images
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: copy file via ssh password
+  #       uses: appleboy/scp-action@v0.1.4
+  #       with:
+  #         host: ${{ secrets.EC2_HOST }}
+  #         username: ${{ secrets.EC2_USERNAME }}
+  #         key: ${{ secrets.EC2_KEY }}
+  #         port: ${{ secrets.EC2_PORT }}
+  #         source: "docker-compose.yml"
+  #         target: ~/health-statistic
+
+  #     - name: SSH to Kamatera and deploy
+  #       uses: appleboy/ssh-action@v0.1.10
+  #       with:
+  #         host: ${{ secrets.EC2_HOST }}
+  #         username: ${{ secrets.EC2_USERNAME }}
+  #         key: ${{ secrets.EC2_KEY }}
+  #         port: ${{ secrets.EC2_PORT }}
+  #         script: |
+  #           cd ~/health-statistic
+  #           docker compose -e up

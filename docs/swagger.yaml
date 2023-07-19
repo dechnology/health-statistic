@@ -275,10 +275,21 @@ host: localhost:8080
 info:
   contact: {}
   description: This is a sample server for Health Statistic API.
-  termsOfService: http://swagger.io/terms/
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
   title: Health Statistic API
   version: "1.0"
 paths:
+  /health_check:
+    get:
+      description: A health checking api to make sure the server is not dead.
+      responses:
+        "200":
+          description: OK
+      summary: Health Check
+      tags:
+      - Response
   /questionnaires:
     get:
       description: Get all questionnaires from the database.
@@ -601,4 +612,7 @@ paths:
       summary: Update User
       tags:
       - User
+schemes:
+- http
+- https
 swagger: "2.0"
