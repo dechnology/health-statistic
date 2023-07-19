@@ -69,8 +69,9 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_KEY }}
           port: ${{ secrets.EC2_PORT }}
+          rm: true
           source: "docker-compose.yml"
-          target: "./health-statistic"
+          target: "~/health-statistic"
 
       - name: SSH to EC2 and deploy
         uses: appleboy/ssh-action@v0.1.10
