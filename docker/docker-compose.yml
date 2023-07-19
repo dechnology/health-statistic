@@ -2,7 +2,6 @@ version: '3'
 services:
   api:
     image: ghcr.io/eesoymilk/health-statistic-api:main
-    platform: linux/amd64
     depends_on:
       db:
         condition: service_healthy
@@ -22,7 +21,6 @@ services:
 
   db:
     image: ghcr.io/eesoymilk/health-statistic-db:main
-    platform: linux/amd64
     restart: always
     # No need to expose ports since the container can talk to each other
     # ports:
