@@ -21,7 +21,7 @@ AUTH0_AUDIENCE=<AUTH0_AUDIENCE>
 ### Step 2 - Run the app via `docker-compose` with the `--env-file`
 
 ```shell
-docker-compose -f ./docker/docker-compose.yml --env-file .env up
+docker compose --env-file .env up
 ```
 
 ## API Documentation

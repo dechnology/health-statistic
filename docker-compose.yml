@@ -1,4 +1,4 @@
-version: '3'
+version: '3.8'
 services:
   api:
     image: ghcr.io/eesoymilk/health-statistic-api:main
@@ -15,26 +15,22 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       AUTH0_ISSUER_URL: ${AUTH0_ISSUER_URL}
       AUTH0_AUDIENCE: ${AUTH0_AUDIENCE}
-    # env_file: 
-    #   - .env
-    #   - .env.example # Fallback in case the program fails
 
   db:
     image: ghcr.io/eesoymilk/health-statistic-db:main
     restart: always
-    # No need to expose ports since the container can talk to each other
-    # ports:
-    #   - "5444:5432"
     user: postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-      PGDATA: ${PGDATA}
     volumes:
-      - ~/db/health-statistic/data:/var/lib/postgresql/data
+      - health-statistic-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready"]
+      test: [ "CMD-SHELL", "pg_isready" ]
       interval: 10s
       timeout: 5s
       retries: 5
+
+volumes:
+  health-statistic-data:
