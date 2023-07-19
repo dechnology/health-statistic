@@ -8,7 +8,7 @@ import (
 
 // @Summary     Health Check
 // @Description A health checking api to make sure the server is not dead.
-// @Tags        Response
+// @Tags        Health
 // @Success 	200
 // @Router      /health_check [get]
 func HealthCheck(c *gin.Context) {
