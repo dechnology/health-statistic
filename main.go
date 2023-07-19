@@ -27,7 +27,7 @@ import (
 // @description     This is a sample server for Health Statistic API.
 // @license.name 	Apache 2.0
 // @license.url 	http://www.apache.org/licenses/LICENSE-2.0.html
-// @host      		localhost:8080
+// @host      		https://health-statistic.dechnology.com.tw
 // @schemes			http https
 // @BasePath  		/api/v1
 func main() {

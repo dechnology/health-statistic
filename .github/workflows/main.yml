@@ -7,6 +7,13 @@ env:
   REGISTRY: ghcr.io
   DOCKER_PATH: ./docker
   IMAGE_NAME: ${{ github.repository }}
+  POSTGRES_PORT: 5432
+  POSTGRES_USER: postgres
+  POSTGRES_DB: health-statistic
+  POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+
+  AUTH0_ISSUER_URL: https://itri-dechnology.jp.auth0.com/
+  AUTH0_AUDIENCE: https://health-statistic.dechnology.com.tw
 
 jobs:
   build-and-push-images:
@@ -51,27 +58,33 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # deploy:
-  #   needs: build-and-push-images
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: copy file via ssh password
-  #       uses: appleboy/scp-action@v0.1.4
-  #       with:
-  #         host: ${{ secrets.EC2_HOST }}
-  #         username: ${{ secrets.EC2_USERNAME }}
-  #         key: ${{ secrets.EC2_KEY }}
-  #         port: ${{ secrets.EC2_PORT }}
-  #         source: "docker-compose.yml"
-  #         target: ~/health-statistic
+  deploy:
+    needs: build-and-push-images
+    runs-on: ubuntu-latest
+    steps:
+      - name: copy file via ssh
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_KEY }}
+          port: ${{ secrets.EC2_PORT }}
+          source: "docker-compose.yml"
+          target: ~/health-statistic
 
-  #     - name: SSH to Kamatera and deploy
-  #       uses: appleboy/ssh-action@v0.1.10
-  #       with:
-  #         host: ${{ secrets.EC2_HOST }}
-  #         username: ${{ secrets.EC2_USERNAME }}
-  #         key: ${{ secrets.EC2_KEY }}
-  #         port: ${{ secrets.EC2_PORT }}
-  #         script: |
-  #           cd ~/health-statistic
-  #           docker compose -e up
+      - name: SSH to Kamatera and deploy
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_KEY }}
+          port: ${{ secrets.EC2_PORT }}
+          script: |
+            export POSTGRES_PORT=${{ env.POSTGRES_PORT }}
+            export POSTGRES_USER=${{ env.POSTGRES_USER }}
+            export POSTGRES_DB=${{ env.POSTGRES_DB }}
+            export POSTGRES_PASSWORD=${{ env.POSTGRES_PASSWORD }}
+            export AUTH0_ISSUER_URL=${{ env.AUTH0_ISSUER_URL }}
+            export AUTH0_AUDIENCE=${{ env.AUTH0_AUDIENCE }}
+            cd ~/health-statistic
+            docker compose up
