@@ -1,11 +1,3 @@
-## How to view the API documentations
+# Health Statistic API
 
-### Step 1
-```shell
-go mod tidy
-go mod verify
-go run main.go
-```
-
-### Step 2
-Navigate to [http://localhost:8080/swagger/index.html](http://localhost:8080/swagger/index.html)
+> Navigate to [our GitHub page](https://eesoymilk.github.io/health-statistic-api/) to view all API endpoints.
