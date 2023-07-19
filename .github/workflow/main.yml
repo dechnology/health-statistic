@@ -1,0 +1,48 @@
+name: deploy-images-to-gh-registry
+run-name: ${{ github.actor }} is pushing to GitHub registry
+
+env:
+  REGISTRY: ghcr.io
+  DOCKER_PATH: ./docker
+  IMAGE_NAME: ${{ github.repository }}
+  BASE_CONTAINER_NAME: health-statistic
+
+jobs:
+  build-and-push-images:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - dockerfile: ./docker/api/Dockerfile
+            image: ${{ env.REGISTRY }}/${{ github.actor }}/db
+          - dockerfile: ./docker/db/Dockerfile
+            image: ${{ env.REGISTRY }}/${{ github.actor }}/api
+    steps:
+      - name: Checkout GitHub Action
+        uses: actions/checkout@main
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with: ${{ matrix.image }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

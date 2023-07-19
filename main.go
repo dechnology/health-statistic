@@ -25,9 +25,11 @@ import (
 // @title           Health Statistic API
 // @version         1.0
 // @description     This is a sample server for Health Statistic API.
-// @termsOfService  http://swagger.io/terms/
-// @host      localhost:8080
-// @BasePath  /api/v1
+// @license.name 	Apache 2.0
+// @license.url 	http://www.apache.org/licenses/LICENSE-2.0.html
+// @host      		localhost:8080
+// @schemes			http https
+// @BasePath  		/api/v1
 func main() {
 	// Loading environment variables when not using a docker container
 	if os.Getenv("RUNNING_IN_DOCKER") == "" {

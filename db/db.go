@@ -1,17 +1,35 @@
 package db
 
 import (
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/eesoymilk/health-statistic-api/ent"
 	_ "github.com/lib/pq"
 )
 
 func New() *ent.Client {
-	db, err := ent.Open(
-		"postgres",
-		"host=localhost user=postgres dbname=health-statistic password=510600 sslmode=disable",
+	var (
+		postgresHost     = os.Getenv("POSTGRES_HOST")
+		postgresPort     = os.Getenv("POSTGRES_PORT")
+		postgresUser     = os.Getenv("POSTGRES_USER")
+		postgresDb       = os.Getenv("POSTGRES_DB")
+		postgresPassword = os.Getenv("POSTGRES_PASSWORD")
 	)
+
+	connectionStr := fmt.Sprintf(
+		"host=%s port=%s user=%s dbname=%s password=%s sslmode=disable",
+		postgresHost,
+		postgresPort,
+		postgresUser,
+		postgresDb,
+		postgresPassword,
+	)
+
+	log.Println(connectionStr)
+
+	db, err := ent.Open("postgres", connectionStr)
 	if err != nil {
 		log.Fatalf("failed opening connection to postgres: %v", err)
 	}
