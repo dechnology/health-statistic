@@ -1,7 +1,8 @@
 version: '3'
 services:
   api:
-    image: hsa:test
+    image: ghcr.io/eesoymilk/health-statistic-api:main
+    platform: linux/amd64
     depends_on:
       db:
         condition: service_healthy
@@ -20,7 +21,8 @@ services:
     #   - .env.example # Fallback in case the program fails
 
   db:
-    image: hsa-db:test
+    image: ghcr.io/eesoymilk/health-statistic-db:main
+    platform: linux/amd64
     restart: always
     # No need to expose ports since the container can talk to each other
     # ports:
