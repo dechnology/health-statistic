@@ -1,11 +1,12 @@
 name: deploy-images-to-gh-registry
 run-name: ${{ github.actor }} is pushing to GitHub registry
 
+on: push
+
 env:
   REGISTRY: ghcr.io
   DOCKER_PATH: ./docker
   IMAGE_NAME: ${{ github.repository }}
-  BASE_CONTAINER_NAME: health-statistic
 
 jobs:
   build-and-push-images:
