@@ -72,7 +72,7 @@ func (h *QuestionnaireHandler) GetQuestionnaire(c *gin.Context) {
 //	@Tags					Questionnaire
 //	@Accept					json
 //	@Produce				json
-//	@Param					questionnaire	body		QuestionnaireBody	true	"The questionnaire to be created."
+//	@Param					questionnaire	body		SingleQuestionnaireResponse	true	"The questionnaire to be created."
 //	@Success				200				{object}	Questionnaire
 //	@Router					/questionnaires [post]
 func (h *QuestionnaireHandler) CreateQuestionnaire(c *gin.Context) {

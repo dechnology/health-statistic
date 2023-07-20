@@ -21,7 +21,7 @@ After so, you want to also update the API documentation before making a commit. 
 
 ```shell
 swag fmt # This line is optional since it only helps formatting the comments
-swag init
+swag init -md descriptions
 ```
 
 ## Run the API locally

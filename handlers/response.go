@@ -8,12 +8,12 @@ import (
 	"github.com/google/uuid"
 )
 
-//	@Summary		Get Responses
-//	@Description	Get all responses from the database.
-//	@Tags			Response
-//	@Produce		json
-//	@Success		200	{object}	[]QuestionnaireResponse
-//	@Router			/responses [get]
+//	@Summary				Get Responses
+//	@Description.markdown	responses.get
+//	@Tags					Response
+//	@Produce				json
+//	@Success				200	{object}	[]QuestionnaireResponse
+//	@Router					/responses [get]
 func (h *ResponseHandler) GetResponses(c *gin.Context) {
 	responses, err := h.DB.QuestionnaireResponse.
 		Query().
@@ -28,13 +28,13 @@ func (h *ResponseHandler) GetResponses(c *gin.Context) {
 	c.JSON(http.StatusOK, responses)
 }
 
-//	@Summary		Get Response
-//	@Description	Get a response by ID.
-//	@Tags			Response
-//	@Produce		json
-//	@Param			id	path		string	true	"The response's ID"
-//	@Success		200	{object}	QuestionnaireResponse
-//	@Router			/responses/{id} [get]
+//	@Summary				Get Response
+//	@Description.markdown	response.get
+//	@Tags					Response
+//	@Produce				json
+//	@Param					id	path		string	true	"The response's ID"
+//	@Success				200	{object}	SingleQuestionnaireResponse
+//	@Router					/responses/{id} [get]
 func (h *ResponseHandler) GetResponse(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 
@@ -46,6 +46,7 @@ func (h *ResponseHandler) GetResponse(c *gin.Context) {
 	responses, err := h.DB.QuestionnaireResponse.
 		Query().
 		Where(questionnaireresponse.ID((id))).
+		WithQuestionnaire().
 		WithAnswers().
 		Only(c.Request.Context())
 
@@ -57,13 +58,13 @@ func (h *ResponseHandler) GetResponse(c *gin.Context) {
 	c.JSON(http.StatusOK, responses)
 }
 
-//	@Summary		Delete Response
-//	@Description	Delete a response by ID
-//	@Tags			Response
-//	@Produce		json
-//	@Param			id	path	string	true	"The response's ID."
-//	@Success		200
-//	@Router			/responses/{id} [delete]
+//	@Summary				Delete Response
+//	@Description.markdown	response.delete
+//	@Tags					Response
+//	@Produce				json
+//	@Param					id	path	string	true	"The response's ID."
+//	@Success				200
+//	@Router					/responses/{id} [delete]
 func (h *ResponseHandler) DeleteResponse(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 

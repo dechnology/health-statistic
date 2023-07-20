@@ -173,21 +173,6 @@ definitions:
           $ref: '#/definitions/handlers.QuestionnaireResponse'
         type: array
     type: object
-  handlers.QuestionnaireBody:
-    description: The json body for creating a new questionnaire.
-    properties:
-      name:
-        description: The name of the questionnaire
-        type: string
-      questions:
-        description: |-
-          The initial questions in this questionnaire. This field may be empty
-          and you can add questions later using post request to
-          `quesionnaires/:id/new/question`.
-        items:
-          $ref: '#/definitions/handlers.QuestionBody'
-        type: array
-    type: object
   handlers.QuestionnaireResponse:
     properties:
       answers:
@@ -212,6 +197,21 @@ definitions:
       user_id:
         description: The user ID of the user who submit the response.
         type: string
+    type: object
+  handlers.SingleQuestionnaireResponse:
+    properties:
+      answers:
+        items:
+          $ref: '#/definitions/ent.Answer'
+        type: array
+      created_at:
+        description: CreatedAt holds the value of the "created_at" field.
+        type: string
+      id:
+        description: ID of the ent.
+        type: string
+      questionnaire:
+        $ref: '#/definitions/handlers.Questionnaire'
     type: object
   user.EarCondition:
     enum:
@@ -348,7 +348,7 @@ paths:
         name: questionnaire
         required: true
         schema:
-          $ref: '#/definitions/handlers.QuestionnaireBody'
+          $ref: '#/definitions/handlers.SingleQuestionnaireResponse'
       produces:
       - application/json
       responses:
@@ -473,7 +473,8 @@ paths:
       - Questionnaire
   /questions:
     get:
-      description: Get all questions from the database.
+      description: |
+        Get all questions from the database. **This will NOT include questionnaires and responses.**
       produces:
       - application/json
       responses:
@@ -488,7 +489,7 @@ paths:
       - Question
   /questions/{id}:
     delete:
-      description: Delete a question by ID
+      description: Delete the question specified by the `id` path param.
       parameters:
       - description: The question's ID.
         in: path
@@ -504,7 +505,8 @@ paths:
       tags:
       - Question
     get:
-      description: Get a question by ID.
+      description: |
+        Get the question specified by the `id` path param.
       parameters:
       - description: The question's ID
         in: path
@@ -523,7 +525,8 @@ paths:
       - Question
   /responses:
     get:
-      description: Get all responses from the database.
+      description: |
+        Get all responses from the database. **This will NOT include questionnaires and questions.**
       produces:
       - application/json
       responses:
@@ -538,7 +541,7 @@ paths:
       - Response
   /responses/{id}:
     delete:
-      description: Delete a response by ID
+      description: Delete the response specified by the `id` path param.
       parameters:
       - description: The response's ID.
         in: path
@@ -554,7 +557,8 @@ paths:
       tags:
       - Response
     get:
-      description: Get a response by ID.
+      description: |
+        Get the response specified by the `id` path param. **This will also includes the corresponding questionnaire.**
       parameters:
       - description: The response's ID
         in: path
@@ -567,7 +571,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.QuestionnaireResponse'
+            $ref: '#/definitions/handlers.SingleQuestionnaireResponse'
       summary: Get Response
       tags:
       - Response

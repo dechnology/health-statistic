@@ -1,0 +1,1 @@
+Delete the response specified by the `id` path param.

@@ -23,6 +23,27 @@ type AnswerBody struct {
 	QuestionId uuid.UUID `json:"question_id"`
 }
 
+// ===
+type BaseQuestion struct {
+}
+
+type BaseAnswer struct {
+}
+
+type BaseQuestionnaire struct {
+	// The name of the questionnaire
+	Name string `json:"name"`
+	// The initial questions in this questionnaire. This field may be empty
+	// and you can add questions later using post request to
+	// `quesionnaires/:id/new/question`.
+	Questions []*QuestionBody `json:"questions"`
+}
+
+type BaseResponse struct {
+}
+
+// ===
+
 //	@Description	The json body for creating a new response.
 type QuestionnaireResponseBody struct {
 	// The user ID of the user who submit the response.
@@ -44,6 +65,12 @@ type QuestionnaireBody struct {
 type Question struct {
 	ent.Question
 	Questionnaires []*ent.Questionnaire `json:"quesionnaires"`
+}
+
+type SingleQuestionnaireResponse struct {
+	ent.QuestionnaireResponse
+	Questionnaire *Questionnaire `json:"questionnaire"`
+	Answers       []*ent.Answer  `json:"answers"`
 }
 
 type QuestionnaireResponse struct {

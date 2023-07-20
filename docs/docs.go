@@ -74,7 +74,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.QuestionnaireBody"
+                            "$ref": "#/definitions/handlers.SingleQuestionnaireResponse"
                         }
                     }
                 ],
@@ -231,7 +231,7 @@ const docTemplate = `{
         },
         "/questions": {
             "get": {
-                "description": "Get all questions from the database.",
+                "description": "Get all questions from the database. **This will NOT include questionnaires and responses.**\n",
                 "produces": [
                     "application/json"
                 ],
@@ -254,7 +254,7 @@ const docTemplate = `{
         },
         "/questions/{id}": {
             "get": {
-                "description": "Get a question by ID.",
+                "description": "Get the question specified by the ` + "`" + `id` + "`" + ` path param.\n",
                 "produces": [
                     "application/json"
                 ],
@@ -281,7 +281,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "Delete a question by ID",
+                "description": "Delete the question specified by the ` + "`" + `id` + "`" + ` path param.",
                 "produces": [
                     "application/json"
                 ],
@@ -307,7 +307,7 @@ const docTemplate = `{
         },
         "/responses": {
             "get": {
-                "description": "Get all responses from the database.",
+                "description": "Get all responses from the database. **This will NOT include questionnaires and questions.**\n",
                 "produces": [
                     "application/json"
                 ],
@@ -330,7 +330,7 @@ const docTemplate = `{
         },
         "/responses/{id}": {
             "get": {
-                "description": "Get a response by ID.",
+                "description": "Get the response specified by the ` + "`" + `id` + "`" + ` path param. **This will also includes the corresponding questionnaire.**\n",
                 "produces": [
                     "application/json"
                 ],
@@ -351,13 +351,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.QuestionnaireResponse"
+                            "$ref": "#/definitions/handlers.SingleQuestionnaireResponse"
                         }
                     }
                 }
             },
             "delete": {
-                "description": "Delete a response by ID",
+                "description": "Delete the response specified by the ` + "`" + `id` + "`" + ` path param.",
                 "produces": [
                     "application/json"
                 ],
@@ -780,23 +780,6 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.QuestionnaireBody": {
-            "description": "The json body for creating a new questionnaire.",
-            "type": "object",
-            "properties": {
-                "name": {
-                    "description": "The name of the questionnaire",
-                    "type": "string"
-                },
-                "questions": {
-                    "description": "The initial questions in this questionnaire. This field may be empty\nand you can add questions later using post request to\n` + "`" + `quesionnaires/:id/new/question` + "`" + `.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handlers.QuestionBody"
-                    }
-                }
-            }
-        },
         "handlers.QuestionnaireResponse": {
             "type": "object",
             "properties": {
@@ -830,6 +813,28 @@ const docTemplate = `{
                 "user_id": {
                     "description": "The user ID of the user who submit the response.",
                     "type": "string"
+                }
+            }
+        },
+        "handlers.SingleQuestionnaireResponse": {
+            "type": "object",
+            "properties": {
+                "answers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ent.Answer"
+                    }
+                },
+                "created_at": {
+                    "description": "CreatedAt holds the value of the \"created_at\" field.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID of the ent.",
+                    "type": "string"
+                },
+                "questionnaire": {
+                    "$ref": "#/definitions/handlers.Questionnaire"
                 }
             }
         },
