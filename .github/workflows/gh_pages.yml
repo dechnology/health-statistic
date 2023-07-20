@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - ".github/workflows/gh_pages.yml"
-      - "docs/swagger.json
+      - "docs/swagger.json"
 
 jobs:
   update-gh-pages:
