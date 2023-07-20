@@ -62,16 +62,6 @@ jobs:
     # needs: build-and-push-images
     runs-on: ubuntu-latest
     steps:
-      - name: copy file via ssh
-        uses: appleboy/scp-action@v0.1.4
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_KEY }}
-          port: ${{ secrets.EC2_PORT }}
-          source: docker-compose.yml
-          target: "home/ubuntu/health-statistic"
-
       - name: SSH to EC2 and deploy
         uses: appleboy/ssh-action@v0.1.10
         with:
@@ -80,11 +70,17 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           port: ${{ secrets.EC2_PORT }}
           script: |
+            git clone https://github.com/eesoymilk/health-statistic.git || true
+            cd health-statistic || exit 1
+            git pull
+            docker compose down
+            docker system prune -f
+            docker compose pull
+
             export POSTGRES_PORT=${{ env.POSTGRES_PORT }}
             export POSTGRES_USER=${{ env.POSTGRES_USER }}
             export POSTGRES_DB=${{ env.POSTGRES_DB }}
             export POSTGRES_PASSWORD=${{ env.POSTGRES_PASSWORD }}
             export AUTH0_ISSUER_URL=${{ env.AUTH0_ISSUER_URL }}
             export AUTH0_AUDIENCE=${{ env.AUTH0_AUDIENCE }}
-            cd health-statistic
             docker compose up
