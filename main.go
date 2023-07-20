@@ -26,7 +26,7 @@ import (
 //	@version		1.0
 //	@description	This is a sample server for Health Statistic API.
 //	@host			health-statistic.dechnology.com.tw
-//	@schemes		http https
+//	@schemes		https
 //	@BasePath		/api/v1
 func main() {
 	// Loading environment variables when not using a docker container

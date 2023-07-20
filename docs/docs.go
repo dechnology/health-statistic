@@ -25,7 +25,10 @@ const docTemplate = `{
                 "summary": "Health Check",
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.HealthCheckStatus"
+                        }
                     }
                 }
             }
@@ -692,6 +695,14 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.HealthCheckStatus": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "handlers.Question": {
             "type": "object",
             "properties": {
@@ -915,7 +926,7 @@ var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "health-statistic.dechnology.com.tw",
 	BasePath:         "/api/v1",
-	Schemes:          []string{"http", "https"},
+	Schemes:          []string{"https"},
 	Title:            "Health Statistic API",
 	Description:      "This is a sample server for Health Statistic API.",
 	InfoInstanceName: "swagger",

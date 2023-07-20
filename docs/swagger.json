@@ -1,6 +1,5 @@
 {
     "schemes": [
-        "http",
         "https"
     ],
     "swagger": "2.0",
@@ -22,7 +21,10 @@
                 "summary": "Health Check",
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.HealthCheckStatus"
+                        }
                     }
                 }
             }
@@ -685,6 +687,14 @@
                     "type": "string"
                 },
                 "question_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.HealthCheckStatus": {
+            "type": "object",
+            "properties": {
+                "message": {
                     "type": "string"
                 }
             }

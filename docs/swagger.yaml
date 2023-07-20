@@ -113,6 +113,11 @@ definitions:
       question_id:
         type: string
     type: object
+  handlers.HealthCheckStatus:
+    properties:
+      message:
+        type: string
+    type: object
   handlers.Question:
     properties:
       body:
@@ -284,6 +289,8 @@ paths:
       responses:
         "200":
           description: OK
+          schema:
+            $ref: '#/definitions/handlers.HealthCheckStatus'
       summary: Health Check
       tags:
       - Health
@@ -610,6 +617,5 @@ paths:
       tags:
       - User
 schemes:
-- http
 - https
 swagger: "2.0"
