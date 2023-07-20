@@ -80,11 +80,13 @@ jobs:
             export POSTGRES_PASSWORD=${{ env.POSTGRES_PASSWORD }}
             export AUTH0_ISSUER_URL=${{ env.AUTH0_ISSUER_URL }}
             export AUTH0_AUDIENCE=${{ env.AUTH0_AUDIENCE }}
+
             git clone https://github.com/eesoymilk/health-statistic.git || true
             cd health-statistic || exit 1
-            git pull
-            docker compose down
-            docker system prune -f
-            docker compose pull
+            git reset --hard
+            git pull --force
 
-            docker compose up
+            sudo docker compose down
+            sudo docker system prune -f
+            sudo docker compose pull
+            sudo docker compose up
