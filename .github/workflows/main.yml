@@ -70,6 +70,16 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           port: ${{ secrets.EC2_PORT }}
           script: |
+            cd ~
+            mkdir source || true
+            cd source || exit 1
+  
+            export POSTGRES_PORT=${{ env.POSTGRES_PORT }}
+            export POSTGRES_USER=${{ env.POSTGRES_USER }}
+            export POSTGRES_DB=${{ env.POSTGRES_DB }}
+            export POSTGRES_PASSWORD=${{ env.POSTGRES_PASSWORD }}
+            export AUTH0_ISSUER_URL=${{ env.AUTH0_ISSUER_URL }}
+            export AUTH0_AUDIENCE=${{ env.AUTH0_AUDIENCE }}
             git clone https://github.com/eesoymilk/health-statistic.git || true
             cd health-statistic || exit 1
             git pull
@@ -77,10 +87,4 @@ jobs:
             docker system prune -f
             docker compose pull
 
-            export POSTGRES_PORT=${{ env.POSTGRES_PORT }}
-            export POSTGRES_USER=${{ env.POSTGRES_USER }}
-            export POSTGRES_DB=${{ env.POSTGRES_DB }}
-            export POSTGRES_PASSWORD=${{ env.POSTGRES_PASSWORD }}
-            export AUTH0_ISSUER_URL=${{ env.AUTH0_ISSUER_URL }}
-            export AUTH0_AUDIENCE=${{ env.AUTH0_AUDIENCE }}
             docker compose up
