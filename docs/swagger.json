@@ -8,20 +8,16 @@
         "description": "This is a sample server for Health Statistic API.",
         "title": "Health Statistic API",
         "contact": {},
-        "license": {
-            "name": "Apache 2.0",
-            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
-        },
         "version": "1.0"
     },
-    "host": "localhost:8080",
+    "host": "https://health-statistic.dechnology.com.tw",
     "basePath": "/api/v1",
     "paths": {
         "/health_check": {
             "get": {
                 "description": "A health checking api to make sure the server is not dead.",
                 "tags": [
-                    "Response"
+                    "Health"
                 ],
                 "summary": "Health Check",
                 "responses": {

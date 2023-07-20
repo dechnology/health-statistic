@@ -271,13 +271,10 @@ definitions:
     - SmokingHabitNone
     - SmokingHabitSometimes
     - SmokingHabitEveryday
-host: localhost:8080
+host: https://health-statistic.dechnology.com.tw
 info:
   contact: {}
   description: This is a sample server for Health Statistic API.
-  license:
-    name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
   title: Health Statistic API
   version: "1.0"
 paths:
@@ -289,7 +286,7 @@ paths:
           description: OK
       summary: Health Check
       tags:
-      - Response
+      - Health
   /questionnaires:
     get:
       description: Get all questionnaires from the database.
