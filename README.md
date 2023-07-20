@@ -5,11 +5,13 @@
 If you have made changes to the router.go (API endpoints), please also add declarative comments according to the standard from [`swaggo/swag`](https://github.com/swaggo/swag#declarative-comments-format).
 After so, you want to also update the API documentation before making a commit. You can update the documentation by following the below steps.
 
-### Install `swag` if you haven't already
+### Install `go` and `swag` if you haven't already
 
-```shell
-go install github.com/swaggo/swag/cmd/swag@latest
-```
+- [Go Installation](https://go.dev/doc/install)
+- [`swaggo/swag`](https://github.com/swaggo/swag#declarative-comments-format)
+    ```shell
+    go install github.com/swaggo/swag/cmd/swag@latest
+    ```
 
 ### Generate new API documentations
 
