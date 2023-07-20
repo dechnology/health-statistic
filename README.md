@@ -1,5 +1,23 @@
 # Health Statistic API
 
+## Before you commit
+
+If you have made changes to the router.go (API endpoints), please also add declarative comments according to the standard from [`swaggo/swag`](https://github.com/swaggo/swag#declarative-comments-format).
+After so, you want to also update the API documentation before making a commit. You can update the documentation by following the below steps.
+
+### Install `swag` if you haven't already
+
+```shell
+go install github.com/swaggo/swag/cmd/swag@latest
+```
+
+### Generate new API documentations
+
+```shell
+swag fmt # This line is optional since it only helps formatting the comments
+swag init
+```
+
 ## Run the API locally
 
 ### Step 1 - Setup `.env`
