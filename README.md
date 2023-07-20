@@ -16,7 +16,7 @@ AUTH0_ISSUER_URL=<AUTH0_ISSUER_URL>
 AUTH0_AUDIENCE=<AUTH0_AUDIENCE>
 ```
 
-### Step 2 - Run the app via `docker-compose` with the `--env-file`
+### Step 2 - Run the app via `docker compose` with the `--env-file`
 
 ```shell
 docker compose --env-file .env up
