@@ -14,11 +14,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Generate docs
-        run: |
-          swag init -md descriptions
+        uses: actions/checkout@main
 
 
       - name: Push to gh-pages
