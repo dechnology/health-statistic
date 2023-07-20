@@ -1,0 +1,32 @@
+name: Update gh-pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/gh_pages.yml"
+      - "docs/swagger.json
+
+jobs:
+  update-gh-pages:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Generate docs
+        run: |
+          swag init -md descriptions
+
+
+      - name: Push to gh-pages
+        run: |
+          CURRENT_BRANCH=$(git branch --show-current)
+          git checkout gh-pages
+          git checkout $CURRENT_BRANCH docs/swagger.json
+          mv docs/swagger.json .
+          git add swagger.json
+          git commit -m 'Update swagger documentation'
+          git push origin gh-pages

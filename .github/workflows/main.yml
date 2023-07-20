@@ -1,8 +1,10 @@
 name: deploy-images-to-gh-registry
 run-name: ${{ github.actor }} is deploying...
 
-on: 
+on:
   push:
+    branches:
+      - main
     paths:
       - ".github/workflows/main.yml"
       - "Dockerfile"
