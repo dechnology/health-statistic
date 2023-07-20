@@ -1,5 +1,9 @@
 # Health Statistic API
 
+## API Documentation
+
+> Navigate to [the API page in our domain](https://health-statistic.dechnology.com.tw/swagger/index.html#/Health/get_health_check) or [our GitHub page](https://eesoymilk.github.io/health-statistic-api/) to view all API endpoints.
+
 ## Before you commit
 
 If you have made changes to the router.go (API endpoints), please also add declarative comments according to the standard from [`swaggo/swag`](https://github.com/swaggo/swag#declarative-comments-format).
@@ -42,7 +46,3 @@ AUTH0_AUDIENCE=<AUTH0_AUDIENCE>
 ```shell
 docker compose --env-file .env up
 ```
-
-## API Documentation
-
-> Navigate to [the API page in our domain](https://health-statistic.dechnology.com.tw/swagger/index.html#/Health/get_health_check) or [our GitHub page](https://eesoymilk.github.io/health-statistic-api/) to view all API endpoints.
