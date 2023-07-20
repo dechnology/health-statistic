@@ -19,10 +19,11 @@ jobs:
 
       - name: Push to gh-pages
         run: |
-          CURRENT_BRANCH=$(git branch --show-current)
           git checkout gh-pages
-          git checkout $CURRENT_BRANCH docs/swagger.json
+          git checkout main docs/swagger.json
+          rm -f swagger.json
           mv docs/swagger.json .
+          rm -rf docs
           git add swagger.json
           git commit -m 'Update swagger documentation'
           git push origin gh-pages
