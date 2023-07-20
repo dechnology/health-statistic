@@ -35,6 +35,7 @@ POSTGRES_PASSWORD=<POSTGRES_PASSWORD>
 AUTH0_ISSUER_URL=<AUTH0_ISSUER_URL>
 AUTH0_AUDIENCE=<AUTH0_AUDIENCE>
 ```
+> Note that we don't need to provide POSTGRES_HOST since it's taken care of in `docker-compose.yml`.
 
 ### Step 2 - Run the app via `docker compose` with the `--env-file`
 
