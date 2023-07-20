@@ -10,7 +10,7 @@
         "contact": {},
         "version": "1.0"
     },
-    "host": "https://health-statistic.dechnology.com.tw",
+    "host": "health-statistic.dechnology.com.tw",
     "basePath": "/api/v1",
     "paths": {
         "/health_check": {

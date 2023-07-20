@@ -25,7 +25,7 @@ import (
 //	@title			Health Statistic API
 //	@version		1.0
 //	@description	This is a sample server for Health Statistic API.
-//	@host			https://health-statistic.dechnology.com.tw
+//	@host			health-statistic.dechnology.com.tw
 //	@schemes		http https
 //	@BasePath		/api/v1
 func main() {

@@ -271,7 +271,7 @@ definitions:
     - SmokingHabitNone
     - SmokingHabitSometimes
     - SmokingHabitEveryday
-host: https://health-statistic.dechnology.com.tw
+host: health-statistic.dechnology.com.tw
 info:
   contact: {}
   description: This is a sample server for Health Statistic API.
