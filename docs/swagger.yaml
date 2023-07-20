@@ -107,15 +107,22 @@ definitions:
         type: number
     type: object
   handlers.AnswerBody:
+    description: The json body for creating a new answer in a new response.
     properties:
       body:
+        description: The answer body.
         type: string
       question_id:
+        description: |-
+          The question this answer relates to, the question also needs to be in
+          the same questionnaire as the response.
         type: string
     type: object
-  handlers.HealthCheckStatus:
+  handlers.HealthStatus:
+    description: Datatype of health status
     properties:
       message:
+        description: Health message
         type: string
     type: object
   handlers.Question:
@@ -135,10 +142,15 @@ definitions:
         type: string
     type: object
   handlers.QuestionBody:
+    description: The json body for creating a new question.
     properties:
       body:
+        description: The question body
         type: string
       type:
+        description: |-
+          The question type, currently we accept string but in the future this
+          field will be enums.
         type: string
     type: object
   handlers.Questionnaire:
@@ -162,10 +174,16 @@ definitions:
         type: array
     type: object
   handlers.QuestionnaireBody:
+    description: The json body for creating a new questionnaire.
     properties:
       name:
+        description: The name of the questionnaire
         type: string
       questions:
+        description: |-
+          The initial questions in this questionnaire. This field may be empty
+          and you can add questions later using post request to
+          `quesionnaires/:id/new/question`.
         items:
           $ref: '#/definitions/handlers.QuestionBody'
         type: array
@@ -184,12 +202,15 @@ definitions:
         type: string
     type: object
   handlers.QuestionnaireResponseBody:
+    description: The json body for creating a new response.
     properties:
       answers:
+        description: The answers to all questions in a questionnaire.
         items:
           $ref: '#/definitions/handlers.AnswerBody'
         type: array
       user_id:
+        description: The user ID of the user who submit the response.
         type: string
     type: object
   user.EarCondition:
@@ -279,24 +300,25 @@ definitions:
 host: health-statistic.dechnology.com.tw
 info:
   contact: {}
-  description: This is a sample server for Health Statistic API.
-  title: Health Statistic API
+  description: This is the API documentation for 「健康資料公鏈」.
+  title: Web3 - 健康資料公鏈API開發文件
   version: "1.0"
 paths:
   /health_check:
     get:
-      description: A health checking api to make sure the server is not dead.
+      description: A health checking endpoint to make sure the server is not dead.
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.HealthCheckStatus'
+            $ref: '#/definitions/handlers.HealthStatus'
       summary: Health Check
       tags:
       - Health
   /questionnaires:
     get:
-      description: Get all questionnaires from the database.
+      description: |
+        Get all questionnaires from the database. For each questionnaire, all questions and responses of this questionnaire are also included.
       produces:
       - application/json
       responses:
@@ -312,7 +334,14 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create a new questionnaire and optionally its questions.
+      description: "Create a new questionnaire and optionally its questions.\n\n##
+        Request Body\n\n- `name` *`string`* **Required**\n    The name of the questionnaire
+        to be created.\n\n- `questions` *`array`* Optional\n    The initial questions
+        in this questionnaire. This field may be empty and you can add questions later
+        using post request to `quesionnaires/:id/new/question`.\n    \n    - `body`
+        *`string`* **Required**\n        The body of one of the question in the questionnaire.\n
+        \   \n    - `type` *`string`* **Required**\n        The type of the question.
+        For now, we accept all strings but in the future this field might be an enum."
       parameters:
       - description: The questionnaire to be created.
         in: body
@@ -332,7 +361,7 @@ paths:
       - Questionnaire
   /questionnaires/{id}:
     delete:
-      description: Delete a questionnaire by ID
+      description: Delete the questionnaire specified by the `id` path param.
       parameters:
       - description: The questionnaire's ID.
         in: path
@@ -348,7 +377,8 @@ paths:
       tags:
       - Questionnaire
     get:
-      description: Get a questionnaire by ID.
+      description: |
+        Get the questionnaire specified by the `id` path param. All questions and responses of the questionnaire are also included.
       parameters:
       - description: The questionnaire's ID
         in: path
@@ -369,7 +399,16 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create a new question for a specified questionnaire
+      description: |-
+        Create a new question for the questionnaire  by the `id` path param.
+
+        ## Request Body
+
+        - `body` *`string`* **Required**
+            The body of one of the question in the questionnaire.
+
+        - `type` *`string`* **Required**
+            The type of the question. For now, we accept all strings but in the future this field might be an enum.
       parameters:
       - description: The questionnaire's ID.
         in: path
@@ -389,6 +428,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/ent.Question'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ent.Question'
       summary: Create Question
       tags:
       - Questionnaire
@@ -396,7 +439,16 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create a new response for a specified questionnaire
+      description: "Create a new response for the questionnaire specified by `id`
+        path param.\n\n## Request Body\n\n- `user_id` *`string`* **Required**\n    The
+        user auth0 ID. This is the user who submits this response.\n\n- `answers`
+        *`array`* **Required**\n    The answers to the questions in the questionnaire
+        submitted by the user above.Note that the length of the answers array must
+        equal to the number of questions in the given questionnaire. Also, all the
+        `question_id`s must match the questions in the questionnaire.\n \n    - `question_id`
+        *`string`* **Required**\n    The question id of a question in the questionnaire
+        which this answer correspond to.\n\n    - `body` *`string`* **Required**\n
+        \   The body of the answer.\n"
       parameters:
       - description: The questionnaire's ID.
         in: path

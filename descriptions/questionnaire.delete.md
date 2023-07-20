@@ -1,0 +1,1 @@
+Delete the questionnaire specified by the `id` path param.

@@ -22,9 +22,9 @@ import (
 	"github.com/joho/godotenv"
 )
 
-//	@title			Health Statistic API
+//	@title			Web3 - 健康資料公鏈API開發文件
 //	@version		1.0
-//	@description	This is a sample server for Health Statistic API.
+//	@description	This is the API documentation for 「健康資料公鏈」.
 //	@host			health-statistic.dechnology.com.tw
 //	@schemes		https
 //	@BasePath		/api/v1

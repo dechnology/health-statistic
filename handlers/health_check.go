@@ -6,8 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type HealthCheckStatus struct {
-	Message string `json:"message"`
+//	@Description	Datatype of health status
+type HealthStatus struct {
+	Message string `json:"message"` // Health message
 }
 
 var (
@@ -15,10 +16,10 @@ var (
 )
 
 //	@Summary		Health Check
-//	@Description	A health checking api to make sure the server is not dead.
+//	@Description	A health checking endpoint to make sure the server is not dead.
 //	@Tags			Health
-//	@Success		200	object	HealthCheckStatus
+//	@Success		200	{object}	HealthStatus
 //	@Router			/health_check [get]
 func HealthCheck(c *gin.Context) {
-	c.JSON(http.StatusOK, HealthCheckStatus{Message: successMessage})
+	c.JSON(http.StatusOK, HealthStatus{Message: successMessage})
 }

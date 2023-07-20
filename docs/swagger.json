@@ -4,8 +4,8 @@
     ],
     "swagger": "2.0",
     "info": {
-        "description": "This is a sample server for Health Statistic API.",
-        "title": "Health Statistic API",
+        "description": "This is the API documentation for 「健康資料公鏈」.",
+        "title": "Web3 - 健康資料公鏈API開發文件",
         "contact": {},
         "version": "1.0"
     },
@@ -14,7 +14,7 @@
     "paths": {
         "/health_check": {
             "get": {
-                "description": "A health checking api to make sure the server is not dead.",
+                "description": "A health checking endpoint to make sure the server is not dead.",
                 "tags": [
                     "Health"
                 ],
@@ -23,7 +23,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.HealthCheckStatus"
+                            "$ref": "#/definitions/handlers.HealthStatus"
                         }
                     }
                 }
@@ -31,7 +31,7 @@
         },
         "/questionnaires": {
             "get": {
-                "description": "Get all questionnaires from the database.",
+                "description": "Get all questionnaires from the database. For each questionnaire, all questions and responses of this questionnaire are also included.\n",
                 "produces": [
                     "application/json"
                 ],
@@ -52,7 +52,7 @@
                 }
             },
             "post": {
-                "description": "Create a new questionnaire and optionally its questions.",
+                "description": "Create a new questionnaire and optionally its questions.\n\n## Request Body\n\n- `name` *`string`* **Required**\n    The name of the questionnaire to be created.\n\n- `questions` *`array`* Optional\n    The initial questions in this questionnaire. This field may be empty and you can add questions later using post request to `quesionnaires/:id/new/question`.\n    \n    - `body` *`string`* **Required**\n        The body of one of the question in the questionnaire.\n    \n    - `type` *`string`* **Required**\n        The type of the question. For now, we accept all strings but in the future this field might be an enum.",
                 "consumes": [
                     "application/json"
                 ],
@@ -86,7 +86,7 @@
         },
         "/questionnaires/{id}": {
             "get": {
-                "description": "Get a questionnaire by ID.",
+                "description": "Get the questionnaire specified by the `id` path param. All questions and responses of the questionnaire are also included.\n",
                 "produces": [
                     "application/json"
                 ],
@@ -113,7 +113,7 @@
                 }
             },
             "delete": {
-                "description": "Delete a questionnaire by ID",
+                "description": "Delete the questionnaire specified by the `id` path param.",
                 "produces": [
                     "application/json"
                 ],
@@ -139,7 +139,7 @@
         },
         "/questionnaires/{id}/new/question": {
             "post": {
-                "description": "Create a new question for a specified questionnaire",
+                "description": "Create a new question for the questionnaire  by the `id` path param.\n\n## Request Body\n\n- `body` *`string`* **Required**\n    The body of one of the question in the questionnaire.\n\n- `type` *`string`* **Required**\n    The type of the question. For now, we accept all strings but in the future this field might be an enum.",
                 "consumes": [
                     "application/json"
                 ],
@@ -174,13 +174,19 @@
                         "schema": {
                             "$ref": "#/definitions/ent.Question"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ent.Question"
+                        }
                     }
                 }
             }
         },
         "/questionnaires/{id}/new/response": {
             "post": {
-                "description": "Create a new response for a specified questionnaire",
+                "description": "Create a new response for the questionnaire specified by `id` path param.\n\n## Request Body\n\n- `user_id` *`string`* **Required**\n    The user auth0 ID. This is the user who submits this response.\n\n- `answers` *`array`* **Required**\n    The answers to the questions in the questionnaire submitted by the user above.Note that the length of the answers array must equal to the number of questions in the given questionnaire. Also, all the `question_id`s must match the questions in the questionnaire.\n \n    - `question_id` *`string`* **Required**\n    The question id of a question in the questionnaire which this answer correspond to.\n\n    - `body` *`string`* **Required**\n    The body of the answer.\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -681,20 +687,25 @@
             }
         },
         "handlers.AnswerBody": {
+            "description": "The json body for creating a new answer in a new response.",
             "type": "object",
             "properties": {
                 "body": {
+                    "description": "The answer body.",
                     "type": "string"
                 },
                 "question_id": {
+                    "description": "The question this answer relates to, the question also needs to be in\nthe same questionnaire as the response.",
                     "type": "string"
                 }
             }
         },
-        "handlers.HealthCheckStatus": {
+        "handlers.HealthStatus": {
+            "description": "Datatype of health status",
             "type": "object",
             "properties": {
                 "message": {
+                    "description": "Health message",
                     "type": "string"
                 }
             }
@@ -723,12 +734,15 @@
             }
         },
         "handlers.QuestionBody": {
+            "description": "The json body for creating a new question.",
             "type": "object",
             "properties": {
                 "body": {
+                    "description": "The question body",
                     "type": "string"
                 },
                 "type": {
+                    "description": "The question type, currently we accept string but in the future this\nfield will be enums.",
                     "type": "string"
                 }
             }
@@ -763,12 +777,15 @@
             }
         },
         "handlers.QuestionnaireBody": {
+            "description": "The json body for creating a new questionnaire.",
             "type": "object",
             "properties": {
                 "name": {
+                    "description": "The name of the questionnaire",
                     "type": "string"
                 },
                 "questions": {
+                    "description": "The initial questions in this questionnaire. This field may be empty\nand you can add questions later using post request to\n`quesionnaires/:id/new/question`.",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/handlers.QuestionBody"
@@ -796,15 +813,18 @@
             }
         },
         "handlers.QuestionnaireResponseBody": {
+            "description": "The json body for creating a new response.",
             "type": "object",
             "properties": {
                 "answers": {
+                    "description": "The answers to all questions in a questionnaire.",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/handlers.AnswerBody"
                     }
                 },
                 "user_id": {
+                    "description": "The user ID of the user who submit the response.",
                     "type": "string"
                 }
             }
