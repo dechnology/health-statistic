@@ -11,12 +11,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// @Summary     Get Users
-// @Description Get all users from the database
-// @Tags        User
-// @Produce     json
-// @Success 	200 {object} []ent.User
-// @Router      /users [get]
+//	@Summary		Get Users
+//	@Description	Get all users from the database
+//	@Tags			User
+//	@Produce		json
+//	@Success		200	{object}	[]ent.User
+//	@Router			/users [get]
 func (h *UserHandler) GetUsers(c *gin.Context) {
 	users, err := h.DB.User.Query().All(c.Request.Context())
 	if err != nil {
@@ -26,13 +26,13 @@ func (h *UserHandler) GetUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, users)
 }
 
-// @Summary     Get User
-// @Description Get a user by an Auth0 ID.
-// @Tags        User
-// @Produce     json
-// @Param		id path string true "The user's Auth0 ID"
-// @Success 	200 {object} ent.User
-// @Router      /users/{id} [get]
+//	@Summary		Get User
+//	@Description	Get a user by an Auth0 ID.
+//	@Tags			User
+//	@Produce		json
+//	@Param			id	path		string	true	"The user's Auth0 ID"
+//	@Success		200	{object}	ent.User
+//	@Router			/users/{id} [get]
 func (h *UserHandler) GetUser(c *gin.Context) {
 	user, err := h.DB.User.Get(c.Request.Context(), c.Param("id"))
 	if err != nil {
@@ -42,14 +42,14 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-// @Summary     Create User
-// @Description Create a new user
-// @Tags        User
-// @Accept		json
-// @Produce     json
-// @Param		user body ent.User true "The user to be created"
-// @Success 	200 {object} ent.User
-// @Router      /users [post]
+//	@Summary		Create User
+//	@Description	Create a new user
+//	@Tags			User
+//	@Accept			json
+//	@Produce		json
+//	@Param			user	body		ent.User	true	"The user to be created"
+//	@Success		200		{object}	ent.User
+//	@Router			/users [post]
 func (h *UserHandler) CreateUser(c *gin.Context) {
 	var body ent.User
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -92,15 +92,15 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, userNode)
 }
 
-// @Summary     Update User
-// @Description update a user with specified Auth0 ID
-// @Tags        User
-// @Accept		json
-// @Produce     json
-// @Param		id path string true "The user's Auth0 ID"
-// @Param		user body ent.User true "user to be updated"
-// @Success 	200 {object} ent.User
-// @Router      /users/{id} [put]
+//	@Summary		Update User
+//	@Description	update a user with specified Auth0 ID
+//	@Tags			User
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		string		true	"The user's Auth0 ID"
+//	@Param			user	body		ent.User	true	"user to be updated"
+//	@Success		200		{object}	ent.User
+//	@Router			/users/{id} [put]
 func (h *UserHandler) UpdateUser(c *gin.Context) {
 	var body ent.User
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -148,13 +148,13 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, updatedUserNode)
 }
 
-// @Summary     Delete User
-// @Description Delete a user by Auth0 ID
-// @Tags        User
-// @Produce     json
-// @Param		id path string true "The user's Auth0 ID"
-// @Success 	200
-// @Router      /users/{id} [delete]
+//	@Summary		Delete User
+//	@Description	Delete a user by Auth0 ID
+//	@Tags			User
+//	@Produce		json
+//	@Param			id	path	string	true	"The user's Auth0 ID"
+//	@Success		200
+//	@Router			/users/{id} [delete]
 func (h *UserHandler) DeleteUser(c *gin.Context) {
 	if err := h.DB.User.DeleteOneID(c.Param("id")).Exec(c.Request.Context()); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

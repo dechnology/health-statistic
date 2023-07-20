@@ -1,6 +1,6 @@
 # Health Statistic API
 
-## Usage
+## Run the API locally
 
 ### Step 1 - Setup `.env`
 
@@ -26,4 +26,4 @@ docker compose --env-file .env up
 
 ## API Documentation
 
-> Navigate to [our GitHub page](https://eesoymilk.github.io/health-statistic-api/) to view all API endpoints.
+> Navigate to [the API page in our domain](https://health-statistic.dechnology.com.tw/swagger/index.html#/Health/get_health_check) or [our GitHub page](https://eesoymilk.github.io/health-statistic-api/) to view all API endpoints.

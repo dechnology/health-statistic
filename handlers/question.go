@@ -8,12 +8,12 @@ import (
 	"github.com/google/uuid"
 )
 
-// @Summary     Get Questions
-// @Description Get all questions from the database.
-// @Tags        Question
-// @Produce     json
-// @Success 	200 {object} []Question
-// @Router      /questions [get]
+//	@Summary		Get Questions
+//	@Description	Get all questions from the database.
+//	@Tags			Question
+//	@Produce		json
+//	@Success		200	{object}	[]Question
+//	@Router			/questions [get]
 func (h *QuestionHandler) GetQuestions(c *gin.Context) {
 	questions, err := h.DB.Question.
 		Query().
@@ -28,13 +28,13 @@ func (h *QuestionHandler) GetQuestions(c *gin.Context) {
 	c.JSON(http.StatusOK, questions)
 }
 
-// @Summary     Get Question
-// @Description Get a question by ID.
-// @Tags        Question
-// @Produce     json
-// @Param		id path string true "The question's ID"
-// @Success 	200 {object} Question
-// @Router      /questions/{id} [get]
+//	@Summary		Get Question
+//	@Description	Get a question by ID.
+//	@Tags			Question
+//	@Produce		json
+//	@Param			id	path		string	true	"The question's ID"
+//	@Success		200	{object}	Question
+//	@Router			/questions/{id} [get]
 func (h *QuestionHandler) GetQuestion(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 
@@ -57,13 +57,13 @@ func (h *QuestionHandler) GetQuestion(c *gin.Context) {
 	c.JSON(http.StatusOK, questions)
 }
 
-// @Summary     Delete Question
-// @Description Delete a question by ID
-// @Tags        Question
-// @Produce     json
-// @Param		id path string true "The question's ID."
-// @Success 	200
-// @Router      /questions/{id} [delete]
+//	@Summary		Delete Question
+//	@Description	Delete a question by ID
+//	@Tags			Question
+//	@Produce		json
+//	@Param			id	path	string	true	"The question's ID."
+//	@Success		200
+//	@Router			/questions/{id} [delete]
 func (h *QuestionHandler) DeleteQuestion(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 

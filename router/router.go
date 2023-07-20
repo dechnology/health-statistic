@@ -74,11 +74,11 @@ func New(db *ent.Client) *gin.Engine {
 		handlers.HandlePrivateScoped,
 	)
 
-	// Health check endpoint for ELB
-	r.GET("/health_check", handlers.HealthCheck)
-
 	v1 := r.Group("/api/v1")
 	{
+		// Health check endpoint for ELB
+		r.GET("/health_check", handlers.HealthCheck)
+
 		userGroup := v1.Group("/users")
 		{
 			h := handlers.UserHandler{DB: db}
