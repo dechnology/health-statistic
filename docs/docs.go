@@ -35,7 +35,7 @@ const docTemplate = `{
         },
         "/questionnaires": {
             "get": {
-                "description": "Get all questionnaires from the database. For each questionnaire, all questions and responses of this questionnaire are also included.\n",
+                "description": "Get all questionnaires from the database. For each questionnaire, all questions and responses of this questionnaire are also included.\r\n",
                 "produces": [
                     "application/json"
                 ],
@@ -56,7 +56,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Create a new questionnaire and optionally its questions.\n\n## Request Body\n\n- ` + "`" + `name` + "`" + ` *` + "`" + `string` + "`" + `* **Required**\n    The name of the questionnaire to be created.\n\n- ` + "`" + `questions` + "`" + ` *` + "`" + `array` + "`" + `* Optional\n    The initial questions in this questionnaire. This field may be empty and you can add questions later using post request to ` + "`" + `quesionnaires/:id/new/question` + "`" + `.\n    \n    - ` + "`" + `body` + "`" + ` *` + "`" + `string` + "`" + `* **Required**\n        The body of one of the question in the questionnaire.\n    \n    - ` + "`" + `type` + "`" + ` *` + "`" + `string` + "`" + `* **Required**\n        The type of the question. For now, we accept all strings but in the future this field might be an enum.",
+                "description": "Create a new questionnaire and optionally its questions.\r\n\r\n## Request Body\r\n\r\n- ` + "`" + `name` + "`" + ` *` + "`" + `string` + "`" + `* **Required**\r\n    The name of the questionnaire to be created.\r\n\r\n- ` + "`" + `questions` + "`" + ` *` + "`" + `array` + "`" + `* Optional\r\n    The initial questions in this questionnaire. This field may be empty and you can add questions later using post request to ` + "`" + `quesionnaires/:id/new/question` + "`" + `.\r\n    \r\n    - ` + "`" + `body` + "`" + ` *` + "`" + `string` + "`" + `* **Required**\r\n        The body of one of the question in the questionnaire.\r\n    \r\n    - ` + "`" + `type` + "`" + ` *` + "`" + `string` + "`" + `* **Required**\r\n        The type of the question. For now, we accept all strings but in the future this field might be an enum.",
                 "consumes": [
                     "application/json"
                 ],
@@ -90,7 +90,7 @@ const docTemplate = `{
         },
         "/questionnaires/{id}": {
             "get": {
-                "description": "Get the questionnaire specified by the ` + "`" + `id` + "`" + ` path param. All questions and responses of the questionnaire are also included.\n",
+                "description": "Get the questionnaire specified by the ` + "`" + `id` + "`" + ` path param. All questions and responses of the questionnaire are also included.\r\n",
                 "produces": [
                     "application/json"
                 ],
@@ -143,7 +143,7 @@ const docTemplate = `{
         },
         "/questionnaires/{id}/new/question": {
             "post": {
-                "description": "Create a new question for the questionnaire  by the ` + "`" + `id` + "`" + ` path param.\n\n## Request Body\n\n- ` + "`" + `body` + "`" + ` *` + "`" + `string` + "`" + `* **Required**\n    The body of one of the question in the questionnaire.\n\n- ` + "`" + `type` + "`" + ` *` + "`" + `string` + "`" + `* **Required**\n    The type of the question. For now, we accept all strings but in the future this field might be an enum.",
+                "description": "Create a new question for the questionnaire  by the ` + "`" + `id` + "`" + ` path param.\r\n\r\n## Request Body\r\n\r\n- ` + "`" + `body` + "`" + ` *` + "`" + `string` + "`" + `* **Required**\r\n    The body of one of the question in the questionnaire.\r\n\r\n- ` + "`" + `type` + "`" + ` *` + "`" + `string` + "`" + `* **Required**\r\n    The type of the question. For now, we accept all strings but in the future this field might be an enum.",
                 "consumes": [
                     "application/json"
                 ],
@@ -190,7 +190,7 @@ const docTemplate = `{
         },
         "/questionnaires/{id}/new/response": {
             "post": {
-                "description": "Create a new response for the questionnaire specified by ` + "`" + `id` + "`" + ` path param.\n\n## Request Body\n\n- ` + "`" + `user_id` + "`" + ` *` + "`" + `string` + "`" + `* **Required**\n    The user auth0 ID. This is the user who submits this response.\n\n- ` + "`" + `answers` + "`" + ` *` + "`" + `array` + "`" + `* **Required**\n    The answers to the questions in the questionnaire submitted by the user above.Note that the length of the answers array must equal to the number of questions in the given questionnaire. Also, all the ` + "`" + `question_id` + "`" + `s must match the questions in the questionnaire.\n \n    - ` + "`" + `question_id` + "`" + ` *` + "`" + `string` + "`" + `* **Required**\n    The question id of a question in the questionnaire which this answer correspond to.\n\n    - ` + "`" + `body` + "`" + ` *` + "`" + `string` + "`" + `* **Required**\n    The body of the answer.\n",
+                "description": "Create a new response for the questionnaire specified by ` + "`" + `id` + "`" + ` path param.\r\n\r\n## Request Body\r\n\r\n- ` + "`" + `user_id` + "`" + ` *` + "`" + `string` + "`" + `* **Required**\r\n    The user auth0 ID. This is the user who submits this response.\r\n\r\n- ` + "`" + `answers` + "`" + ` *` + "`" + `array` + "`" + `* **Required**\r\n    The answers to the questions in the questionnaire submitted by the user above.Note that the length of the answers array must equal to the number of questions in the given questionnaire. Also, all the ` + "`" + `question_id` + "`" + `s must match the questions in the questionnaire.\r\n \r\n    - ` + "`" + `question_id` + "`" + ` *` + "`" + `string` + "`" + `* **Required**\r\n    The question id of a question in the questionnaire which this answer correspond to.\r\n\r\n    - ` + "`" + `body` + "`" + ` *` + "`" + `string` + "`" + `* **Required**\r\n    The body of the answer.\r\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -231,7 +231,7 @@ const docTemplate = `{
         },
         "/questions": {
             "get": {
-                "description": "Get all questions from the database. **This will NOT include questionnaires and responses.**\n",
+                "description": "Get all questions from the database. **This will NOT include questionnaires and responses.**\r\n",
                 "produces": [
                     "application/json"
                 ],
@@ -254,7 +254,7 @@ const docTemplate = `{
         },
         "/questions/{id}": {
             "get": {
-                "description": "Get the question specified by the ` + "`" + `id` + "`" + ` path param.\n",
+                "description": "Get the question specified by the ` + "`" + `id` + "`" + ` path param.\r\n",
                 "produces": [
                     "application/json"
                 ],
@@ -307,7 +307,7 @@ const docTemplate = `{
         },
         "/responses": {
             "get": {
-                "description": "Get all responses from the database. **This will NOT include questionnaires and questions.**\n",
+                "description": "Get all responses from the database. **This will NOT include questionnaires and questions.**\r\n",
                 "produces": [
                     "application/json"
                 ],
@@ -330,7 +330,7 @@ const docTemplate = `{
         },
         "/responses/{id}": {
             "get": {
-                "description": "Get the response specified by the ` + "`" + `id` + "`" + ` path param. **This will also includes the corresponding questionnaire.**\n",
+                "description": "Get the response specified by the ` + "`" + `id` + "`" + ` path param. **This will also includes the corresponding questionnaire.**\r\n",
                 "produces": [
                     "application/json"
                 ],
