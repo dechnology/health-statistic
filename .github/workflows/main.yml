@@ -1,7 +1,15 @@
 name: deploy-images-to-gh-registry
 run-name: ${{ github.actor }} is deploying...
 
-on: push
+on: 
+  push:
+    paths:
+      - ".github/workflows/main.yml"
+      - "Dockerfile"
+      - "docker-compose.yml"
+      - "**.go"
+      - "swagger.json"
+
 
 env:
   REGISTRY: ghcr.io
@@ -51,6 +59,8 @@ jobs:
         with:
           context: .
           file: ${{ matrix.dockerfile }}
+          # while this line allows mac user to pull and test the images locally
+          # we omit it since mult-platform builds takes forever (approx 15 mins)
           # platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
@@ -59,7 +69,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   deploy:
-    # needs: build-and-push-images
+    needs: build-and-push-images
     runs-on: ubuntu-latest
     steps:
       - name: SSH to EC2 and deploy

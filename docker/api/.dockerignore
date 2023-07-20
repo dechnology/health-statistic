@@ -25,3 +25,9 @@ go.work
 
 # Client Package
 client/
+
+#
+*.js
+.gitignore
+.env*
+README.md
