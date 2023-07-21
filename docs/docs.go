@@ -49,7 +49,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/handlers.Questionnaire"
+                                "$ref": "#/definitions/types.QuestionnaireDetails"
                             }
                         }
                     }
@@ -74,7 +74,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.SingleQuestionnaireResponse"
+                            "$ref": "#/definitions/types.BaseQuestionnaire"
                         }
                     }
                 ],
@@ -82,7 +82,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.Questionnaire"
+                            "$ref": "#/definitions/ent.Questionnaire"
                         }
                     }
                 }
@@ -111,7 +111,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.Questionnaire"
+                            "$ref": "#/definitions/types.QuestionnaireDetails"
                         }
                     }
                 }
@@ -168,7 +168,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.QuestionBody"
+                            "$ref": "#/definitions/types.BaseQuestion"
                         }
                     }
                 ],
@@ -215,7 +215,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.QuestionnaireResponseBody"
+                            "$ref": "#/definitions/types.BaseResponse"
                         }
                     }
                 ],
@@ -223,7 +223,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.QuestionnaireResponse"
+                            "$ref": "#/definitions/ent.QuestionnaireResponse"
                         }
                     }
                 }
@@ -321,7 +321,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/handlers.QuestionnaireResponse"
+                                "$ref": "#/definitions/types.ResponseWithQuestionnaire"
                             }
                         }
                     }
@@ -351,7 +351,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.SingleQuestionnaireResponse"
+                            "$ref": "#/definitions/types.ResponseWithQuestionnaire"
                         }
                     }
                 }
@@ -530,23 +530,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "ent.Answer": {
-            "type": "object",
-            "properties": {
-                "body": {
-                    "description": "Body holds the value of the \"body\" field.",
-                    "type": "string"
-                },
-                "created_at": {
-                    "description": "CreatedAt holds the value of the \"created_at\" field.",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "ID of the ent.",
-                    "type": "string"
-                }
-            }
-        },
         "ent.Question": {
             "type": "object",
             "properties": {
@@ -577,6 +560,19 @@ const docTemplate = `{
                 },
                 "name": {
                     "description": "Name holds the value of the \"name\" field.",
+                    "type": "string"
+                }
+            }
+        },
+        "ent.QuestionnaireResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "CreatedAt holds the value of the \"created_at\" field.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID of the ent.",
                     "type": "string"
                 }
             }
@@ -690,7 +686,17 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.AnswerBody": {
+        "handlers.HealthStatus": {
+            "description": "Datatype of health status",
+            "type": "object",
+            "properties": {
+                "message": {
+                    "description": "Health message",
+                    "type": "string"
+                }
+            }
+        },
+        "types.BaseAnswer": {
             "description": "The json body for creating a new answer in a new response.",
             "type": "object",
             "properties": {
@@ -704,17 +710,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.HealthStatus": {
-            "description": "Datatype of health status",
-            "type": "object",
-            "properties": {
-                "message": {
-                    "description": "Health message",
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.QuestionBody": {
+        "types.BaseQuestion": {
             "description": "The json body for creating a new question.",
             "type": "object",
             "properties": {
@@ -728,7 +724,60 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.Questionnaire": {
+        "types.BaseQuestionnaire": {
+            "description": "BaseQuestionnaire",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "The name of the questionnaire",
+                    "type": "string"
+                },
+                "questions": {
+                    "description": "The initial questions in this questionnaire. This field may be empty\nand you can add questions later using post request to\n` + "`" + `quesionnaires/:id/new/question` + "`" + `.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.BaseQuestion"
+                    }
+                }
+            }
+        },
+        "types.BaseResponse": {
+            "type": "object",
+            "properties": {
+                "answers": {
+                    "description": "The answers to all questions in a questionnaire.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.BaseAnswer"
+                    }
+                },
+                "user_id": {
+                    "description": "The user ID of the user who submit the response.",
+                    "type": "string"
+                }
+            }
+        },
+        "types.QuestionWithQuestionnaire": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "description": "Body holds the value of the \"body\" field.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID of the ent.",
+                    "type": "string"
+                },
+                "questionnaire": {
+                    "$ref": "#/definitions/ent.Questionnaire"
+                },
+                "type": {
+                    "description": "Type holds the value of the \"type\" field.",
+                    "type": "string"
+                }
+            }
+        },
+        "types.QuestionnaireDetails": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -752,18 +801,19 @@ const docTemplate = `{
                 "responses": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/handlers.QuestionnaireResponse"
+                        "$ref": "#/definitions/types.Response"
                     }
                 }
             }
         },
-        "handlers.QuestionnaireResponse": {
+        "types.Response": {
             "type": "object",
             "properties": {
                 "answers": {
+                    "description": "The answers to all questions in a questionnaire.",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ent.Answer"
+                        "$ref": "#/definitions/types.BaseAnswer"
                     }
                 },
                 "created_at": {
@@ -773,19 +823,6 @@ const docTemplate = `{
                 "id": {
                     "description": "ID of the ent.",
                     "type": "string"
-                }
-            }
-        },
-        "handlers.QuestionnaireResponseBody": {
-            "description": "The json body for creating a new response.",
-            "type": "object",
-            "properties": {
-                "answers": {
-                    "description": "The answers to all questions in a questionnaire.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handlers.AnswerBody"
-                    }
                 },
                 "user_id": {
                     "description": "The user ID of the user who submit the response.",
@@ -793,33 +830,18 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.SingleQuestionnaireResponse": {
+        "types.ResponseWithQuestionnaire": {
             "type": "object",
             "properties": {
                 "answers": {
+                    "description": "The answers to all questions in a questionnaire.",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ent.Answer"
+                        "$ref": "#/definitions/types.BaseAnswer"
                     }
                 },
                 "created_at": {
                     "description": "CreatedAt holds the value of the \"created_at\" field.",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "ID of the ent.",
-                    "type": "string"
-                },
-                "questionnaire": {
-                    "$ref": "#/definitions/handlers.Questionnaire"
-                }
-            }
-        },
-        "types.QuestionWithQuestionnaire": {
-            "type": "object",
-            "properties": {
-                "body": {
-                    "description": "Body holds the value of the \"body\" field.",
                     "type": "string"
                 },
                 "id": {
@@ -829,8 +851,8 @@ const docTemplate = `{
                 "questionnaire": {
                     "$ref": "#/definitions/ent.Questionnaire"
                 },
-                "type": {
-                    "description": "Type holds the value of the \"type\" field.",
+                "user_id": {
+                    "description": "The user ID of the user who submit the response.",
                     "type": "string"
                 }
             }

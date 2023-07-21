@@ -42,8 +42,12 @@ type BaseResponse struct {
 
 type Response struct {
 	ent.QuestionnaireResponse
-	UserId  uuid.UUID     `json:"user_id"`
-	Answers []*BaseAnswer `json:"answers"`
+	BaseResponse
+}
+
+type ResponseWithQuestionnaire struct {
+	Response
+	Questionnaire ent.Questionnaire
 }
 
 type QuestionWithQuestionnaire struct {
@@ -51,7 +55,8 @@ type QuestionWithQuestionnaire struct {
 	Questionnaire ent.Questionnaire
 }
 
-type ResponseWithQuestionnaire struct {
-	Response
-	Questionnaire ent.Questionnaire
+type QuestionnaireDetails struct {
+	ent.Questionnaire
+	Questions []ent.Question
+	Responses []Response
 }

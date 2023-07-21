@@ -22,3 +22,9 @@ go.work
 
 # Environment files
 .env
+
+# docs
+docs/*.png
+docs/*.html
+docs/*.css*
+docs/*.js*

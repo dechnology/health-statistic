@@ -12,7 +12,7 @@ import (
 //	@Description.markdown	responses.get
 //	@Tags					Response
 //	@Produce				json
-//	@Success				200	{object}	[]QuestionnaireResponse
+//	@Success				200	{object}	[]types.ResponseWithQuestionnaire
 //	@Router					/responses [get]
 func (h *ResponseHandler) GetResponses(c *gin.Context) {
 	responses, err := h.DB.QuestionnaireResponse.
@@ -33,7 +33,7 @@ func (h *ResponseHandler) GetResponses(c *gin.Context) {
 //	@Tags					Response
 //	@Produce				json
 //	@Param					id	path		string	true	"The response's ID"
-//	@Success				200	{object}	SingleQuestionnaireResponse
+//	@Success				200	{object}	types.ResponseWithQuestionnaire
 //	@Router					/responses/{id} [get]
 func (h *ResponseHandler) GetResponse(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
@@ -51,7 +51,10 @@ func (h *ResponseHandler) GetResponse(c *gin.Context) {
 		Only(c.Request.Context())
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(
+			http.StatusInternalServerError,
+			gin.H{"error": err.Error()},
+		)
 		return
 	}
 
