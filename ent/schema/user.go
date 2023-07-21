@@ -89,5 +89,6 @@ func (User) Fields() []ent.Field {
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("questionnaire_responses", QuestionnaireResponse.Type),
+		edge.To("notifications", Notification.Type),
 	}
 }
