@@ -7,7 +7,10 @@
 package price
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
 )
 
@@ -54,6 +57,292 @@ func IDLT(id int) predicate.Price {
 // IDLTE applies the LTE predicate on the ID field.
 func IDLTE(id int) predicate.Price {
 	return predicate.Price(sql.FieldLTE(FieldID, id))
+}
+
+// Name applies equality check predicate on the "name" field. It's identical to NameEQ.
+func Name(v string) predicate.Price {
+	return predicate.Price(sql.FieldEQ(FieldName, v))
+}
+
+// Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
+func Description(v string) predicate.Price {
+	return predicate.Price(sql.FieldEQ(FieldDescription, v))
+}
+
+// CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
+func CreatedAt(v time.Time) predicate.Price {
+	return predicate.Price(sql.FieldEQ(FieldCreatedAt, v))
+}
+
+// TakenAt applies equality check predicate on the "taken_at" field. It's identical to TakenAtEQ.
+func TakenAt(v time.Time) predicate.Price {
+	return predicate.Price(sql.FieldEQ(FieldTakenAt, v))
+}
+
+// NameEQ applies the EQ predicate on the "name" field.
+func NameEQ(v string) predicate.Price {
+	return predicate.Price(sql.FieldEQ(FieldName, v))
+}
+
+// NameNEQ applies the NEQ predicate on the "name" field.
+func NameNEQ(v string) predicate.Price {
+	return predicate.Price(sql.FieldNEQ(FieldName, v))
+}
+
+// NameIn applies the In predicate on the "name" field.
+func NameIn(vs ...string) predicate.Price {
+	return predicate.Price(sql.FieldIn(FieldName, vs...))
+}
+
+// NameNotIn applies the NotIn predicate on the "name" field.
+func NameNotIn(vs ...string) predicate.Price {
+	return predicate.Price(sql.FieldNotIn(FieldName, vs...))
+}
+
+// NameGT applies the GT predicate on the "name" field.
+func NameGT(v string) predicate.Price {
+	return predicate.Price(sql.FieldGT(FieldName, v))
+}
+
+// NameGTE applies the GTE predicate on the "name" field.
+func NameGTE(v string) predicate.Price {
+	return predicate.Price(sql.FieldGTE(FieldName, v))
+}
+
+// NameLT applies the LT predicate on the "name" field.
+func NameLT(v string) predicate.Price {
+	return predicate.Price(sql.FieldLT(FieldName, v))
+}
+
+// NameLTE applies the LTE predicate on the "name" field.
+func NameLTE(v string) predicate.Price {
+	return predicate.Price(sql.FieldLTE(FieldName, v))
+}
+
+// NameContains applies the Contains predicate on the "name" field.
+func NameContains(v string) predicate.Price {
+	return predicate.Price(sql.FieldContains(FieldName, v))
+}
+
+// NameHasPrefix applies the HasPrefix predicate on the "name" field.
+func NameHasPrefix(v string) predicate.Price {
+	return predicate.Price(sql.FieldHasPrefix(FieldName, v))
+}
+
+// NameHasSuffix applies the HasSuffix predicate on the "name" field.
+func NameHasSuffix(v string) predicate.Price {
+	return predicate.Price(sql.FieldHasSuffix(FieldName, v))
+}
+
+// NameEqualFold applies the EqualFold predicate on the "name" field.
+func NameEqualFold(v string) predicate.Price {
+	return predicate.Price(sql.FieldEqualFold(FieldName, v))
+}
+
+// NameContainsFold applies the ContainsFold predicate on the "name" field.
+func NameContainsFold(v string) predicate.Price {
+	return predicate.Price(sql.FieldContainsFold(FieldName, v))
+}
+
+// DescriptionEQ applies the EQ predicate on the "description" field.
+func DescriptionEQ(v string) predicate.Price {
+	return predicate.Price(sql.FieldEQ(FieldDescription, v))
+}
+
+// DescriptionNEQ applies the NEQ predicate on the "description" field.
+func DescriptionNEQ(v string) predicate.Price {
+	return predicate.Price(sql.FieldNEQ(FieldDescription, v))
+}
+
+// DescriptionIn applies the In predicate on the "description" field.
+func DescriptionIn(vs ...string) predicate.Price {
+	return predicate.Price(sql.FieldIn(FieldDescription, vs...))
+}
+
+// DescriptionNotIn applies the NotIn predicate on the "description" field.
+func DescriptionNotIn(vs ...string) predicate.Price {
+	return predicate.Price(sql.FieldNotIn(FieldDescription, vs...))
+}
+
+// DescriptionGT applies the GT predicate on the "description" field.
+func DescriptionGT(v string) predicate.Price {
+	return predicate.Price(sql.FieldGT(FieldDescription, v))
+}
+
+// DescriptionGTE applies the GTE predicate on the "description" field.
+func DescriptionGTE(v string) predicate.Price {
+	return predicate.Price(sql.FieldGTE(FieldDescription, v))
+}
+
+// DescriptionLT applies the LT predicate on the "description" field.
+func DescriptionLT(v string) predicate.Price {
+	return predicate.Price(sql.FieldLT(FieldDescription, v))
+}
+
+// DescriptionLTE applies the LTE predicate on the "description" field.
+func DescriptionLTE(v string) predicate.Price {
+	return predicate.Price(sql.FieldLTE(FieldDescription, v))
+}
+
+// DescriptionContains applies the Contains predicate on the "description" field.
+func DescriptionContains(v string) predicate.Price {
+	return predicate.Price(sql.FieldContains(FieldDescription, v))
+}
+
+// DescriptionHasPrefix applies the HasPrefix predicate on the "description" field.
+func DescriptionHasPrefix(v string) predicate.Price {
+	return predicate.Price(sql.FieldHasPrefix(FieldDescription, v))
+}
+
+// DescriptionHasSuffix applies the HasSuffix predicate on the "description" field.
+func DescriptionHasSuffix(v string) predicate.Price {
+	return predicate.Price(sql.FieldHasSuffix(FieldDescription, v))
+}
+
+// DescriptionEqualFold applies the EqualFold predicate on the "description" field.
+func DescriptionEqualFold(v string) predicate.Price {
+	return predicate.Price(sql.FieldEqualFold(FieldDescription, v))
+}
+
+// DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
+func DescriptionContainsFold(v string) predicate.Price {
+	return predicate.Price(sql.FieldContainsFold(FieldDescription, v))
+}
+
+// CreatedAtEQ applies the EQ predicate on the "created_at" field.
+func CreatedAtEQ(v time.Time) predicate.Price {
+	return predicate.Price(sql.FieldEQ(FieldCreatedAt, v))
+}
+
+// CreatedAtNEQ applies the NEQ predicate on the "created_at" field.
+func CreatedAtNEQ(v time.Time) predicate.Price {
+	return predicate.Price(sql.FieldNEQ(FieldCreatedAt, v))
+}
+
+// CreatedAtIn applies the In predicate on the "created_at" field.
+func CreatedAtIn(vs ...time.Time) predicate.Price {
+	return predicate.Price(sql.FieldIn(FieldCreatedAt, vs...))
+}
+
+// CreatedAtNotIn applies the NotIn predicate on the "created_at" field.
+func CreatedAtNotIn(vs ...time.Time) predicate.Price {
+	return predicate.Price(sql.FieldNotIn(FieldCreatedAt, vs...))
+}
+
+// CreatedAtGT applies the GT predicate on the "created_at" field.
+func CreatedAtGT(v time.Time) predicate.Price {
+	return predicate.Price(sql.FieldGT(FieldCreatedAt, v))
+}
+
+// CreatedAtGTE applies the GTE predicate on the "created_at" field.
+func CreatedAtGTE(v time.Time) predicate.Price {
+	return predicate.Price(sql.FieldGTE(FieldCreatedAt, v))
+}
+
+// CreatedAtLT applies the LT predicate on the "created_at" field.
+func CreatedAtLT(v time.Time) predicate.Price {
+	return predicate.Price(sql.FieldLT(FieldCreatedAt, v))
+}
+
+// CreatedAtLTE applies the LTE predicate on the "created_at" field.
+func CreatedAtLTE(v time.Time) predicate.Price {
+	return predicate.Price(sql.FieldLTE(FieldCreatedAt, v))
+}
+
+// TakenAtEQ applies the EQ predicate on the "taken_at" field.
+func TakenAtEQ(v time.Time) predicate.Price {
+	return predicate.Price(sql.FieldEQ(FieldTakenAt, v))
+}
+
+// TakenAtNEQ applies the NEQ predicate on the "taken_at" field.
+func TakenAtNEQ(v time.Time) predicate.Price {
+	return predicate.Price(sql.FieldNEQ(FieldTakenAt, v))
+}
+
+// TakenAtIn applies the In predicate on the "taken_at" field.
+func TakenAtIn(vs ...time.Time) predicate.Price {
+	return predicate.Price(sql.FieldIn(FieldTakenAt, vs...))
+}
+
+// TakenAtNotIn applies the NotIn predicate on the "taken_at" field.
+func TakenAtNotIn(vs ...time.Time) predicate.Price {
+	return predicate.Price(sql.FieldNotIn(FieldTakenAt, vs...))
+}
+
+// TakenAtGT applies the GT predicate on the "taken_at" field.
+func TakenAtGT(v time.Time) predicate.Price {
+	return predicate.Price(sql.FieldGT(FieldTakenAt, v))
+}
+
+// TakenAtGTE applies the GTE predicate on the "taken_at" field.
+func TakenAtGTE(v time.Time) predicate.Price {
+	return predicate.Price(sql.FieldGTE(FieldTakenAt, v))
+}
+
+// TakenAtLT applies the LT predicate on the "taken_at" field.
+func TakenAtLT(v time.Time) predicate.Price {
+	return predicate.Price(sql.FieldLT(FieldTakenAt, v))
+}
+
+// TakenAtLTE applies the LTE predicate on the "taken_at" field.
+func TakenAtLTE(v time.Time) predicate.Price {
+	return predicate.Price(sql.FieldLTE(FieldTakenAt, v))
+}
+
+// TakenAtIsNil applies the IsNil predicate on the "taken_at" field.
+func TakenAtIsNil() predicate.Price {
+	return predicate.Price(sql.FieldIsNull(FieldTakenAt))
+}
+
+// TakenAtNotNil applies the NotNil predicate on the "taken_at" field.
+func TakenAtNotNil() predicate.Price {
+	return predicate.Price(sql.FieldNotNull(FieldTakenAt))
+}
+
+// HasRecipient applies the HasEdge predicate on the "recipient" edge.
+func HasRecipient() predicate.Price {
+	return predicate.Price(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, RecipientTable, RecipientColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRecipientWith applies the HasEdge predicate on the "recipient" edge with a given conditions (other predicates).
+func HasRecipientWith(preds ...predicate.User) predicate.Price {
+	return predicate.Price(func(s *sql.Selector) {
+		step := newRecipientStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasNotifications applies the HasEdge predicate on the "notifications" edge.
+func HasNotifications() predicate.Price {
+	return predicate.Price(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, NotificationsTable, NotificationsPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasNotificationsWith applies the HasEdge predicate on the "notifications" edge with a given conditions (other predicates).
+func HasNotificationsWith(preds ...predicate.Notification) predicate.Price {
+	return predicate.Price(func(s *sql.Selector) {
+		step := newNotificationsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

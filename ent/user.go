@@ -68,9 +68,11 @@ type User struct {
 type UserEdges struct {
 	// QuestionnaireResponses holds the value of the questionnaire_responses edge.
 	QuestionnaireResponses []*QuestionnaireResponse `json:"questionnaire_responses,omitempty"`
+	// Notifications holds the value of the notifications edge.
+	Notifications []*Notification `json:"notifications,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // QuestionnaireResponsesOrErr returns the QuestionnaireResponses value or an error if the edge
@@ -80,6 +82,15 @@ func (e UserEdges) QuestionnaireResponsesOrErr() ([]*QuestionnaireResponse, erro
 		return e.QuestionnaireResponses, nil
 	}
 	return nil, &NotLoadedError{edge: "questionnaire_responses"}
+}
+
+// NotificationsOrErr returns the Notifications value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) NotificationsOrErr() ([]*Notification, error) {
+	if e.loadedTypes[1] {
+		return e.Notifications, nil
+	}
+	return nil, &NotLoadedError{edge: "notifications"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -242,6 +253,11 @@ func (u *User) Value(name string) (ent.Value, error) {
 // QueryQuestionnaireResponses queries the "questionnaire_responses" edge of the User entity.
 func (u *User) QueryQuestionnaireResponses() *QuestionnaireResponseQuery {
 	return NewUserClient(u.config).QueryQuestionnaireResponses(u)
+}
+
+// QueryNotifications queries the "notifications" edge of the User entity.
+func (u *User) QueryNotifications() *NotificationQuery {
+	return NewUserClient(u.config).QueryNotifications(u)
 }
 
 // Update returns a builder for updating this User.

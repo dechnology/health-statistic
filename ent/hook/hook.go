@@ -25,6 +25,18 @@ func (f AnswerFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, erro
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AnswerMutation", m)
 }
 
+// The MyCardFunc type is an adapter to allow the use of ordinary
+// function as MyCard mutator.
+type MyCardFunc func(context.Context, *ent.MyCardMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f MyCardFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.MyCardMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MyCardMutation", m)
+}
+
 // The NotificationFunc type is an adapter to allow the use of ordinary
 // function as Notification mutator.
 type NotificationFunc func(context.Context, *ent.NotificationMutation) (ent.Value, error)
@@ -83,18 +95,6 @@ func (f QuestionnaireResponseFunc) Mutate(ctx context.Context, m ent.Mutation) (
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QuestionnaireResponseMutation", m)
-}
-
-// The RewardFunc type is an adapter to allow the use of ordinary
-// function as Reward mutator.
-type RewardFunc func(context.Context, *ent.RewardMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f RewardFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.RewardMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RewardMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary

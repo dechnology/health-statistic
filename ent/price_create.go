@@ -8,11 +8,15 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/price"
+	"github.com/eesoymilk/health-statistic-api/ent/user"
 )
 
 // PriceCreate is the builder for creating a Price entity.
@@ -22,6 +26,80 @@ type PriceCreate struct {
 	hooks    []Hook
 }
 
+// SetName sets the "name" field.
+func (pc *PriceCreate) SetName(s string) *PriceCreate {
+	pc.mutation.SetName(s)
+	return pc
+}
+
+// SetDescription sets the "description" field.
+func (pc *PriceCreate) SetDescription(s string) *PriceCreate {
+	pc.mutation.SetDescription(s)
+	return pc
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (pc *PriceCreate) SetCreatedAt(t time.Time) *PriceCreate {
+	pc.mutation.SetCreatedAt(t)
+	return pc
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (pc *PriceCreate) SetNillableCreatedAt(t *time.Time) *PriceCreate {
+	if t != nil {
+		pc.SetCreatedAt(*t)
+	}
+	return pc
+}
+
+// SetTakenAt sets the "taken_at" field.
+func (pc *PriceCreate) SetTakenAt(t time.Time) *PriceCreate {
+	pc.mutation.SetTakenAt(t)
+	return pc
+}
+
+// SetNillableTakenAt sets the "taken_at" field if the given value is not nil.
+func (pc *PriceCreate) SetNillableTakenAt(t *time.Time) *PriceCreate {
+	if t != nil {
+		pc.SetTakenAt(*t)
+	}
+	return pc
+}
+
+// SetRecipientID sets the "recipient" edge to the User entity by ID.
+func (pc *PriceCreate) SetRecipientID(id string) *PriceCreate {
+	pc.mutation.SetRecipientID(id)
+	return pc
+}
+
+// SetNillableRecipientID sets the "recipient" edge to the User entity by ID if the given value is not nil.
+func (pc *PriceCreate) SetNillableRecipientID(id *string) *PriceCreate {
+	if id != nil {
+		pc = pc.SetRecipientID(*id)
+	}
+	return pc
+}
+
+// SetRecipient sets the "recipient" edge to the User entity.
+func (pc *PriceCreate) SetRecipient(u *User) *PriceCreate {
+	return pc.SetRecipientID(u.ID)
+}
+
+// AddNotificationIDs adds the "notifications" edge to the Notification entity by IDs.
+func (pc *PriceCreate) AddNotificationIDs(ids ...int) *PriceCreate {
+	pc.mutation.AddNotificationIDs(ids...)
+	return pc
+}
+
+// AddNotifications adds the "notifications" edges to the Notification entity.
+func (pc *PriceCreate) AddNotifications(n ...*Notification) *PriceCreate {
+	ids := make([]int, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
+	}
+	return pc.AddNotificationIDs(ids...)
+}
+
 // Mutation returns the PriceMutation object of the builder.
 func (pc *PriceCreate) Mutation() *PriceMutation {
 	return pc.mutation
@@ -29,6 +107,7 @@ func (pc *PriceCreate) Mutation() *PriceMutation {
 
 // Save creates the Price in the database.
 func (pc *PriceCreate) Save(ctx context.Context) (*Price, error) {
+	pc.defaults()
 	return withHooks(ctx, pc.sqlSave, pc.mutation, pc.hooks)
 }
 
@@ -54,8 +133,25 @@ func (pc *PriceCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (pc *PriceCreate) defaults() {
+	if _, ok := pc.mutation.CreatedAt(); !ok {
+		v := price.DefaultCreatedAt()
+		pc.mutation.SetCreatedAt(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (pc *PriceCreate) check() error {
+	if _, ok := pc.mutation.Name(); !ok {
+		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Price.name"`)}
+	}
+	if _, ok := pc.mutation.Description(); !ok {
+		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "Price.description"`)}
+	}
+	if _, ok := pc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Price.created_at"`)}
+	}
 	return nil
 }
 
@@ -82,6 +178,55 @@ func (pc *PriceCreate) createSpec() (*Price, *sqlgraph.CreateSpec) {
 		_node = &Price{config: pc.config}
 		_spec = sqlgraph.NewCreateSpec(price.Table, sqlgraph.NewFieldSpec(price.FieldID, field.TypeInt))
 	)
+	if value, ok := pc.mutation.Name(); ok {
+		_spec.SetField(price.FieldName, field.TypeString, value)
+		_node.Name = value
+	}
+	if value, ok := pc.mutation.Description(); ok {
+		_spec.SetField(price.FieldDescription, field.TypeString, value)
+		_node.Description = value
+	}
+	if value, ok := pc.mutation.CreatedAt(); ok {
+		_spec.SetField(price.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if value, ok := pc.mutation.TakenAt(); ok {
+		_spec.SetField(price.FieldTakenAt, field.TypeTime, value)
+		_node.TakenAt = value
+	}
+	if nodes := pc.mutation.RecipientIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   price.RecipientTable,
+			Columns: []string{price.RecipientColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.price_recipient = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.NotificationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   price.NotificationsTable,
+			Columns: price.NotificationsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
 }
 
@@ -99,6 +244,7 @@ func (pcb *PriceCreateBulk) Save(ctx context.Context) ([]*Price, error) {
 	for i := range pcb.builders {
 		func(i int, root context.Context) {
 			builder := pcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*PriceMutation)
 				if !ok {

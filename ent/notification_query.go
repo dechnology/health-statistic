@@ -8,23 +8,30 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
+	"github.com/eesoymilk/health-statistic-api/ent/price"
+	"github.com/eesoymilk/health-statistic-api/ent/user"
 )
 
 // NotificationQuery is the builder for querying Notification entities.
 type NotificationQuery struct {
 	config
-	ctx        *QueryContext
-	order      []notification.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Notification
+	ctx           *QueryContext
+	order         []notification.OrderOption
+	inters        []Interceptor
+	predicates    []predicate.Notification
+	withRecipient *UserQuery
+	withMycard    *MyCardQuery
+	withPrice     *PriceQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -59,6 +66,72 @@ func (nq *NotificationQuery) Unique(unique bool) *NotificationQuery {
 func (nq *NotificationQuery) Order(o ...notification.OrderOption) *NotificationQuery {
 	nq.order = append(nq.order, o...)
 	return nq
+}
+
+// QueryRecipient chains the current query on the "recipient" edge.
+func (nq *NotificationQuery) QueryRecipient() *UserQuery {
+	query := (&UserClient{config: nq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := nq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := nq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(notification.Table, notification.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, notification.RecipientTable, notification.RecipientPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(nq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryMycard chains the current query on the "mycard" edge.
+func (nq *NotificationQuery) QueryMycard() *MyCardQuery {
+	query := (&MyCardClient{config: nq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := nq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := nq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(notification.Table, notification.FieldID, selector),
+			sqlgraph.To(mycard.Table, mycard.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, notification.MycardTable, notification.MycardPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(nq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPrice chains the current query on the "price" edge.
+func (nq *NotificationQuery) QueryPrice() *PriceQuery {
+	query := (&PriceClient{config: nq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := nq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := nq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(notification.Table, notification.FieldID, selector),
+			sqlgraph.To(price.Table, price.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, notification.PriceTable, notification.PricePrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(nq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Notification entity from the query.
@@ -248,19 +321,67 @@ func (nq *NotificationQuery) Clone() *NotificationQuery {
 		return nil
 	}
 	return &NotificationQuery{
-		config:     nq.config,
-		ctx:        nq.ctx.Clone(),
-		order:      append([]notification.OrderOption{}, nq.order...),
-		inters:     append([]Interceptor{}, nq.inters...),
-		predicates: append([]predicate.Notification{}, nq.predicates...),
+		config:        nq.config,
+		ctx:           nq.ctx.Clone(),
+		order:         append([]notification.OrderOption{}, nq.order...),
+		inters:        append([]Interceptor{}, nq.inters...),
+		predicates:    append([]predicate.Notification{}, nq.predicates...),
+		withRecipient: nq.withRecipient.Clone(),
+		withMycard:    nq.withMycard.Clone(),
+		withPrice:     nq.withPrice.Clone(),
 		// clone intermediate query.
 		sql:  nq.sql.Clone(),
 		path: nq.path,
 	}
 }
 
+// WithRecipient tells the query-builder to eager-load the nodes that are connected to
+// the "recipient" edge. The optional arguments are used to configure the query builder of the edge.
+func (nq *NotificationQuery) WithRecipient(opts ...func(*UserQuery)) *NotificationQuery {
+	query := (&UserClient{config: nq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	nq.withRecipient = query
+	return nq
+}
+
+// WithMycard tells the query-builder to eager-load the nodes that are connected to
+// the "mycard" edge. The optional arguments are used to configure the query builder of the edge.
+func (nq *NotificationQuery) WithMycard(opts ...func(*MyCardQuery)) *NotificationQuery {
+	query := (&MyCardClient{config: nq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	nq.withMycard = query
+	return nq
+}
+
+// WithPrice tells the query-builder to eager-load the nodes that are connected to
+// the "price" edge. The optional arguments are used to configure the query builder of the edge.
+func (nq *NotificationQuery) WithPrice(opts ...func(*PriceQuery)) *NotificationQuery {
+	query := (&PriceClient{config: nq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	nq.withPrice = query
+	return nq
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
+//
+// Example:
+//
+//	var v []struct {
+//		SentAt time.Time `json:"sent_at,omitempty"`
+//		Count int `json:"count,omitempty"`
+//	}
+//
+//	client.Notification.Query().
+//		GroupBy(notification.FieldSentAt).
+//		Aggregate(ent.Count()).
+//		Scan(ctx, &v)
 func (nq *NotificationQuery) GroupBy(field string, fields ...string) *NotificationGroupBy {
 	nq.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &NotificationGroupBy{build: nq}
@@ -272,6 +393,16 @@ func (nq *NotificationQuery) GroupBy(field string, fields ...string) *Notificati
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
+//
+// Example:
+//
+//	var v []struct {
+//		SentAt time.Time `json:"sent_at,omitempty"`
+//	}
+//
+//	client.Notification.Query().
+//		Select(notification.FieldSentAt).
+//		Scan(ctx, &v)
 func (nq *NotificationQuery) Select(fields ...string) *NotificationSelect {
 	nq.ctx.Fields = append(nq.ctx.Fields, fields...)
 	sbuild := &NotificationSelect{NotificationQuery: nq}
@@ -313,8 +444,13 @@ func (nq *NotificationQuery) prepareQuery(ctx context.Context) error {
 
 func (nq *NotificationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Notification, error) {
 	var (
-		nodes = []*Notification{}
-		_spec = nq.querySpec()
+		nodes       = []*Notification{}
+		_spec       = nq.querySpec()
+		loadedTypes = [3]bool{
+			nq.withRecipient != nil,
+			nq.withMycard != nil,
+			nq.withPrice != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Notification).scanValues(nil, columns)
@@ -322,6 +458,7 @@ func (nq *NotificationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Notification{config: nq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -333,7 +470,212 @@ func (nq *NotificationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := nq.withRecipient; query != nil {
+		if err := nq.loadRecipient(ctx, query, nodes,
+			func(n *Notification) { n.Edges.Recipient = []*User{} },
+			func(n *Notification, e *User) { n.Edges.Recipient = append(n.Edges.Recipient, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := nq.withMycard; query != nil {
+		if err := nq.loadMycard(ctx, query, nodes,
+			func(n *Notification) { n.Edges.Mycard = []*MyCard{} },
+			func(n *Notification, e *MyCard) { n.Edges.Mycard = append(n.Edges.Mycard, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := nq.withPrice; query != nil {
+		if err := nq.loadPrice(ctx, query, nodes,
+			func(n *Notification) { n.Edges.Price = []*Price{} },
+			func(n *Notification, e *Price) { n.Edges.Price = append(n.Edges.Price, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (nq *NotificationQuery) loadRecipient(ctx context.Context, query *UserQuery, nodes []*Notification, init func(*Notification), assign func(*Notification, *User)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*Notification)
+	nids := make(map[string]map[*Notification]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(notification.RecipientTable)
+		s.Join(joinT).On(s.C(user.FieldID), joinT.C(notification.RecipientPrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(notification.RecipientPrimaryKey[1]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(notification.RecipientPrimaryKey[1]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := values[1].(*sql.NullString).String
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Notification]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*User](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "recipient" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (nq *NotificationQuery) loadMycard(ctx context.Context, query *MyCardQuery, nodes []*Notification, init func(*Notification), assign func(*Notification, *MyCard)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*Notification)
+	nids := make(map[int]map[*Notification]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(notification.MycardTable)
+		s.Join(joinT).On(s.C(mycard.FieldID), joinT.C(notification.MycardPrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(notification.MycardPrimaryKey[1]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(notification.MycardPrimaryKey[1]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Notification]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*MyCard](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "mycard" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (nq *NotificationQuery) loadPrice(ctx context.Context, query *PriceQuery, nodes []*Notification, init func(*Notification), assign func(*Notification, *Price)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*Notification)
+	nids := make(map[int]map[*Notification]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(notification.PriceTable)
+		s.Join(joinT).On(s.C(price.FieldID), joinT.C(notification.PricePrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(notification.PricePrimaryKey[1]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(notification.PricePrimaryKey[1]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Notification]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*Price](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "price" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
 }
 
 func (nq *NotificationQuery) sqlCount(ctx context.Context) (int, error) {

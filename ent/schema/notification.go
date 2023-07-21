@@ -23,8 +23,9 @@ func (Notification) Fields() []ent.Field {
 // Edges of the Notification.
 func (Notification) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("recipient", User.Type).Ref("notifications"),
-		edge.From("reward", Reward.Type).
+		edge.From("recipient", User.Type).
+			Ref("notifications"),
+		edge.From("mycard", MyCard.Type).
 			Ref("notifications"),
 		edge.From("price", Price.Type).
 			Ref("notifications"),

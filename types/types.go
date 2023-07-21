@@ -5,7 +5,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// @Description	The json body for creating a new question.
+//	@Description	The json body for creating a new question.
 type BaseQuestion struct {
 	// The question body
 	Body string `json:"body"`
@@ -14,7 +14,7 @@ type BaseQuestion struct {
 	Type string `json:"type"`
 }
 
-// @Description	The json body for creating a new answer in a new response.
+//	@Description	The json body for creating a new answer in a new response.
 type BaseAnswer struct {
 	// The answer body.
 	Body string `json:"body"`
@@ -23,7 +23,7 @@ type BaseAnswer struct {
 	QuestionId uuid.UUID `json:"question_id"`
 }
 
-// @Description BaseQuestionnaire
+//	@Description	BaseQuestionnaire
 type BaseQuestionnaire struct {
 	// The name of the questionnaire
 	Name string `json:"name"`
@@ -46,7 +46,7 @@ type Response struct {
 	Answers []*BaseAnswer `json:"answers"`
 }
 
-type QuestionWithQuestionnare struct {
+type QuestionWithQuestionnaire struct {
 	ent.Question
 	Questionnaire ent.Questionnaire
 }

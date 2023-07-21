@@ -57,6 +57,8 @@ const (
 	FieldSmokingHabit = "smoking_habit"
 	// EdgeQuestionnaireResponses holds the string denoting the questionnaire_responses edge name in mutations.
 	EdgeQuestionnaireResponses = "questionnaire_responses"
+	// EdgeNotifications holds the string denoting the notifications edge name in mutations.
+	EdgeNotifications = "notifications"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// QuestionnaireResponsesTable is the table that holds the questionnaire_responses relation/edge.
@@ -66,6 +68,11 @@ const (
 	QuestionnaireResponsesInverseTable = "questionnaire_responses"
 	// QuestionnaireResponsesColumn is the table column denoting the questionnaire_responses relation/edge.
 	QuestionnaireResponsesColumn = "user_questionnaire_responses"
+	// NotificationsTable is the table that holds the notifications relation/edge. The primary key declared below.
+	NotificationsTable = "user_notifications"
+	// NotificationsInverseTable is the table name for the Notification entity.
+	// It exists in this package in order to avoid circular dependency with the "notification" package.
+	NotificationsInverseTable = "notifications"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -90,6 +97,12 @@ var Columns = []string{
 	FieldEyesightCondition,
 	FieldSmokingHabit,
 }
+
+var (
+	// NotificationsPrimaryKey and NotificationsColumn2 are the table columns denoting the
+	// primary key for the notifications relation (M2M).
+	NotificationsPrimaryKey = []string{"user_id", "notification_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -410,10 +423,31 @@ func ByQuestionnaireResponses(term sql.OrderTerm, terms ...sql.OrderTerm) OrderO
 		sqlgraph.OrderByNeighborTerms(s, newQuestionnaireResponsesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByNotificationsCount orders the results by notifications count.
+func ByNotificationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newNotificationsStep(), opts...)
+	}
+}
+
+// ByNotifications orders the results by notifications terms.
+func ByNotifications(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newNotificationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newQuestionnaireResponsesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(QuestionnaireResponsesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, QuestionnaireResponsesTable, QuestionnaireResponsesColumn),
+	)
+}
+func newNotificationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(NotificationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, NotificationsTable, NotificationsPrimaryKey...),
 	)
 }

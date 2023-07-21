@@ -10,12 +10,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
+	"github.com/eesoymilk/health-statistic-api/ent/price"
+	"github.com/eesoymilk/health-statistic-api/ent/user"
 )
 
 // NotificationUpdate is the builder for updating Notification entities.
@@ -31,9 +35,163 @@ func (nu *NotificationUpdate) Where(ps ...predicate.Notification) *NotificationU
 	return nu
 }
 
+// SetSentAt sets the "sent_at" field.
+func (nu *NotificationUpdate) SetSentAt(t time.Time) *NotificationUpdate {
+	nu.mutation.SetSentAt(t)
+	return nu
+}
+
+// SetNillableSentAt sets the "sent_at" field if the given value is not nil.
+func (nu *NotificationUpdate) SetNillableSentAt(t *time.Time) *NotificationUpdate {
+	if t != nil {
+		nu.SetSentAt(*t)
+	}
+	return nu
+}
+
+// ClearSentAt clears the value of the "sent_at" field.
+func (nu *NotificationUpdate) ClearSentAt() *NotificationUpdate {
+	nu.mutation.ClearSentAt()
+	return nu
+}
+
+// SetReadAt sets the "read_at" field.
+func (nu *NotificationUpdate) SetReadAt(t time.Time) *NotificationUpdate {
+	nu.mutation.SetReadAt(t)
+	return nu
+}
+
+// SetNillableReadAt sets the "read_at" field if the given value is not nil.
+func (nu *NotificationUpdate) SetNillableReadAt(t *time.Time) *NotificationUpdate {
+	if t != nil {
+		nu.SetReadAt(*t)
+	}
+	return nu
+}
+
+// ClearReadAt clears the value of the "read_at" field.
+func (nu *NotificationUpdate) ClearReadAt() *NotificationUpdate {
+	nu.mutation.ClearReadAt()
+	return nu
+}
+
+// SetMessage sets the "message" field.
+func (nu *NotificationUpdate) SetMessage(s string) *NotificationUpdate {
+	nu.mutation.SetMessage(s)
+	return nu
+}
+
+// AddRecipientIDs adds the "recipient" edge to the User entity by IDs.
+func (nu *NotificationUpdate) AddRecipientIDs(ids ...string) *NotificationUpdate {
+	nu.mutation.AddRecipientIDs(ids...)
+	return nu
+}
+
+// AddRecipient adds the "recipient" edges to the User entity.
+func (nu *NotificationUpdate) AddRecipient(u ...*User) *NotificationUpdate {
+	ids := make([]string, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return nu.AddRecipientIDs(ids...)
+}
+
+// AddMycardIDs adds the "mycard" edge to the MyCard entity by IDs.
+func (nu *NotificationUpdate) AddMycardIDs(ids ...int) *NotificationUpdate {
+	nu.mutation.AddMycardIDs(ids...)
+	return nu
+}
+
+// AddMycard adds the "mycard" edges to the MyCard entity.
+func (nu *NotificationUpdate) AddMycard(m ...*MyCard) *NotificationUpdate {
+	ids := make([]int, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return nu.AddMycardIDs(ids...)
+}
+
+// AddPriceIDs adds the "price" edge to the Price entity by IDs.
+func (nu *NotificationUpdate) AddPriceIDs(ids ...int) *NotificationUpdate {
+	nu.mutation.AddPriceIDs(ids...)
+	return nu
+}
+
+// AddPrice adds the "price" edges to the Price entity.
+func (nu *NotificationUpdate) AddPrice(p ...*Price) *NotificationUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return nu.AddPriceIDs(ids...)
+}
+
 // Mutation returns the NotificationMutation object of the builder.
 func (nu *NotificationUpdate) Mutation() *NotificationMutation {
 	return nu.mutation
+}
+
+// ClearRecipient clears all "recipient" edges to the User entity.
+func (nu *NotificationUpdate) ClearRecipient() *NotificationUpdate {
+	nu.mutation.ClearRecipient()
+	return nu
+}
+
+// RemoveRecipientIDs removes the "recipient" edge to User entities by IDs.
+func (nu *NotificationUpdate) RemoveRecipientIDs(ids ...string) *NotificationUpdate {
+	nu.mutation.RemoveRecipientIDs(ids...)
+	return nu
+}
+
+// RemoveRecipient removes "recipient" edges to User entities.
+func (nu *NotificationUpdate) RemoveRecipient(u ...*User) *NotificationUpdate {
+	ids := make([]string, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return nu.RemoveRecipientIDs(ids...)
+}
+
+// ClearMycard clears all "mycard" edges to the MyCard entity.
+func (nu *NotificationUpdate) ClearMycard() *NotificationUpdate {
+	nu.mutation.ClearMycard()
+	return nu
+}
+
+// RemoveMycardIDs removes the "mycard" edge to MyCard entities by IDs.
+func (nu *NotificationUpdate) RemoveMycardIDs(ids ...int) *NotificationUpdate {
+	nu.mutation.RemoveMycardIDs(ids...)
+	return nu
+}
+
+// RemoveMycard removes "mycard" edges to MyCard entities.
+func (nu *NotificationUpdate) RemoveMycard(m ...*MyCard) *NotificationUpdate {
+	ids := make([]int, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return nu.RemoveMycardIDs(ids...)
+}
+
+// ClearPrice clears all "price" edges to the Price entity.
+func (nu *NotificationUpdate) ClearPrice() *NotificationUpdate {
+	nu.mutation.ClearPrice()
+	return nu
+}
+
+// RemovePriceIDs removes the "price" edge to Price entities by IDs.
+func (nu *NotificationUpdate) RemovePriceIDs(ids ...int) *NotificationUpdate {
+	nu.mutation.RemovePriceIDs(ids...)
+	return nu
+}
+
+// RemovePrice removes "price" edges to Price entities.
+func (nu *NotificationUpdate) RemovePrice(p ...*Price) *NotificationUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return nu.RemovePriceIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -72,6 +230,156 @@ func (nu *NotificationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := nu.mutation.SentAt(); ok {
+		_spec.SetField(notification.FieldSentAt, field.TypeTime, value)
+	}
+	if nu.mutation.SentAtCleared() {
+		_spec.ClearField(notification.FieldSentAt, field.TypeTime)
+	}
+	if value, ok := nu.mutation.ReadAt(); ok {
+		_spec.SetField(notification.FieldReadAt, field.TypeTime, value)
+	}
+	if nu.mutation.ReadAtCleared() {
+		_spec.ClearField(notification.FieldReadAt, field.TypeTime)
+	}
+	if value, ok := nu.mutation.Message(); ok {
+		_spec.SetField(notification.FieldMessage, field.TypeString, value)
+	}
+	if nu.mutation.RecipientCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   notification.RecipientTable,
+			Columns: notification.RecipientPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := nu.mutation.RemovedRecipientIDs(); len(nodes) > 0 && !nu.mutation.RecipientCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   notification.RecipientTable,
+			Columns: notification.RecipientPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := nu.mutation.RecipientIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   notification.RecipientTable,
+			Columns: notification.RecipientPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nu.mutation.MycardCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   notification.MycardTable,
+			Columns: notification.MycardPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(mycard.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := nu.mutation.RemovedMycardIDs(); len(nodes) > 0 && !nu.mutation.MycardCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   notification.MycardTable,
+			Columns: notification.MycardPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(mycard.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := nu.mutation.MycardIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   notification.MycardTable,
+			Columns: notification.MycardPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(mycard.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nu.mutation.PriceCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   notification.PriceTable,
+			Columns: notification.PricePrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(price.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := nu.mutation.RemovedPriceIDs(); len(nodes) > 0 && !nu.mutation.PriceCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   notification.PriceTable,
+			Columns: notification.PricePrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(price.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := nu.mutation.PriceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   notification.PriceTable,
+			Columns: notification.PricePrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(price.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, nu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{notification.Label}
@@ -92,9 +400,163 @@ type NotificationUpdateOne struct {
 	mutation *NotificationMutation
 }
 
+// SetSentAt sets the "sent_at" field.
+func (nuo *NotificationUpdateOne) SetSentAt(t time.Time) *NotificationUpdateOne {
+	nuo.mutation.SetSentAt(t)
+	return nuo
+}
+
+// SetNillableSentAt sets the "sent_at" field if the given value is not nil.
+func (nuo *NotificationUpdateOne) SetNillableSentAt(t *time.Time) *NotificationUpdateOne {
+	if t != nil {
+		nuo.SetSentAt(*t)
+	}
+	return nuo
+}
+
+// ClearSentAt clears the value of the "sent_at" field.
+func (nuo *NotificationUpdateOne) ClearSentAt() *NotificationUpdateOne {
+	nuo.mutation.ClearSentAt()
+	return nuo
+}
+
+// SetReadAt sets the "read_at" field.
+func (nuo *NotificationUpdateOne) SetReadAt(t time.Time) *NotificationUpdateOne {
+	nuo.mutation.SetReadAt(t)
+	return nuo
+}
+
+// SetNillableReadAt sets the "read_at" field if the given value is not nil.
+func (nuo *NotificationUpdateOne) SetNillableReadAt(t *time.Time) *NotificationUpdateOne {
+	if t != nil {
+		nuo.SetReadAt(*t)
+	}
+	return nuo
+}
+
+// ClearReadAt clears the value of the "read_at" field.
+func (nuo *NotificationUpdateOne) ClearReadAt() *NotificationUpdateOne {
+	nuo.mutation.ClearReadAt()
+	return nuo
+}
+
+// SetMessage sets the "message" field.
+func (nuo *NotificationUpdateOne) SetMessage(s string) *NotificationUpdateOne {
+	nuo.mutation.SetMessage(s)
+	return nuo
+}
+
+// AddRecipientIDs adds the "recipient" edge to the User entity by IDs.
+func (nuo *NotificationUpdateOne) AddRecipientIDs(ids ...string) *NotificationUpdateOne {
+	nuo.mutation.AddRecipientIDs(ids...)
+	return nuo
+}
+
+// AddRecipient adds the "recipient" edges to the User entity.
+func (nuo *NotificationUpdateOne) AddRecipient(u ...*User) *NotificationUpdateOne {
+	ids := make([]string, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return nuo.AddRecipientIDs(ids...)
+}
+
+// AddMycardIDs adds the "mycard" edge to the MyCard entity by IDs.
+func (nuo *NotificationUpdateOne) AddMycardIDs(ids ...int) *NotificationUpdateOne {
+	nuo.mutation.AddMycardIDs(ids...)
+	return nuo
+}
+
+// AddMycard adds the "mycard" edges to the MyCard entity.
+func (nuo *NotificationUpdateOne) AddMycard(m ...*MyCard) *NotificationUpdateOne {
+	ids := make([]int, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return nuo.AddMycardIDs(ids...)
+}
+
+// AddPriceIDs adds the "price" edge to the Price entity by IDs.
+func (nuo *NotificationUpdateOne) AddPriceIDs(ids ...int) *NotificationUpdateOne {
+	nuo.mutation.AddPriceIDs(ids...)
+	return nuo
+}
+
+// AddPrice adds the "price" edges to the Price entity.
+func (nuo *NotificationUpdateOne) AddPrice(p ...*Price) *NotificationUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return nuo.AddPriceIDs(ids...)
+}
+
 // Mutation returns the NotificationMutation object of the builder.
 func (nuo *NotificationUpdateOne) Mutation() *NotificationMutation {
 	return nuo.mutation
+}
+
+// ClearRecipient clears all "recipient" edges to the User entity.
+func (nuo *NotificationUpdateOne) ClearRecipient() *NotificationUpdateOne {
+	nuo.mutation.ClearRecipient()
+	return nuo
+}
+
+// RemoveRecipientIDs removes the "recipient" edge to User entities by IDs.
+func (nuo *NotificationUpdateOne) RemoveRecipientIDs(ids ...string) *NotificationUpdateOne {
+	nuo.mutation.RemoveRecipientIDs(ids...)
+	return nuo
+}
+
+// RemoveRecipient removes "recipient" edges to User entities.
+func (nuo *NotificationUpdateOne) RemoveRecipient(u ...*User) *NotificationUpdateOne {
+	ids := make([]string, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return nuo.RemoveRecipientIDs(ids...)
+}
+
+// ClearMycard clears all "mycard" edges to the MyCard entity.
+func (nuo *NotificationUpdateOne) ClearMycard() *NotificationUpdateOne {
+	nuo.mutation.ClearMycard()
+	return nuo
+}
+
+// RemoveMycardIDs removes the "mycard" edge to MyCard entities by IDs.
+func (nuo *NotificationUpdateOne) RemoveMycardIDs(ids ...int) *NotificationUpdateOne {
+	nuo.mutation.RemoveMycardIDs(ids...)
+	return nuo
+}
+
+// RemoveMycard removes "mycard" edges to MyCard entities.
+func (nuo *NotificationUpdateOne) RemoveMycard(m ...*MyCard) *NotificationUpdateOne {
+	ids := make([]int, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return nuo.RemoveMycardIDs(ids...)
+}
+
+// ClearPrice clears all "price" edges to the Price entity.
+func (nuo *NotificationUpdateOne) ClearPrice() *NotificationUpdateOne {
+	nuo.mutation.ClearPrice()
+	return nuo
+}
+
+// RemovePriceIDs removes the "price" edge to Price entities by IDs.
+func (nuo *NotificationUpdateOne) RemovePriceIDs(ids ...int) *NotificationUpdateOne {
+	nuo.mutation.RemovePriceIDs(ids...)
+	return nuo
+}
+
+// RemovePrice removes "price" edges to Price entities.
+func (nuo *NotificationUpdateOne) RemovePrice(p ...*Price) *NotificationUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return nuo.RemovePriceIDs(ids...)
 }
 
 // Where appends a list predicates to the NotificationUpdate builder.
@@ -162,6 +624,156 @@ func (nuo *NotificationUpdateOne) sqlSave(ctx context.Context) (_node *Notificat
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := nuo.mutation.SentAt(); ok {
+		_spec.SetField(notification.FieldSentAt, field.TypeTime, value)
+	}
+	if nuo.mutation.SentAtCleared() {
+		_spec.ClearField(notification.FieldSentAt, field.TypeTime)
+	}
+	if value, ok := nuo.mutation.ReadAt(); ok {
+		_spec.SetField(notification.FieldReadAt, field.TypeTime, value)
+	}
+	if nuo.mutation.ReadAtCleared() {
+		_spec.ClearField(notification.FieldReadAt, field.TypeTime)
+	}
+	if value, ok := nuo.mutation.Message(); ok {
+		_spec.SetField(notification.FieldMessage, field.TypeString, value)
+	}
+	if nuo.mutation.RecipientCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   notification.RecipientTable,
+			Columns: notification.RecipientPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := nuo.mutation.RemovedRecipientIDs(); len(nodes) > 0 && !nuo.mutation.RecipientCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   notification.RecipientTable,
+			Columns: notification.RecipientPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := nuo.mutation.RecipientIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   notification.RecipientTable,
+			Columns: notification.RecipientPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nuo.mutation.MycardCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   notification.MycardTable,
+			Columns: notification.MycardPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(mycard.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := nuo.mutation.RemovedMycardIDs(); len(nodes) > 0 && !nuo.mutation.MycardCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   notification.MycardTable,
+			Columns: notification.MycardPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(mycard.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := nuo.mutation.MycardIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   notification.MycardTable,
+			Columns: notification.MycardPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(mycard.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nuo.mutation.PriceCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   notification.PriceTable,
+			Columns: notification.PricePrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(price.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := nuo.mutation.RemovedPriceIDs(); len(nodes) > 0 && !nuo.mutation.PriceCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   notification.PriceTable,
+			Columns: notification.PricePrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(price.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := nuo.mutation.PriceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   notification.PriceTable,
+			Columns: notification.PricePrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(price.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Notification{config: nuo.config}
 	_spec.Assign = _node.assignValues

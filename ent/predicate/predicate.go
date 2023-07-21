@@ -13,6 +13,9 @@ import (
 // Answer is the predicate function for answer builders.
 type Answer func(*sql.Selector)
 
+// MyCard is the predicate function for mycard builders.
+type MyCard func(*sql.Selector)
+
 // Notification is the predicate function for notification builders.
 type Notification func(*sql.Selector)
 
@@ -27,9 +30,6 @@ type Questionnaire func(*sql.Selector)
 
 // QuestionnaireResponse is the predicate function for questionnaireresponse builders.
 type QuestionnaireResponse func(*sql.Selector)
-
-// Reward is the predicate function for reward builders.
-type Reward func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

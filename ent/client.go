@@ -20,12 +20,12 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/eesoymilk/health-statistic-api/ent/answer"
+	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/price"
 	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaire"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
-	"github.com/eesoymilk/health-statistic-api/ent/reward"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
 )
 
@@ -36,6 +36,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// Answer is the client for interacting with the Answer builders.
 	Answer *AnswerClient
+	// MyCard is the client for interacting with the MyCard builders.
+	MyCard *MyCardClient
 	// Notification is the client for interacting with the Notification builders.
 	Notification *NotificationClient
 	// Price is the client for interacting with the Price builders.
@@ -46,8 +48,6 @@ type Client struct {
 	Questionnaire *QuestionnaireClient
 	// QuestionnaireResponse is the client for interacting with the QuestionnaireResponse builders.
 	QuestionnaireResponse *QuestionnaireResponseClient
-	// Reward is the client for interacting with the Reward builders.
-	Reward *RewardClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 }
@@ -64,12 +64,12 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Answer = NewAnswerClient(c.config)
+	c.MyCard = NewMyCardClient(c.config)
 	c.Notification = NewNotificationClient(c.config)
 	c.Price = NewPriceClient(c.config)
 	c.Question = NewQuestionClient(c.config)
 	c.Questionnaire = NewQuestionnaireClient(c.config)
 	c.QuestionnaireResponse = NewQuestionnaireResponseClient(c.config)
-	c.Reward = NewRewardClient(c.config)
 	c.User = NewUserClient(c.config)
 }
 
@@ -154,12 +154,12 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:                   ctx,
 		config:                cfg,
 		Answer:                NewAnswerClient(cfg),
+		MyCard:                NewMyCardClient(cfg),
 		Notification:          NewNotificationClient(cfg),
 		Price:                 NewPriceClient(cfg),
 		Question:              NewQuestionClient(cfg),
 		Questionnaire:         NewQuestionnaireClient(cfg),
 		QuestionnaireResponse: NewQuestionnaireResponseClient(cfg),
-		Reward:                NewRewardClient(cfg),
 		User:                  NewUserClient(cfg),
 	}, nil
 }
@@ -181,12 +181,12 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:                   ctx,
 		config:                cfg,
 		Answer:                NewAnswerClient(cfg),
+		MyCard:                NewMyCardClient(cfg),
 		Notification:          NewNotificationClient(cfg),
 		Price:                 NewPriceClient(cfg),
 		Question:              NewQuestionClient(cfg),
 		Questionnaire:         NewQuestionnaireClient(cfg),
 		QuestionnaireResponse: NewQuestionnaireResponseClient(cfg),
-		Reward:                NewRewardClient(cfg),
 		User:                  NewUserClient(cfg),
 	}, nil
 }
@@ -217,8 +217,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Answer, c.Notification, c.Price, c.Question, c.Questionnaire,
-		c.QuestionnaireResponse, c.Reward, c.User,
+		c.Answer, c.MyCard, c.Notification, c.Price, c.Question, c.Questionnaire,
+		c.QuestionnaireResponse, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -228,8 +228,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Answer, c.Notification, c.Price, c.Question, c.Questionnaire,
-		c.QuestionnaireResponse, c.Reward, c.User,
+		c.Answer, c.MyCard, c.Notification, c.Price, c.Question, c.Questionnaire,
+		c.QuestionnaireResponse, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -240,6 +240,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *AnswerMutation:
 		return c.Answer.mutate(ctx, m)
+	case *MyCardMutation:
+		return c.MyCard.mutate(ctx, m)
 	case *NotificationMutation:
 		return c.Notification.mutate(ctx, m)
 	case *PriceMutation:
@@ -250,8 +252,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Questionnaire.mutate(ctx, m)
 	case *QuestionnaireResponseMutation:
 		return c.QuestionnaireResponse.mutate(ctx, m)
-	case *RewardMutation:
-		return c.Reward.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	default:
@@ -409,6 +409,156 @@ func (c *AnswerClient) mutate(ctx context.Context, m *AnswerMutation) (Value, er
 	}
 }
 
+// MyCardClient is a client for the MyCard schema.
+type MyCardClient struct {
+	config
+}
+
+// NewMyCardClient returns a client for the MyCard from the given config.
+func NewMyCardClient(c config) *MyCardClient {
+	return &MyCardClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `mycard.Hooks(f(g(h())))`.
+func (c *MyCardClient) Use(hooks ...Hook) {
+	c.hooks.MyCard = append(c.hooks.MyCard, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `mycard.Intercept(f(g(h())))`.
+func (c *MyCardClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MyCard = append(c.inters.MyCard, interceptors...)
+}
+
+// Create returns a builder for creating a MyCard entity.
+func (c *MyCardClient) Create() *MyCardCreate {
+	mutation := newMyCardMutation(c.config, OpCreate)
+	return &MyCardCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of MyCard entities.
+func (c *MyCardClient) CreateBulk(builders ...*MyCardCreate) *MyCardCreateBulk {
+	return &MyCardCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for MyCard.
+func (c *MyCardClient) Update() *MyCardUpdate {
+	mutation := newMyCardMutation(c.config, OpUpdate)
+	return &MyCardUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MyCardClient) UpdateOne(mc *MyCard) *MyCardUpdateOne {
+	mutation := newMyCardMutation(c.config, OpUpdateOne, withMyCard(mc))
+	return &MyCardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MyCardClient) UpdateOneID(id int) *MyCardUpdateOne {
+	mutation := newMyCardMutation(c.config, OpUpdateOne, withMyCardID(id))
+	return &MyCardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for MyCard.
+func (c *MyCardClient) Delete() *MyCardDelete {
+	mutation := newMyCardMutation(c.config, OpDelete)
+	return &MyCardDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MyCardClient) DeleteOne(mc *MyCard) *MyCardDeleteOne {
+	return c.DeleteOneID(mc.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MyCardClient) DeleteOneID(id int) *MyCardDeleteOne {
+	builder := c.Delete().Where(mycard.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MyCardDeleteOne{builder}
+}
+
+// Query returns a query builder for MyCard.
+func (c *MyCardClient) Query() *MyCardQuery {
+	return &MyCardQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeMyCard},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a MyCard entity by its id.
+func (c *MyCardClient) Get(ctx context.Context, id int) (*MyCard, error) {
+	return c.Query().Where(mycard.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MyCardClient) GetX(ctx context.Context, id int) *MyCard {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryRecipient queries the recipient edge of a MyCard.
+func (c *MyCardClient) QueryRecipient(mc *MyCard) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := mc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(mycard.Table, mycard.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, mycard.RecipientTable, mycard.RecipientColumn),
+		)
+		fromV = sqlgraph.Neighbors(mc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNotifications queries the notifications edge of a MyCard.
+func (c *MyCardClient) QueryNotifications(mc *MyCard) *NotificationQuery {
+	query := (&NotificationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := mc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(mycard.Table, mycard.FieldID, id),
+			sqlgraph.To(notification.Table, notification.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, mycard.NotificationsTable, mycard.NotificationsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(mc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *MyCardClient) Hooks() []Hook {
+	return c.hooks.MyCard
+}
+
+// Interceptors returns the client interceptors.
+func (c *MyCardClient) Interceptors() []Interceptor {
+	return c.inters.MyCard
+}
+
+func (c *MyCardClient) mutate(ctx context.Context, m *MyCardMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MyCardCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MyCardUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MyCardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MyCardDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MyCard mutation op: %q", m.Op())
+	}
+}
+
 // NotificationClient is a client for the Notification schema.
 type NotificationClient struct {
 	config
@@ -500,6 +650,54 @@ func (c *NotificationClient) GetX(ctx context.Context, id int) *Notification {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryRecipient queries the recipient edge of a Notification.
+func (c *NotificationClient) QueryRecipient(n *Notification) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := n.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(notification.Table, notification.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, notification.RecipientTable, notification.RecipientPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(n.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMycard queries the mycard edge of a Notification.
+func (c *NotificationClient) QueryMycard(n *Notification) *MyCardQuery {
+	query := (&MyCardClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := n.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(notification.Table, notification.FieldID, id),
+			sqlgraph.To(mycard.Table, mycard.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, notification.MycardTable, notification.MycardPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(n.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPrice queries the price edge of a Notification.
+func (c *NotificationClient) QueryPrice(n *Notification) *PriceQuery {
+	query := (&PriceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := n.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(notification.Table, notification.FieldID, id),
+			sqlgraph.To(price.Table, price.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, notification.PriceTable, notification.PricePrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(n.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -618,6 +816,38 @@ func (c *PriceClient) GetX(ctx context.Context, id int) *Price {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryRecipient queries the recipient edge of a Price.
+func (c *PriceClient) QueryRecipient(pr *Price) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(price.Table, price.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, price.RecipientTable, price.RecipientColumn),
+		)
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNotifications queries the notifications edge of a Price.
+func (c *PriceClient) QueryNotifications(pr *Price) *NotificationQuery {
+	query := (&NotificationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(price.Table, price.FieldID, id),
+			sqlgraph.To(notification.Table, notification.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, price.NotificationsTable, price.NotificationsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -1111,124 +1341,6 @@ func (c *QuestionnaireResponseClient) mutate(ctx context.Context, m *Questionnai
 	}
 }
 
-// RewardClient is a client for the Reward schema.
-type RewardClient struct {
-	config
-}
-
-// NewRewardClient returns a client for the Reward from the given config.
-func NewRewardClient(c config) *RewardClient {
-	return &RewardClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `reward.Hooks(f(g(h())))`.
-func (c *RewardClient) Use(hooks ...Hook) {
-	c.hooks.Reward = append(c.hooks.Reward, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `reward.Intercept(f(g(h())))`.
-func (c *RewardClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Reward = append(c.inters.Reward, interceptors...)
-}
-
-// Create returns a builder for creating a Reward entity.
-func (c *RewardClient) Create() *RewardCreate {
-	mutation := newRewardMutation(c.config, OpCreate)
-	return &RewardCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Reward entities.
-func (c *RewardClient) CreateBulk(builders ...*RewardCreate) *RewardCreateBulk {
-	return &RewardCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Reward.
-func (c *RewardClient) Update() *RewardUpdate {
-	mutation := newRewardMutation(c.config, OpUpdate)
-	return &RewardUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *RewardClient) UpdateOne(r *Reward) *RewardUpdateOne {
-	mutation := newRewardMutation(c.config, OpUpdateOne, withReward(r))
-	return &RewardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *RewardClient) UpdateOneID(id int) *RewardUpdateOne {
-	mutation := newRewardMutation(c.config, OpUpdateOne, withRewardID(id))
-	return &RewardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Reward.
-func (c *RewardClient) Delete() *RewardDelete {
-	mutation := newRewardMutation(c.config, OpDelete)
-	return &RewardDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *RewardClient) DeleteOne(r *Reward) *RewardDeleteOne {
-	return c.DeleteOneID(r.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *RewardClient) DeleteOneID(id int) *RewardDeleteOne {
-	builder := c.Delete().Where(reward.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &RewardDeleteOne{builder}
-}
-
-// Query returns a query builder for Reward.
-func (c *RewardClient) Query() *RewardQuery {
-	return &RewardQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeReward},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a Reward entity by its id.
-func (c *RewardClient) Get(ctx context.Context, id int) (*Reward, error) {
-	return c.Query().Where(reward.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *RewardClient) GetX(ctx context.Context, id int) *Reward {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *RewardClient) Hooks() []Hook {
-	return c.hooks.Reward
-}
-
-// Interceptors returns the client interceptors.
-func (c *RewardClient) Interceptors() []Interceptor {
-	return c.inters.Reward
-}
-
-func (c *RewardClient) mutate(ctx context.Context, m *RewardMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&RewardCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&RewardUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&RewardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&RewardDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown Reward mutation op: %q", m.Op())
-	}
-}
-
 // UserClient is a client for the User schema.
 type UserClient struct {
 	config
@@ -1338,6 +1450,22 @@ func (c *UserClient) QueryQuestionnaireResponses(u *User) *QuestionnaireResponse
 	return query
 }
 
+// QueryNotifications queries the notifications edge of a User.
+func (c *UserClient) QueryNotifications(u *User) *NotificationQuery {
+	query := (&NotificationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(notification.Table, notification.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.NotificationsTable, user.NotificationsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -1366,11 +1494,11 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Answer, Notification, Price, Question, Questionnaire, QuestionnaireResponse,
-		Reward, User []ent.Hook
+		Answer, MyCard, Notification, Price, Question, Questionnaire,
+		QuestionnaireResponse, User []ent.Hook
 	}
 	inters struct {
-		Answer, Notification, Price, Question, Questionnaire, QuestionnaireResponse,
-		Reward, User []ent.Interceptor
+		Answer, MyCard, Notification, Price, Question, Questionnaire,
+		QuestionnaireResponse, User []ent.Interceptor
 	}
 )

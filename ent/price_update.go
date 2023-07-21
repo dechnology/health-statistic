@@ -10,12 +10,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
 	"github.com/eesoymilk/health-statistic-api/ent/price"
+	"github.com/eesoymilk/health-statistic-api/ent/user"
 )
 
 // PriceUpdate is the builder for updating Price entities.
@@ -31,9 +34,116 @@ func (pu *PriceUpdate) Where(ps ...predicate.Price) *PriceUpdate {
 	return pu
 }
 
+// SetName sets the "name" field.
+func (pu *PriceUpdate) SetName(s string) *PriceUpdate {
+	pu.mutation.SetName(s)
+	return pu
+}
+
+// SetDescription sets the "description" field.
+func (pu *PriceUpdate) SetDescription(s string) *PriceUpdate {
+	pu.mutation.SetDescription(s)
+	return pu
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (pu *PriceUpdate) SetCreatedAt(t time.Time) *PriceUpdate {
+	pu.mutation.SetCreatedAt(t)
+	return pu
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (pu *PriceUpdate) SetNillableCreatedAt(t *time.Time) *PriceUpdate {
+	if t != nil {
+		pu.SetCreatedAt(*t)
+	}
+	return pu
+}
+
+// SetTakenAt sets the "taken_at" field.
+func (pu *PriceUpdate) SetTakenAt(t time.Time) *PriceUpdate {
+	pu.mutation.SetTakenAt(t)
+	return pu
+}
+
+// SetNillableTakenAt sets the "taken_at" field if the given value is not nil.
+func (pu *PriceUpdate) SetNillableTakenAt(t *time.Time) *PriceUpdate {
+	if t != nil {
+		pu.SetTakenAt(*t)
+	}
+	return pu
+}
+
+// ClearTakenAt clears the value of the "taken_at" field.
+func (pu *PriceUpdate) ClearTakenAt() *PriceUpdate {
+	pu.mutation.ClearTakenAt()
+	return pu
+}
+
+// SetRecipientID sets the "recipient" edge to the User entity by ID.
+func (pu *PriceUpdate) SetRecipientID(id string) *PriceUpdate {
+	pu.mutation.SetRecipientID(id)
+	return pu
+}
+
+// SetNillableRecipientID sets the "recipient" edge to the User entity by ID if the given value is not nil.
+func (pu *PriceUpdate) SetNillableRecipientID(id *string) *PriceUpdate {
+	if id != nil {
+		pu = pu.SetRecipientID(*id)
+	}
+	return pu
+}
+
+// SetRecipient sets the "recipient" edge to the User entity.
+func (pu *PriceUpdate) SetRecipient(u *User) *PriceUpdate {
+	return pu.SetRecipientID(u.ID)
+}
+
+// AddNotificationIDs adds the "notifications" edge to the Notification entity by IDs.
+func (pu *PriceUpdate) AddNotificationIDs(ids ...int) *PriceUpdate {
+	pu.mutation.AddNotificationIDs(ids...)
+	return pu
+}
+
+// AddNotifications adds the "notifications" edges to the Notification entity.
+func (pu *PriceUpdate) AddNotifications(n ...*Notification) *PriceUpdate {
+	ids := make([]int, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
+	}
+	return pu.AddNotificationIDs(ids...)
+}
+
 // Mutation returns the PriceMutation object of the builder.
 func (pu *PriceUpdate) Mutation() *PriceMutation {
 	return pu.mutation
+}
+
+// ClearRecipient clears the "recipient" edge to the User entity.
+func (pu *PriceUpdate) ClearRecipient() *PriceUpdate {
+	pu.mutation.ClearRecipient()
+	return pu
+}
+
+// ClearNotifications clears all "notifications" edges to the Notification entity.
+func (pu *PriceUpdate) ClearNotifications() *PriceUpdate {
+	pu.mutation.ClearNotifications()
+	return pu
+}
+
+// RemoveNotificationIDs removes the "notifications" edge to Notification entities by IDs.
+func (pu *PriceUpdate) RemoveNotificationIDs(ids ...int) *PriceUpdate {
+	pu.mutation.RemoveNotificationIDs(ids...)
+	return pu
+}
+
+// RemoveNotifications removes "notifications" edges to Notification entities.
+func (pu *PriceUpdate) RemoveNotifications(n ...*Notification) *PriceUpdate {
+	ids := make([]int, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
+	}
+	return pu.RemoveNotificationIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -72,6 +182,95 @@ func (pu *PriceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := pu.mutation.Name(); ok {
+		_spec.SetField(price.FieldName, field.TypeString, value)
+	}
+	if value, ok := pu.mutation.Description(); ok {
+		_spec.SetField(price.FieldDescription, field.TypeString, value)
+	}
+	if value, ok := pu.mutation.CreatedAt(); ok {
+		_spec.SetField(price.FieldCreatedAt, field.TypeTime, value)
+	}
+	if value, ok := pu.mutation.TakenAt(); ok {
+		_spec.SetField(price.FieldTakenAt, field.TypeTime, value)
+	}
+	if pu.mutation.TakenAtCleared() {
+		_spec.ClearField(price.FieldTakenAt, field.TypeTime)
+	}
+	if pu.mutation.RecipientCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   price.RecipientTable,
+			Columns: []string{price.RecipientColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RecipientIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   price.RecipientTable,
+			Columns: []string{price.RecipientColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if pu.mutation.NotificationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   price.NotificationsTable,
+			Columns: price.NotificationsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RemovedNotificationsIDs(); len(nodes) > 0 && !pu.mutation.NotificationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   price.NotificationsTable,
+			Columns: price.NotificationsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.NotificationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   price.NotificationsTable,
+			Columns: price.NotificationsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{price.Label}
@@ -92,9 +291,116 @@ type PriceUpdateOne struct {
 	mutation *PriceMutation
 }
 
+// SetName sets the "name" field.
+func (puo *PriceUpdateOne) SetName(s string) *PriceUpdateOne {
+	puo.mutation.SetName(s)
+	return puo
+}
+
+// SetDescription sets the "description" field.
+func (puo *PriceUpdateOne) SetDescription(s string) *PriceUpdateOne {
+	puo.mutation.SetDescription(s)
+	return puo
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (puo *PriceUpdateOne) SetCreatedAt(t time.Time) *PriceUpdateOne {
+	puo.mutation.SetCreatedAt(t)
+	return puo
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (puo *PriceUpdateOne) SetNillableCreatedAt(t *time.Time) *PriceUpdateOne {
+	if t != nil {
+		puo.SetCreatedAt(*t)
+	}
+	return puo
+}
+
+// SetTakenAt sets the "taken_at" field.
+func (puo *PriceUpdateOne) SetTakenAt(t time.Time) *PriceUpdateOne {
+	puo.mutation.SetTakenAt(t)
+	return puo
+}
+
+// SetNillableTakenAt sets the "taken_at" field if the given value is not nil.
+func (puo *PriceUpdateOne) SetNillableTakenAt(t *time.Time) *PriceUpdateOne {
+	if t != nil {
+		puo.SetTakenAt(*t)
+	}
+	return puo
+}
+
+// ClearTakenAt clears the value of the "taken_at" field.
+func (puo *PriceUpdateOne) ClearTakenAt() *PriceUpdateOne {
+	puo.mutation.ClearTakenAt()
+	return puo
+}
+
+// SetRecipientID sets the "recipient" edge to the User entity by ID.
+func (puo *PriceUpdateOne) SetRecipientID(id string) *PriceUpdateOne {
+	puo.mutation.SetRecipientID(id)
+	return puo
+}
+
+// SetNillableRecipientID sets the "recipient" edge to the User entity by ID if the given value is not nil.
+func (puo *PriceUpdateOne) SetNillableRecipientID(id *string) *PriceUpdateOne {
+	if id != nil {
+		puo = puo.SetRecipientID(*id)
+	}
+	return puo
+}
+
+// SetRecipient sets the "recipient" edge to the User entity.
+func (puo *PriceUpdateOne) SetRecipient(u *User) *PriceUpdateOne {
+	return puo.SetRecipientID(u.ID)
+}
+
+// AddNotificationIDs adds the "notifications" edge to the Notification entity by IDs.
+func (puo *PriceUpdateOne) AddNotificationIDs(ids ...int) *PriceUpdateOne {
+	puo.mutation.AddNotificationIDs(ids...)
+	return puo
+}
+
+// AddNotifications adds the "notifications" edges to the Notification entity.
+func (puo *PriceUpdateOne) AddNotifications(n ...*Notification) *PriceUpdateOne {
+	ids := make([]int, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
+	}
+	return puo.AddNotificationIDs(ids...)
+}
+
 // Mutation returns the PriceMutation object of the builder.
 func (puo *PriceUpdateOne) Mutation() *PriceMutation {
 	return puo.mutation
+}
+
+// ClearRecipient clears the "recipient" edge to the User entity.
+func (puo *PriceUpdateOne) ClearRecipient() *PriceUpdateOne {
+	puo.mutation.ClearRecipient()
+	return puo
+}
+
+// ClearNotifications clears all "notifications" edges to the Notification entity.
+func (puo *PriceUpdateOne) ClearNotifications() *PriceUpdateOne {
+	puo.mutation.ClearNotifications()
+	return puo
+}
+
+// RemoveNotificationIDs removes the "notifications" edge to Notification entities by IDs.
+func (puo *PriceUpdateOne) RemoveNotificationIDs(ids ...int) *PriceUpdateOne {
+	puo.mutation.RemoveNotificationIDs(ids...)
+	return puo
+}
+
+// RemoveNotifications removes "notifications" edges to Notification entities.
+func (puo *PriceUpdateOne) RemoveNotifications(n ...*Notification) *PriceUpdateOne {
+	ids := make([]int, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
+	}
+	return puo.RemoveNotificationIDs(ids...)
 }
 
 // Where appends a list predicates to the PriceUpdate builder.
@@ -162,6 +468,95 @@ func (puo *PriceUpdateOne) sqlSave(ctx context.Context) (_node *Price, err error
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := puo.mutation.Name(); ok {
+		_spec.SetField(price.FieldName, field.TypeString, value)
+	}
+	if value, ok := puo.mutation.Description(); ok {
+		_spec.SetField(price.FieldDescription, field.TypeString, value)
+	}
+	if value, ok := puo.mutation.CreatedAt(); ok {
+		_spec.SetField(price.FieldCreatedAt, field.TypeTime, value)
+	}
+	if value, ok := puo.mutation.TakenAt(); ok {
+		_spec.SetField(price.FieldTakenAt, field.TypeTime, value)
+	}
+	if puo.mutation.TakenAtCleared() {
+		_spec.ClearField(price.FieldTakenAt, field.TypeTime)
+	}
+	if puo.mutation.RecipientCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   price.RecipientTable,
+			Columns: []string{price.RecipientColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RecipientIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   price.RecipientTable,
+			Columns: []string{price.RecipientColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.NotificationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   price.NotificationsTable,
+			Columns: price.NotificationsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RemovedNotificationsIDs(); len(nodes) > 0 && !puo.mutation.NotificationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   price.NotificationsTable,
+			Columns: price.NotificationsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.NotificationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   price.NotificationsTable,
+			Columns: price.NotificationsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Price{config: puo.config}
 	_spec.Assign = _node.assignValues

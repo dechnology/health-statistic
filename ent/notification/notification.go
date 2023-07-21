@@ -8,6 +8,7 @@ package notification
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -15,14 +16,56 @@ const (
 	Label = "notification"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldSentAt holds the string denoting the sent_at field in the database.
+	FieldSentAt = "sent_at"
+	// FieldReadAt holds the string denoting the read_at field in the database.
+	FieldReadAt = "read_at"
+	// FieldMessage holds the string denoting the message field in the database.
+	FieldMessage = "message"
+	// EdgeRecipient holds the string denoting the recipient edge name in mutations.
+	EdgeRecipient = "recipient"
+	// EdgeMycard holds the string denoting the mycard edge name in mutations.
+	EdgeMycard = "mycard"
+	// EdgePrice holds the string denoting the price edge name in mutations.
+	EdgePrice = "price"
 	// Table holds the table name of the notification in the database.
 	Table = "notifications"
+	// RecipientTable is the table that holds the recipient relation/edge. The primary key declared below.
+	RecipientTable = "user_notifications"
+	// RecipientInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	RecipientInverseTable = "users"
+	// MycardTable is the table that holds the mycard relation/edge. The primary key declared below.
+	MycardTable = "my_card_notifications"
+	// MycardInverseTable is the table name for the MyCard entity.
+	// It exists in this package in order to avoid circular dependency with the "mycard" package.
+	MycardInverseTable = "my_cards"
+	// PriceTable is the table that holds the price relation/edge. The primary key declared below.
+	PriceTable = "price_notifications"
+	// PriceInverseTable is the table name for the Price entity.
+	// It exists in this package in order to avoid circular dependency with the "price" package.
+	PriceInverseTable = "prices"
 )
 
 // Columns holds all SQL columns for notification fields.
 var Columns = []string{
 	FieldID,
+	FieldSentAt,
+	FieldReadAt,
+	FieldMessage,
 }
+
+var (
+	// RecipientPrimaryKey and RecipientColumn2 are the table columns denoting the
+	// primary key for the recipient relation (M2M).
+	RecipientPrimaryKey = []string{"user_id", "notification_id"}
+	// MycardPrimaryKey and MycardColumn2 are the table columns denoting the
+	// primary key for the mycard relation (M2M).
+	MycardPrimaryKey = []string{"my_card_id", "notification_id"}
+	// PricePrimaryKey and PriceColumn2 are the table columns denoting the
+	// primary key for the price relation (M2M).
+	PricePrimaryKey = []string{"price_id", "notification_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -40,4 +83,82 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// BySentAt orders the results by the sent_at field.
+func BySentAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSentAt, opts...).ToFunc()
+}
+
+// ByReadAt orders the results by the read_at field.
+func ByReadAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldReadAt, opts...).ToFunc()
+}
+
+// ByMessage orders the results by the message field.
+func ByMessage(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMessage, opts...).ToFunc()
+}
+
+// ByRecipientCount orders the results by recipient count.
+func ByRecipientCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRecipientStep(), opts...)
+	}
+}
+
+// ByRecipient orders the results by recipient terms.
+func ByRecipient(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRecipientStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByMycardCount orders the results by mycard count.
+func ByMycardCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newMycardStep(), opts...)
+	}
+}
+
+// ByMycard orders the results by mycard terms.
+func ByMycard(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newMycardStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByPriceCount orders the results by price count.
+func ByPriceCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPriceStep(), opts...)
+	}
+}
+
+// ByPrice orders the results by price terms.
+func ByPrice(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPriceStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newRecipientStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RecipientInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, RecipientTable, RecipientPrimaryKey...),
+	)
+}
+func newMycardStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(MycardInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, MycardTable, MycardPrimaryKey...),
+	)
+}
+func newPriceStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PriceInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, PriceTable, PricePrimaryKey...),
+	)
 }

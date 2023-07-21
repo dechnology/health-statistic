@@ -14,6 +14,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
 	"github.com/google/uuid"
@@ -185,6 +186,21 @@ func (uc *UserCreate) AddQuestionnaireResponses(q ...*QuestionnaireResponse) *Us
 		ids[i] = q[i].ID
 	}
 	return uc.AddQuestionnaireResponseIDs(ids...)
+}
+
+// AddNotificationIDs adds the "notifications" edge to the Notification entity by IDs.
+func (uc *UserCreate) AddNotificationIDs(ids ...int) *UserCreate {
+	uc.mutation.AddNotificationIDs(ids...)
+	return uc
+}
+
+// AddNotifications adds the "notifications" edges to the Notification entity.
+func (uc *UserCreate) AddNotifications(n ...*Notification) *UserCreate {
+	ids := make([]int, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
+	}
+	return uc.AddNotificationIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -468,6 +484,22 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(questionnaireresponse.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.NotificationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.NotificationsTable,
+			Columns: user.NotificationsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

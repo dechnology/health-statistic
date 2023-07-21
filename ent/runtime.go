@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/eesoymilk/health-statistic-api/ent/answer"
+	"github.com/eesoymilk/health-statistic-api/ent/mycard"
+	"github.com/eesoymilk/health-statistic-api/ent/price"
 	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaire"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
@@ -32,6 +34,54 @@ func init() {
 	answerDescID := answerFields[0].Descriptor()
 	// answer.DefaultID holds the default value on creation for the id field.
 	answer.DefaultID = answerDescID.Default.(func() uuid.UUID)
+	mycardFields := schema.MyCard{}.Fields()
+	_ = mycardFields
+	// mycardDescCardNumber is the schema descriptor for card_number field.
+	mycardDescCardNumber := mycardFields[0].Descriptor()
+	// mycard.CardNumberValidator is a validator for the "card_number" field. It is called by the builders before save.
+	mycard.CardNumberValidator = func() func(string) error {
+		validators := mycardDescCardNumber.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(card_number string) error {
+			for _, fn := range fns {
+				if err := fn(card_number); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// mycardDescCardPassword is the schema descriptor for card_password field.
+	mycardDescCardPassword := mycardFields[1].Descriptor()
+	// mycard.CardPasswordValidator is a validator for the "card_password" field. It is called by the builders before save.
+	mycard.CardPasswordValidator = func() func(string) error {
+		validators := mycardDescCardPassword.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(card_password string) error {
+			for _, fn := range fns {
+				if err := fn(card_password); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// mycardDescCreatedAt is the schema descriptor for created_at field.
+	mycardDescCreatedAt := mycardFields[2].Descriptor()
+	// mycard.DefaultCreatedAt holds the default value on creation for the created_at field.
+	mycard.DefaultCreatedAt = mycardDescCreatedAt.Default.(func() time.Time)
+	priceFields := schema.Price{}.Fields()
+	_ = priceFields
+	// priceDescCreatedAt is the schema descriptor for created_at field.
+	priceDescCreatedAt := priceFields[2].Descriptor()
+	// price.DefaultCreatedAt holds the default value on creation for the created_at field.
+	price.DefaultCreatedAt = priceDescCreatedAt.Default.(func() time.Time)
 	questionFields := schema.Question{}.Fields()
 	_ = questionFields
 	// questionDescID is the schema descriptor for id field.

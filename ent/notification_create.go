@@ -8,11 +8,16 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
+	"github.com/eesoymilk/health-statistic-api/ent/price"
+	"github.com/eesoymilk/health-statistic-api/ent/user"
 )
 
 // NotificationCreate is the builder for creating a Notification entity.
@@ -20,6 +25,85 @@ type NotificationCreate struct {
 	config
 	mutation *NotificationMutation
 	hooks    []Hook
+}
+
+// SetSentAt sets the "sent_at" field.
+func (nc *NotificationCreate) SetSentAt(t time.Time) *NotificationCreate {
+	nc.mutation.SetSentAt(t)
+	return nc
+}
+
+// SetNillableSentAt sets the "sent_at" field if the given value is not nil.
+func (nc *NotificationCreate) SetNillableSentAt(t *time.Time) *NotificationCreate {
+	if t != nil {
+		nc.SetSentAt(*t)
+	}
+	return nc
+}
+
+// SetReadAt sets the "read_at" field.
+func (nc *NotificationCreate) SetReadAt(t time.Time) *NotificationCreate {
+	nc.mutation.SetReadAt(t)
+	return nc
+}
+
+// SetNillableReadAt sets the "read_at" field if the given value is not nil.
+func (nc *NotificationCreate) SetNillableReadAt(t *time.Time) *NotificationCreate {
+	if t != nil {
+		nc.SetReadAt(*t)
+	}
+	return nc
+}
+
+// SetMessage sets the "message" field.
+func (nc *NotificationCreate) SetMessage(s string) *NotificationCreate {
+	nc.mutation.SetMessage(s)
+	return nc
+}
+
+// AddRecipientIDs adds the "recipient" edge to the User entity by IDs.
+func (nc *NotificationCreate) AddRecipientIDs(ids ...string) *NotificationCreate {
+	nc.mutation.AddRecipientIDs(ids...)
+	return nc
+}
+
+// AddRecipient adds the "recipient" edges to the User entity.
+func (nc *NotificationCreate) AddRecipient(u ...*User) *NotificationCreate {
+	ids := make([]string, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return nc.AddRecipientIDs(ids...)
+}
+
+// AddMycardIDs adds the "mycard" edge to the MyCard entity by IDs.
+func (nc *NotificationCreate) AddMycardIDs(ids ...int) *NotificationCreate {
+	nc.mutation.AddMycardIDs(ids...)
+	return nc
+}
+
+// AddMycard adds the "mycard" edges to the MyCard entity.
+func (nc *NotificationCreate) AddMycard(m ...*MyCard) *NotificationCreate {
+	ids := make([]int, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return nc.AddMycardIDs(ids...)
+}
+
+// AddPriceIDs adds the "price" edge to the Price entity by IDs.
+func (nc *NotificationCreate) AddPriceIDs(ids ...int) *NotificationCreate {
+	nc.mutation.AddPriceIDs(ids...)
+	return nc
+}
+
+// AddPrice adds the "price" edges to the Price entity.
+func (nc *NotificationCreate) AddPrice(p ...*Price) *NotificationCreate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return nc.AddPriceIDs(ids...)
 }
 
 // Mutation returns the NotificationMutation object of the builder.
@@ -56,6 +140,9 @@ func (nc *NotificationCreate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (nc *NotificationCreate) check() error {
+	if _, ok := nc.mutation.Message(); !ok {
+		return &ValidationError{Name: "message", err: errors.New(`ent: missing required field "Notification.message"`)}
+	}
 	return nil
 }
 
@@ -82,6 +169,66 @@ func (nc *NotificationCreate) createSpec() (*Notification, *sqlgraph.CreateSpec)
 		_node = &Notification{config: nc.config}
 		_spec = sqlgraph.NewCreateSpec(notification.Table, sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt))
 	)
+	if value, ok := nc.mutation.SentAt(); ok {
+		_spec.SetField(notification.FieldSentAt, field.TypeTime, value)
+		_node.SentAt = value
+	}
+	if value, ok := nc.mutation.ReadAt(); ok {
+		_spec.SetField(notification.FieldReadAt, field.TypeTime, value)
+		_node.ReadAt = value
+	}
+	if value, ok := nc.mutation.Message(); ok {
+		_spec.SetField(notification.FieldMessage, field.TypeString, value)
+		_node.Message = value
+	}
+	if nodes := nc.mutation.RecipientIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   notification.RecipientTable,
+			Columns: notification.RecipientPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := nc.mutation.MycardIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   notification.MycardTable,
+			Columns: notification.MycardPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(mycard.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := nc.mutation.PriceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   notification.PriceTable,
+			Columns: notification.PricePrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(price.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
 }
 

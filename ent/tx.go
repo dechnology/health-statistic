@@ -18,6 +18,8 @@ type Tx struct {
 	config
 	// Answer is the client for interacting with the Answer builders.
 	Answer *AnswerClient
+	// MyCard is the client for interacting with the MyCard builders.
+	MyCard *MyCardClient
 	// Notification is the client for interacting with the Notification builders.
 	Notification *NotificationClient
 	// Price is the client for interacting with the Price builders.
@@ -28,8 +30,6 @@ type Tx struct {
 	Questionnaire *QuestionnaireClient
 	// QuestionnaireResponse is the client for interacting with the QuestionnaireResponse builders.
 	QuestionnaireResponse *QuestionnaireResponseClient
-	// Reward is the client for interacting with the Reward builders.
-	Reward *RewardClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 
@@ -164,12 +164,12 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Answer = NewAnswerClient(tx.config)
+	tx.MyCard = NewMyCardClient(tx.config)
 	tx.Notification = NewNotificationClient(tx.config)
 	tx.Price = NewPriceClient(tx.config)
 	tx.Question = NewQuestionClient(tx.config)
 	tx.Questionnaire = NewQuestionnaireClient(tx.config)
 	tx.QuestionnaireResponse = NewQuestionnaireResponseClient(tx.config)
-	tx.Reward = NewRewardClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }
 

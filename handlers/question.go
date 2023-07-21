@@ -12,7 +12,7 @@ import (
 //	@Description.markdown	questions.get
 //	@Tags					Question
 //	@Produce				json
-//	@Success				200	{object}	[]Question
+//	@Success				200	{object}	[]types.QuestionWithQuestionnaire
 //	@Router					/questions [get]
 func (h *QuestionHandler) GetQuestions(c *gin.Context) {
 	questions, err := h.DB.Question.
@@ -21,7 +21,10 @@ func (h *QuestionHandler) GetQuestions(c *gin.Context) {
 		All(c.Request.Context())
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(
+			http.StatusInternalServerError,
+			gin.H{"error": err.Error()},
+		)
 		return
 	}
 
@@ -33,7 +36,7 @@ func (h *QuestionHandler) GetQuestions(c *gin.Context) {
 //	@Tags					Question
 //	@Produce				json
 //	@Param					id	path		string	true	"The question's ID"
-//	@Success				200	{object}	Question
+//	@Success				200	{object}	types.QuestionWithQuestionnaire
 //	@Router					/questions/{id} [get]
 func (h *QuestionHandler) GetQuestion(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
@@ -68,12 +71,18 @@ func (h *QuestionHandler) DeleteQuestion(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(
+			http.StatusInternalServerError,
+			gin.H{"error": err.Error()},
+		)
 		return
 	}
 
 	if err := h.DB.Question.DeleteOneID(id).Exec(c.Request.Context()); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(
+			http.StatusInternalServerError,
+			gin.H{"error": err.Error()},
+		)
 		return
 	}
 

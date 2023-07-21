@@ -14,32 +14,32 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/eesoymilk/health-statistic-api/ent/price"
+	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
 )
 
-// Price is the model entity for the Price schema.
-type Price struct {
+// MyCard is the model entity for the MyCard schema.
+type MyCard struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// Name holds the value of the "name" field.
-	Name string `json:"name,omitempty"`
-	// Description holds the value of the "description" field.
-	Description string `json:"description,omitempty"`
+	// CardNumber holds the value of the "card_number" field.
+	CardNumber string `json:"card_number,omitempty"`
+	// CardPassword holds the value of the "card_password" field.
+	CardPassword string `json:"card_password,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// TakenAt holds the value of the "taken_at" field.
 	TakenAt time.Time `json:"taken_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the PriceQuery when eager-loading is set.
-	Edges           PriceEdges `json:"-"`
-	price_recipient *string
-	selectValues    sql.SelectValues
+	// The values are being populated by the MyCardQuery when eager-loading is set.
+	Edges             MyCardEdges `json:"-"`
+	my_card_recipient *string
+	selectValues      sql.SelectValues
 }
 
-// PriceEdges holds the relations/edges for other nodes in the graph.
-type PriceEdges struct {
+// MyCardEdges holds the relations/edges for other nodes in the graph.
+type MyCardEdges struct {
 	// Recipient holds the value of the recipient edge.
 	Recipient *User `json:"recipient,omitempty"`
 	// Notifications holds the value of the notifications edge.
@@ -51,7 +51,7 @@ type PriceEdges struct {
 
 // RecipientOrErr returns the Recipient value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e PriceEdges) RecipientOrErr() (*User, error) {
+func (e MyCardEdges) RecipientOrErr() (*User, error) {
 	if e.loadedTypes[0] {
 		if e.Recipient == nil {
 			// Edge was loaded but was not found.
@@ -64,7 +64,7 @@ func (e PriceEdges) RecipientOrErr() (*User, error) {
 
 // NotificationsOrErr returns the Notifications value or an error if the edge
 // was not loaded in eager-loading.
-func (e PriceEdges) NotificationsOrErr() ([]*Notification, error) {
+func (e MyCardEdges) NotificationsOrErr() ([]*Notification, error) {
 	if e.loadedTypes[1] {
 		return e.Notifications, nil
 	}
@@ -72,17 +72,17 @@ func (e PriceEdges) NotificationsOrErr() ([]*Notification, error) {
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*Price) scanValues(columns []string) ([]any, error) {
+func (*MyCard) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case price.FieldID:
+		case mycard.FieldID:
 			values[i] = new(sql.NullInt64)
-		case price.FieldName, price.FieldDescription:
+		case mycard.FieldCardNumber, mycard.FieldCardPassword:
 			values[i] = new(sql.NullString)
-		case price.FieldCreatedAt, price.FieldTakenAt:
+		case mycard.FieldCreatedAt, mycard.FieldTakenAt:
 			values[i] = new(sql.NullTime)
-		case price.ForeignKeys[0]: // price_recipient
+		case mycard.ForeignKeys[0]: // my_card_recipient
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -92,122 +92,122 @@ func (*Price) scanValues(columns []string) ([]any, error) {
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the Price fields.
-func (pr *Price) assignValues(columns []string, values []any) error {
+// to the MyCard fields.
+func (mc *MyCard) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	for i := range columns {
 		switch columns[i] {
-		case price.FieldID:
+		case mycard.FieldID:
 			value, ok := values[i].(*sql.NullInt64)
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			pr.ID = int(value.Int64)
-		case price.FieldName:
+			mc.ID = int(value.Int64)
+		case mycard.FieldCardNumber:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field name", values[i])
+				return fmt.Errorf("unexpected type %T for field card_number", values[i])
 			} else if value.Valid {
-				pr.Name = value.String
+				mc.CardNumber = value.String
 			}
-		case price.FieldDescription:
+		case mycard.FieldCardPassword:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field description", values[i])
+				return fmt.Errorf("unexpected type %T for field card_password", values[i])
 			} else if value.Valid {
-				pr.Description = value.String
+				mc.CardPassword = value.String
 			}
-		case price.FieldCreatedAt:
+		case mycard.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
-				pr.CreatedAt = value.Time
+				mc.CreatedAt = value.Time
 			}
-		case price.FieldTakenAt:
+		case mycard.FieldTakenAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field taken_at", values[i])
 			} else if value.Valid {
-				pr.TakenAt = value.Time
+				mc.TakenAt = value.Time
 			}
-		case price.ForeignKeys[0]:
+		case mycard.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field price_recipient", values[i])
+				return fmt.Errorf("unexpected type %T for field my_card_recipient", values[i])
 			} else if value.Valid {
-				pr.price_recipient = new(string)
-				*pr.price_recipient = value.String
+				mc.my_card_recipient = new(string)
+				*mc.my_card_recipient = value.String
 			}
 		default:
-			pr.selectValues.Set(columns[i], values[i])
+			mc.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
 }
 
-// Value returns the ent.Value that was dynamically selected and assigned to the Price.
+// Value returns the ent.Value that was dynamically selected and assigned to the MyCard.
 // This includes values selected through modifiers, order, etc.
-func (pr *Price) Value(name string) (ent.Value, error) {
-	return pr.selectValues.Get(name)
+func (mc *MyCard) Value(name string) (ent.Value, error) {
+	return mc.selectValues.Get(name)
 }
 
-// QueryRecipient queries the "recipient" edge of the Price entity.
-func (pr *Price) QueryRecipient() *UserQuery {
-	return NewPriceClient(pr.config).QueryRecipient(pr)
+// QueryRecipient queries the "recipient" edge of the MyCard entity.
+func (mc *MyCard) QueryRecipient() *UserQuery {
+	return NewMyCardClient(mc.config).QueryRecipient(mc)
 }
 
-// QueryNotifications queries the "notifications" edge of the Price entity.
-func (pr *Price) QueryNotifications() *NotificationQuery {
-	return NewPriceClient(pr.config).QueryNotifications(pr)
+// QueryNotifications queries the "notifications" edge of the MyCard entity.
+func (mc *MyCard) QueryNotifications() *NotificationQuery {
+	return NewMyCardClient(mc.config).QueryNotifications(mc)
 }
 
-// Update returns a builder for updating this Price.
-// Note that you need to call Price.Unwrap() before calling this method if this Price
+// Update returns a builder for updating this MyCard.
+// Note that you need to call MyCard.Unwrap() before calling this method if this MyCard
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (pr *Price) Update() *PriceUpdateOne {
-	return NewPriceClient(pr.config).UpdateOne(pr)
+func (mc *MyCard) Update() *MyCardUpdateOne {
+	return NewMyCardClient(mc.config).UpdateOne(mc)
 }
 
-// Unwrap unwraps the Price entity that was returned from a transaction after it was closed,
+// Unwrap unwraps the MyCard entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (pr *Price) Unwrap() *Price {
-	_tx, ok := pr.config.driver.(*txDriver)
+func (mc *MyCard) Unwrap() *MyCard {
+	_tx, ok := mc.config.driver.(*txDriver)
 	if !ok {
-		panic("ent: Price is not a transactional entity")
+		panic("ent: MyCard is not a transactional entity")
 	}
-	pr.config.driver = _tx.drv
-	return pr
+	mc.config.driver = _tx.drv
+	return mc
 }
 
 // String implements the fmt.Stringer.
-func (pr *Price) String() string {
+func (mc *MyCard) String() string {
 	var builder strings.Builder
-	builder.WriteString("Price(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", pr.ID))
-	builder.WriteString("name=")
-	builder.WriteString(pr.Name)
+	builder.WriteString("MyCard(")
+	builder.WriteString(fmt.Sprintf("id=%v, ", mc.ID))
+	builder.WriteString("card_number=")
+	builder.WriteString(mc.CardNumber)
 	builder.WriteString(", ")
-	builder.WriteString("description=")
-	builder.WriteString(pr.Description)
+	builder.WriteString("card_password=")
+	builder.WriteString(mc.CardPassword)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
-	builder.WriteString(pr.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(mc.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("taken_at=")
-	builder.WriteString(pr.TakenAt.Format(time.ANSIC))
+	builder.WriteString(mc.TakenAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }
 
 // MarshalJSON implements the json.Marshaler interface.
-func (pr *Price) MarshalJSON() ([]byte, error) {
-	type Alias Price
+func (mc *MyCard) MarshalJSON() ([]byte, error) {
+	type Alias MyCard
 	return json.Marshal(&struct {
 		*Alias
-		PriceEdges
+		MyCardEdges
 	}{
-		Alias:      (*Alias)(pr),
-		PriceEdges: pr.Edges,
+		Alias:       (*Alias)(mc),
+		MyCardEdges: mc.Edges,
 	})
 }
 
-// Prices is a parsable slice of Price.
-type Prices []*Price
+// MyCards is a parsable slice of MyCard.
+type MyCards []*MyCard

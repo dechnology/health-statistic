@@ -17,12 +17,12 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/eesoymilk/health-statistic-api/ent/answer"
+	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/price"
 	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaire"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
-	"github.com/eesoymilk/health-statistic-api/ent/reward"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
 )
 
@@ -85,12 +85,12 @@ func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			answer.Table:                answer.ValidColumn,
+			mycard.Table:                mycard.ValidColumn,
 			notification.Table:          notification.ValidColumn,
 			price.Table:                 price.ValidColumn,
 			question.Table:              question.ValidColumn,
 			questionnaire.Table:         questionnaire.ValidColumn,
 			questionnaireresponse.Table: questionnaireresponse.ValidColumn,
-			reward.Table:                reward.ValidColumn,
 			user.Table:                  user.ValidColumn,
 		})
 	})

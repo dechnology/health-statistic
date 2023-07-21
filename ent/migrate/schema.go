@@ -40,9 +40,35 @@ var (
 			},
 		},
 	}
+	// MyCardsColumns holds the columns for the "my_cards" table.
+	MyCardsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "card_number", Type: field.TypeString, Size: 12},
+		{Name: "card_password", Type: field.TypeString, Size: 12},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "taken_at", Type: field.TypeTime, Nullable: true},
+		{Name: "my_card_recipient", Type: field.TypeString, Nullable: true},
+	}
+	// MyCardsTable holds the schema information for the "my_cards" table.
+	MyCardsTable = &schema.Table{
+		Name:       "my_cards",
+		Columns:    MyCardsColumns,
+		PrimaryKey: []*schema.Column{MyCardsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "my_cards_users_recipient",
+				Columns:    []*schema.Column{MyCardsColumns[5]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// NotificationsColumns holds the columns for the "notifications" table.
 	NotificationsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "sent_at", Type: field.TypeTime, Nullable: true},
+		{Name: "read_at", Type: field.TypeTime, Nullable: true},
+		{Name: "message", Type: field.TypeString, Size: 2147483647},
 	}
 	// NotificationsTable holds the schema information for the "notifications" table.
 	NotificationsTable = &schema.Table{
@@ -53,12 +79,25 @@ var (
 	// PricesColumns holds the columns for the "prices" table.
 	PricesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "taken_at", Type: field.TypeTime, Nullable: true},
+		{Name: "price_recipient", Type: field.TypeString, Nullable: true},
 	}
 	// PricesTable holds the schema information for the "prices" table.
 	PricesTable = &schema.Table{
 		Name:       "prices",
 		Columns:    PricesColumns,
 		PrimaryKey: []*schema.Column{PricesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "prices_users_recipient",
+				Columns:    []*schema.Column{PricesColumns[5]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// QuestionsColumns holds the columns for the "questions" table.
 	QuestionsColumns = []*schema.Column{
@@ -120,16 +159,6 @@ var (
 			},
 		},
 	}
-	// RewardsColumns holds the columns for the "rewards" table.
-	RewardsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-	}
-	// RewardsTable holds the schema information for the "rewards" table.
-	RewardsTable = &schema.Table{
-		Name:       "rewards",
-		Columns:    RewardsColumns,
-		PrimaryKey: []*schema.Column{RewardsColumns[0]},
-	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -158,23 +187,109 @@ var (
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
+	// MyCardNotificationsColumns holds the columns for the "my_card_notifications" table.
+	MyCardNotificationsColumns = []*schema.Column{
+		{Name: "my_card_id", Type: field.TypeInt},
+		{Name: "notification_id", Type: field.TypeInt},
+	}
+	// MyCardNotificationsTable holds the schema information for the "my_card_notifications" table.
+	MyCardNotificationsTable = &schema.Table{
+		Name:       "my_card_notifications",
+		Columns:    MyCardNotificationsColumns,
+		PrimaryKey: []*schema.Column{MyCardNotificationsColumns[0], MyCardNotificationsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "my_card_notifications_my_card_id",
+				Columns:    []*schema.Column{MyCardNotificationsColumns[0]},
+				RefColumns: []*schema.Column{MyCardsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "my_card_notifications_notification_id",
+				Columns:    []*schema.Column{MyCardNotificationsColumns[1]},
+				RefColumns: []*schema.Column{NotificationsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// PriceNotificationsColumns holds the columns for the "price_notifications" table.
+	PriceNotificationsColumns = []*schema.Column{
+		{Name: "price_id", Type: field.TypeInt},
+		{Name: "notification_id", Type: field.TypeInt},
+	}
+	// PriceNotificationsTable holds the schema information for the "price_notifications" table.
+	PriceNotificationsTable = &schema.Table{
+		Name:       "price_notifications",
+		Columns:    PriceNotificationsColumns,
+		PrimaryKey: []*schema.Column{PriceNotificationsColumns[0], PriceNotificationsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "price_notifications_price_id",
+				Columns:    []*schema.Column{PriceNotificationsColumns[0]},
+				RefColumns: []*schema.Column{PricesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "price_notifications_notification_id",
+				Columns:    []*schema.Column{PriceNotificationsColumns[1]},
+				RefColumns: []*schema.Column{NotificationsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// UserNotificationsColumns holds the columns for the "user_notifications" table.
+	UserNotificationsColumns = []*schema.Column{
+		{Name: "user_id", Type: field.TypeString},
+		{Name: "notification_id", Type: field.TypeInt},
+	}
+	// UserNotificationsTable holds the schema information for the "user_notifications" table.
+	UserNotificationsTable = &schema.Table{
+		Name:       "user_notifications",
+		Columns:    UserNotificationsColumns,
+		PrimaryKey: []*schema.Column{UserNotificationsColumns[0], UserNotificationsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_notifications_user_id",
+				Columns:    []*schema.Column{UserNotificationsColumns[0]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "user_notifications_notification_id",
+				Columns:    []*schema.Column{UserNotificationsColumns[1]},
+				RefColumns: []*schema.Column{NotificationsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AnswersTable,
+		MyCardsTable,
 		NotificationsTable,
 		PricesTable,
 		QuestionsTable,
 		QuestionnairesTable,
 		QuestionnaireResponsesTable,
-		RewardsTable,
 		UsersTable,
+		MyCardNotificationsTable,
+		PriceNotificationsTable,
+		UserNotificationsTable,
 	}
 )
 
 func init() {
 	AnswersTable.ForeignKeys[0].RefTable = QuestionsTable
 	AnswersTable.ForeignKeys[1].RefTable = QuestionnaireResponsesTable
+	MyCardsTable.ForeignKeys[0].RefTable = UsersTable
+	PricesTable.ForeignKeys[0].RefTable = UsersTable
 	QuestionsTable.ForeignKeys[0].RefTable = QuestionnairesTable
 	QuestionnaireResponsesTable.ForeignKeys[0].RefTable = QuestionnairesTable
 	QuestionnaireResponsesTable.ForeignKeys[1].RefTable = UsersTable
+	MyCardNotificationsTable.ForeignKeys[0].RefTable = MyCardsTable
+	MyCardNotificationsTable.ForeignKeys[1].RefTable = NotificationsTable
+	PriceNotificationsTable.ForeignKeys[0].RefTable = PricesTable
+	PriceNotificationsTable.ForeignKeys[1].RefTable = NotificationsTable
+	UserNotificationsTable.ForeignKeys[0].RefTable = UsersTable
+	UserNotificationsTable.ForeignKeys[1].RefTable = NotificationsTable
 }

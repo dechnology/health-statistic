@@ -7,7 +7,10 @@
 package notification
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
 )
 
@@ -54,6 +57,255 @@ func IDLT(id int) predicate.Notification {
 // IDLTE applies the LTE predicate on the ID field.
 func IDLTE(id int) predicate.Notification {
 	return predicate.Notification(sql.FieldLTE(FieldID, id))
+}
+
+// SentAt applies equality check predicate on the "sent_at" field. It's identical to SentAtEQ.
+func SentAt(v time.Time) predicate.Notification {
+	return predicate.Notification(sql.FieldEQ(FieldSentAt, v))
+}
+
+// ReadAt applies equality check predicate on the "read_at" field. It's identical to ReadAtEQ.
+func ReadAt(v time.Time) predicate.Notification {
+	return predicate.Notification(sql.FieldEQ(FieldReadAt, v))
+}
+
+// Message applies equality check predicate on the "message" field. It's identical to MessageEQ.
+func Message(v string) predicate.Notification {
+	return predicate.Notification(sql.FieldEQ(FieldMessage, v))
+}
+
+// SentAtEQ applies the EQ predicate on the "sent_at" field.
+func SentAtEQ(v time.Time) predicate.Notification {
+	return predicate.Notification(sql.FieldEQ(FieldSentAt, v))
+}
+
+// SentAtNEQ applies the NEQ predicate on the "sent_at" field.
+func SentAtNEQ(v time.Time) predicate.Notification {
+	return predicate.Notification(sql.FieldNEQ(FieldSentAt, v))
+}
+
+// SentAtIn applies the In predicate on the "sent_at" field.
+func SentAtIn(vs ...time.Time) predicate.Notification {
+	return predicate.Notification(sql.FieldIn(FieldSentAt, vs...))
+}
+
+// SentAtNotIn applies the NotIn predicate on the "sent_at" field.
+func SentAtNotIn(vs ...time.Time) predicate.Notification {
+	return predicate.Notification(sql.FieldNotIn(FieldSentAt, vs...))
+}
+
+// SentAtGT applies the GT predicate on the "sent_at" field.
+func SentAtGT(v time.Time) predicate.Notification {
+	return predicate.Notification(sql.FieldGT(FieldSentAt, v))
+}
+
+// SentAtGTE applies the GTE predicate on the "sent_at" field.
+func SentAtGTE(v time.Time) predicate.Notification {
+	return predicate.Notification(sql.FieldGTE(FieldSentAt, v))
+}
+
+// SentAtLT applies the LT predicate on the "sent_at" field.
+func SentAtLT(v time.Time) predicate.Notification {
+	return predicate.Notification(sql.FieldLT(FieldSentAt, v))
+}
+
+// SentAtLTE applies the LTE predicate on the "sent_at" field.
+func SentAtLTE(v time.Time) predicate.Notification {
+	return predicate.Notification(sql.FieldLTE(FieldSentAt, v))
+}
+
+// SentAtIsNil applies the IsNil predicate on the "sent_at" field.
+func SentAtIsNil() predicate.Notification {
+	return predicate.Notification(sql.FieldIsNull(FieldSentAt))
+}
+
+// SentAtNotNil applies the NotNil predicate on the "sent_at" field.
+func SentAtNotNil() predicate.Notification {
+	return predicate.Notification(sql.FieldNotNull(FieldSentAt))
+}
+
+// ReadAtEQ applies the EQ predicate on the "read_at" field.
+func ReadAtEQ(v time.Time) predicate.Notification {
+	return predicate.Notification(sql.FieldEQ(FieldReadAt, v))
+}
+
+// ReadAtNEQ applies the NEQ predicate on the "read_at" field.
+func ReadAtNEQ(v time.Time) predicate.Notification {
+	return predicate.Notification(sql.FieldNEQ(FieldReadAt, v))
+}
+
+// ReadAtIn applies the In predicate on the "read_at" field.
+func ReadAtIn(vs ...time.Time) predicate.Notification {
+	return predicate.Notification(sql.FieldIn(FieldReadAt, vs...))
+}
+
+// ReadAtNotIn applies the NotIn predicate on the "read_at" field.
+func ReadAtNotIn(vs ...time.Time) predicate.Notification {
+	return predicate.Notification(sql.FieldNotIn(FieldReadAt, vs...))
+}
+
+// ReadAtGT applies the GT predicate on the "read_at" field.
+func ReadAtGT(v time.Time) predicate.Notification {
+	return predicate.Notification(sql.FieldGT(FieldReadAt, v))
+}
+
+// ReadAtGTE applies the GTE predicate on the "read_at" field.
+func ReadAtGTE(v time.Time) predicate.Notification {
+	return predicate.Notification(sql.FieldGTE(FieldReadAt, v))
+}
+
+// ReadAtLT applies the LT predicate on the "read_at" field.
+func ReadAtLT(v time.Time) predicate.Notification {
+	return predicate.Notification(sql.FieldLT(FieldReadAt, v))
+}
+
+// ReadAtLTE applies the LTE predicate on the "read_at" field.
+func ReadAtLTE(v time.Time) predicate.Notification {
+	return predicate.Notification(sql.FieldLTE(FieldReadAt, v))
+}
+
+// ReadAtIsNil applies the IsNil predicate on the "read_at" field.
+func ReadAtIsNil() predicate.Notification {
+	return predicate.Notification(sql.FieldIsNull(FieldReadAt))
+}
+
+// ReadAtNotNil applies the NotNil predicate on the "read_at" field.
+func ReadAtNotNil() predicate.Notification {
+	return predicate.Notification(sql.FieldNotNull(FieldReadAt))
+}
+
+// MessageEQ applies the EQ predicate on the "message" field.
+func MessageEQ(v string) predicate.Notification {
+	return predicate.Notification(sql.FieldEQ(FieldMessage, v))
+}
+
+// MessageNEQ applies the NEQ predicate on the "message" field.
+func MessageNEQ(v string) predicate.Notification {
+	return predicate.Notification(sql.FieldNEQ(FieldMessage, v))
+}
+
+// MessageIn applies the In predicate on the "message" field.
+func MessageIn(vs ...string) predicate.Notification {
+	return predicate.Notification(sql.FieldIn(FieldMessage, vs...))
+}
+
+// MessageNotIn applies the NotIn predicate on the "message" field.
+func MessageNotIn(vs ...string) predicate.Notification {
+	return predicate.Notification(sql.FieldNotIn(FieldMessage, vs...))
+}
+
+// MessageGT applies the GT predicate on the "message" field.
+func MessageGT(v string) predicate.Notification {
+	return predicate.Notification(sql.FieldGT(FieldMessage, v))
+}
+
+// MessageGTE applies the GTE predicate on the "message" field.
+func MessageGTE(v string) predicate.Notification {
+	return predicate.Notification(sql.FieldGTE(FieldMessage, v))
+}
+
+// MessageLT applies the LT predicate on the "message" field.
+func MessageLT(v string) predicate.Notification {
+	return predicate.Notification(sql.FieldLT(FieldMessage, v))
+}
+
+// MessageLTE applies the LTE predicate on the "message" field.
+func MessageLTE(v string) predicate.Notification {
+	return predicate.Notification(sql.FieldLTE(FieldMessage, v))
+}
+
+// MessageContains applies the Contains predicate on the "message" field.
+func MessageContains(v string) predicate.Notification {
+	return predicate.Notification(sql.FieldContains(FieldMessage, v))
+}
+
+// MessageHasPrefix applies the HasPrefix predicate on the "message" field.
+func MessageHasPrefix(v string) predicate.Notification {
+	return predicate.Notification(sql.FieldHasPrefix(FieldMessage, v))
+}
+
+// MessageHasSuffix applies the HasSuffix predicate on the "message" field.
+func MessageHasSuffix(v string) predicate.Notification {
+	return predicate.Notification(sql.FieldHasSuffix(FieldMessage, v))
+}
+
+// MessageEqualFold applies the EqualFold predicate on the "message" field.
+func MessageEqualFold(v string) predicate.Notification {
+	return predicate.Notification(sql.FieldEqualFold(FieldMessage, v))
+}
+
+// MessageContainsFold applies the ContainsFold predicate on the "message" field.
+func MessageContainsFold(v string) predicate.Notification {
+	return predicate.Notification(sql.FieldContainsFold(FieldMessage, v))
+}
+
+// HasRecipient applies the HasEdge predicate on the "recipient" edge.
+func HasRecipient() predicate.Notification {
+	return predicate.Notification(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, RecipientTable, RecipientPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRecipientWith applies the HasEdge predicate on the "recipient" edge with a given conditions (other predicates).
+func HasRecipientWith(preds ...predicate.User) predicate.Notification {
+	return predicate.Notification(func(s *sql.Selector) {
+		step := newRecipientStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasMycard applies the HasEdge predicate on the "mycard" edge.
+func HasMycard() predicate.Notification {
+	return predicate.Notification(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, MycardTable, MycardPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasMycardWith applies the HasEdge predicate on the "mycard" edge with a given conditions (other predicates).
+func HasMycardWith(preds ...predicate.MyCard) predicate.Notification {
+	return predicate.Notification(func(s *sql.Selector) {
+		step := newMycardStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPrice applies the HasEdge predicate on the "price" edge.
+func HasPrice() predicate.Notification {
+	return predicate.Notification(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, PriceTable, PricePrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPriceWith applies the HasEdge predicate on the "price" edge with a given conditions (other predicates).
+func HasPriceWith(preds ...predicate.Price) predicate.Notification {
+	return predicate.Notification(func(s *sql.Selector) {
+		step := newPriceStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

@@ -8,23 +8,29 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
 	"github.com/eesoymilk/health-statistic-api/ent/price"
+	"github.com/eesoymilk/health-statistic-api/ent/user"
 )
 
 // PriceQuery is the builder for querying Price entities.
 type PriceQuery struct {
 	config
-	ctx        *QueryContext
-	order      []price.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Price
+	ctx               *QueryContext
+	order             []price.OrderOption
+	inters            []Interceptor
+	predicates        []predicate.Price
+	withRecipient     *UserQuery
+	withNotifications *NotificationQuery
+	withFKs           bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -59,6 +65,50 @@ func (pq *PriceQuery) Unique(unique bool) *PriceQuery {
 func (pq *PriceQuery) Order(o ...price.OrderOption) *PriceQuery {
 	pq.order = append(pq.order, o...)
 	return pq
+}
+
+// QueryRecipient chains the current query on the "recipient" edge.
+func (pq *PriceQuery) QueryRecipient() *UserQuery {
+	query := (&UserClient{config: pq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(price.Table, price.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, price.RecipientTable, price.RecipientColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryNotifications chains the current query on the "notifications" edge.
+func (pq *PriceQuery) QueryNotifications() *NotificationQuery {
+	query := (&NotificationClient{config: pq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(price.Table, price.FieldID, selector),
+			sqlgraph.To(notification.Table, notification.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, price.NotificationsTable, price.NotificationsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Price entity from the query.
@@ -248,19 +298,55 @@ func (pq *PriceQuery) Clone() *PriceQuery {
 		return nil
 	}
 	return &PriceQuery{
-		config:     pq.config,
-		ctx:        pq.ctx.Clone(),
-		order:      append([]price.OrderOption{}, pq.order...),
-		inters:     append([]Interceptor{}, pq.inters...),
-		predicates: append([]predicate.Price{}, pq.predicates...),
+		config:            pq.config,
+		ctx:               pq.ctx.Clone(),
+		order:             append([]price.OrderOption{}, pq.order...),
+		inters:            append([]Interceptor{}, pq.inters...),
+		predicates:        append([]predicate.Price{}, pq.predicates...),
+		withRecipient:     pq.withRecipient.Clone(),
+		withNotifications: pq.withNotifications.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
 		path: pq.path,
 	}
 }
 
+// WithRecipient tells the query-builder to eager-load the nodes that are connected to
+// the "recipient" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *PriceQuery) WithRecipient(opts ...func(*UserQuery)) *PriceQuery {
+	query := (&UserClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withRecipient = query
+	return pq
+}
+
+// WithNotifications tells the query-builder to eager-load the nodes that are connected to
+// the "notifications" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *PriceQuery) WithNotifications(opts ...func(*NotificationQuery)) *PriceQuery {
+	query := (&NotificationClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withNotifications = query
+	return pq
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
+//
+// Example:
+//
+//	var v []struct {
+//		Name string `json:"name,omitempty"`
+//		Count int `json:"count,omitempty"`
+//	}
+//
+//	client.Price.Query().
+//		GroupBy(price.FieldName).
+//		Aggregate(ent.Count()).
+//		Scan(ctx, &v)
 func (pq *PriceQuery) GroupBy(field string, fields ...string) *PriceGroupBy {
 	pq.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &PriceGroupBy{build: pq}
@@ -272,6 +358,16 @@ func (pq *PriceQuery) GroupBy(field string, fields ...string) *PriceGroupBy {
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
+//
+// Example:
+//
+//	var v []struct {
+//		Name string `json:"name,omitempty"`
+//	}
+//
+//	client.Price.Query().
+//		Select(price.FieldName).
+//		Scan(ctx, &v)
 func (pq *PriceQuery) Select(fields ...string) *PriceSelect {
 	pq.ctx.Fields = append(pq.ctx.Fields, fields...)
 	sbuild := &PriceSelect{PriceQuery: pq}
@@ -313,15 +409,27 @@ func (pq *PriceQuery) prepareQuery(ctx context.Context) error {
 
 func (pq *PriceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Price, error) {
 	var (
-		nodes = []*Price{}
-		_spec = pq.querySpec()
+		nodes       = []*Price{}
+		withFKs     = pq.withFKs
+		_spec       = pq.querySpec()
+		loadedTypes = [2]bool{
+			pq.withRecipient != nil,
+			pq.withNotifications != nil,
+		}
 	)
+	if pq.withRecipient != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, price.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Price).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Price{config: pq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -333,7 +441,114 @@ func (pq *PriceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Price,
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := pq.withRecipient; query != nil {
+		if err := pq.loadRecipient(ctx, query, nodes, nil,
+			func(n *Price, e *User) { n.Edges.Recipient = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := pq.withNotifications; query != nil {
+		if err := pq.loadNotifications(ctx, query, nodes,
+			func(n *Price) { n.Edges.Notifications = []*Notification{} },
+			func(n *Price, e *Notification) { n.Edges.Notifications = append(n.Edges.Notifications, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (pq *PriceQuery) loadRecipient(ctx context.Context, query *UserQuery, nodes []*Price, init func(*Price), assign func(*Price, *User)) error {
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*Price)
+	for i := range nodes {
+		if nodes[i].price_recipient == nil {
+			continue
+		}
+		fk := *nodes[i].price_recipient
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "price_recipient" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (pq *PriceQuery) loadNotifications(ctx context.Context, query *NotificationQuery, nodes []*Price, init func(*Price), assign func(*Price, *Notification)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*Price)
+	nids := make(map[int]map[*Price]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(price.NotificationsTable)
+		s.Join(joinT).On(s.C(notification.FieldID), joinT.C(price.NotificationsPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(price.NotificationsPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(price.NotificationsPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Price]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*Notification](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "notifications" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
 }
 
 func (pq *PriceQuery) sqlCount(ctx context.Context) (int, error) {

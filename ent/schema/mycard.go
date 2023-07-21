@@ -8,23 +8,23 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-// Reward holds the schema definition for the Reward entity.
-type Reward struct {
+// MyCard holds the schema definition for the MyCard entity.
+type MyCard struct {
 	ent.Schema
 }
 
-// Fields of the Reward.
-func (Reward) Fields() []ent.Field {
+// Fields of the MyCard.
+func (MyCard) Fields() []ent.Field {
 	return []ent.Field{
-		field.Enum("type").Values("mycard", "line"),
-		field.String("code"),
+		field.String("card_number").MinLen(12).MaxLen(12),
+		field.String("card_password").MinLen(12).MaxLen(12),
 		field.Time("created_at").Default(time.Now),
 		field.Time("taken_at").Optional(),
 	}
 }
 
-// Edges of the Reward.
-func (Reward) Edges() []ent.Edge {
+// Edges of the MyCard.
+func (MyCard) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("recipient", User.Type).
 			Unique(),

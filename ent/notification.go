@@ -7,8 +7,10 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -17,10 +19,59 @@ import (
 
 // Notification is the model entity for the Notification schema.
 type Notification struct {
-	config
+	config `json:"-"`
 	// ID of the ent.
-	ID           int `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
+	// SentAt holds the value of the "sent_at" field.
+	SentAt time.Time `json:"sent_at,omitempty"`
+	// ReadAt holds the value of the "read_at" field.
+	ReadAt time.Time `json:"read_at,omitempty"`
+	// Message holds the value of the "message" field.
+	Message string `json:"message,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the NotificationQuery when eager-loading is set.
+	Edges        NotificationEdges `json:"-"`
 	selectValues sql.SelectValues
+}
+
+// NotificationEdges holds the relations/edges for other nodes in the graph.
+type NotificationEdges struct {
+	// Recipient holds the value of the recipient edge.
+	Recipient []*User `json:"recipient,omitempty"`
+	// Mycard holds the value of the mycard edge.
+	Mycard []*MyCard `json:"mycard,omitempty"`
+	// Price holds the value of the price edge.
+	Price []*Price `json:"price,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [3]bool
+}
+
+// RecipientOrErr returns the Recipient value or an error if the edge
+// was not loaded in eager-loading.
+func (e NotificationEdges) RecipientOrErr() ([]*User, error) {
+	if e.loadedTypes[0] {
+		return e.Recipient, nil
+	}
+	return nil, &NotLoadedError{edge: "recipient"}
+}
+
+// MycardOrErr returns the Mycard value or an error if the edge
+// was not loaded in eager-loading.
+func (e NotificationEdges) MycardOrErr() ([]*MyCard, error) {
+	if e.loadedTypes[1] {
+		return e.Mycard, nil
+	}
+	return nil, &NotLoadedError{edge: "mycard"}
+}
+
+// PriceOrErr returns the Price value or an error if the edge
+// was not loaded in eager-loading.
+func (e NotificationEdges) PriceOrErr() ([]*Price, error) {
+	if e.loadedTypes[2] {
+		return e.Price, nil
+	}
+	return nil, &NotLoadedError{edge: "price"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -30,6 +81,10 @@ func (*Notification) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case notification.FieldID:
 			values[i] = new(sql.NullInt64)
+		case notification.FieldMessage:
+			values[i] = new(sql.NullString)
+		case notification.FieldSentAt, notification.FieldReadAt:
+			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -51,6 +106,24 @@ func (n *Notification) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			n.ID = int(value.Int64)
+		case notification.FieldSentAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field sent_at", values[i])
+			} else if value.Valid {
+				n.SentAt = value.Time
+			}
+		case notification.FieldReadAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field read_at", values[i])
+			} else if value.Valid {
+				n.ReadAt = value.Time
+			}
+		case notification.FieldMessage:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field message", values[i])
+			} else if value.Valid {
+				n.Message = value.String
+			}
 		default:
 			n.selectValues.Set(columns[i], values[i])
 		}
@@ -62,6 +135,21 @@ func (n *Notification) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (n *Notification) Value(name string) (ent.Value, error) {
 	return n.selectValues.Get(name)
+}
+
+// QueryRecipient queries the "recipient" edge of the Notification entity.
+func (n *Notification) QueryRecipient() *UserQuery {
+	return NewNotificationClient(n.config).QueryRecipient(n)
+}
+
+// QueryMycard queries the "mycard" edge of the Notification entity.
+func (n *Notification) QueryMycard() *MyCardQuery {
+	return NewNotificationClient(n.config).QueryMycard(n)
+}
+
+// QueryPrice queries the "price" edge of the Notification entity.
+func (n *Notification) QueryPrice() *PriceQuery {
+	return NewNotificationClient(n.config).QueryPrice(n)
 }
 
 // Update returns a builder for updating this Notification.
@@ -86,9 +174,29 @@ func (n *Notification) Unwrap() *Notification {
 func (n *Notification) String() string {
 	var builder strings.Builder
 	builder.WriteString("Notification(")
-	builder.WriteString(fmt.Sprintf("id=%v", n.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", n.ID))
+	builder.WriteString("sent_at=")
+	builder.WriteString(n.SentAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("read_at=")
+	builder.WriteString(n.ReadAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("message=")
+	builder.WriteString(n.Message)
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// MarshalJSON implements the json.Marshaler interface.
+func (n *Notification) MarshalJSON() ([]byte, error) {
+	type Alias Notification
+	return json.Marshal(&struct {
+		*Alias
+		NotificationEdges
+	}{
+		Alias:             (*Alias)(n),
+		NotificationEdges: n.Edges,
+	})
 }
 
 // Notifications is a parsable slice of Notification.
