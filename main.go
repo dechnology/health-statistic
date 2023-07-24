@@ -21,12 +21,12 @@ import (
 	"github.com/joho/godotenv"
 )
 
-//	@title			Web3 - 健康資料公鏈API開發文件
-//	@version		1.0
-//	@description	This is the API documentation for 「健康資料公鏈」.
-//	@host			health-statistic.dechnology.com.tw
-//	@schemes		https
-//	@BasePath		/api/v1
+//	@Title		Web3 - 健康資料公鏈API開發文件
+//	@Version	1.0
+//	@Description.markdown
+//	@Host		health-statistic.dechnology.com.tw
+//	@Schemes	https
+//	@BasePath	/api/v1
 func main() {
 	// Loading environment variables when not using a docker container
 	if os.Getenv("RUNNING_IN_DOCKER") == "" {
