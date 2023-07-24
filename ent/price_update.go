@@ -19,6 +19,7 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
 	"github.com/eesoymilk/health-statistic-api/ent/price"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
+	"github.com/google/uuid"
 )
 
 // PriceUpdate is the builder for updating Price entities.
@@ -100,14 +101,14 @@ func (pu *PriceUpdate) SetRecipient(u *User) *PriceUpdate {
 }
 
 // AddNotificationIDs adds the "notifications" edge to the Notification entity by IDs.
-func (pu *PriceUpdate) AddNotificationIDs(ids ...int) *PriceUpdate {
+func (pu *PriceUpdate) AddNotificationIDs(ids ...uuid.UUID) *PriceUpdate {
 	pu.mutation.AddNotificationIDs(ids...)
 	return pu
 }
 
 // AddNotifications adds the "notifications" edges to the Notification entity.
 func (pu *PriceUpdate) AddNotifications(n ...*Notification) *PriceUpdate {
-	ids := make([]int, len(n))
+	ids := make([]uuid.UUID, len(n))
 	for i := range n {
 		ids[i] = n[i].ID
 	}
@@ -132,14 +133,14 @@ func (pu *PriceUpdate) ClearNotifications() *PriceUpdate {
 }
 
 // RemoveNotificationIDs removes the "notifications" edge to Notification entities by IDs.
-func (pu *PriceUpdate) RemoveNotificationIDs(ids ...int) *PriceUpdate {
+func (pu *PriceUpdate) RemoveNotificationIDs(ids ...uuid.UUID) *PriceUpdate {
 	pu.mutation.RemoveNotificationIDs(ids...)
 	return pu
 }
 
 // RemoveNotifications removes "notifications" edges to Notification entities.
 func (pu *PriceUpdate) RemoveNotifications(n ...*Notification) *PriceUpdate {
-	ids := make([]int, len(n))
+	ids := make([]uuid.UUID, len(n))
 	for i := range n {
 		ids[i] = n[i].ID
 	}
@@ -173,8 +174,26 @@ func (pu *PriceUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (pu *PriceUpdate) check() error {
+	if v, ok := pu.mutation.Name(); ok {
+		if err := price.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Price.name": %w`, err)}
+		}
+	}
+	if v, ok := pu.mutation.Description(); ok {
+		if err := price.DescriptionValidator(v); err != nil {
+			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Price.description": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (pu *PriceUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := sqlgraph.NewUpdateSpec(price.Table, price.Columns, sqlgraph.NewFieldSpec(price.FieldID, field.TypeInt))
+	if err := pu.check(); err != nil {
+		return n, err
+	}
+	_spec := sqlgraph.NewUpdateSpec(price.Table, price.Columns, sqlgraph.NewFieldSpec(price.FieldID, field.TypeUUID))
 	if ps := pu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -228,26 +247,26 @@ func (pu *PriceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if pu.mutation.NotificationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   price.NotificationsTable,
-			Columns: price.NotificationsPrimaryKey,
+			Columns: []string{price.NotificationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := pu.mutation.RemovedNotificationsIDs(); len(nodes) > 0 && !pu.mutation.NotificationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   price.NotificationsTable,
-			Columns: price.NotificationsPrimaryKey,
+			Columns: []string{price.NotificationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -257,13 +276,13 @@ func (pu *PriceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if nodes := pu.mutation.NotificationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   price.NotificationsTable,
-			Columns: price.NotificationsPrimaryKey,
+			Columns: []string{price.NotificationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -357,14 +376,14 @@ func (puo *PriceUpdateOne) SetRecipient(u *User) *PriceUpdateOne {
 }
 
 // AddNotificationIDs adds the "notifications" edge to the Notification entity by IDs.
-func (puo *PriceUpdateOne) AddNotificationIDs(ids ...int) *PriceUpdateOne {
+func (puo *PriceUpdateOne) AddNotificationIDs(ids ...uuid.UUID) *PriceUpdateOne {
 	puo.mutation.AddNotificationIDs(ids...)
 	return puo
 }
 
 // AddNotifications adds the "notifications" edges to the Notification entity.
 func (puo *PriceUpdateOne) AddNotifications(n ...*Notification) *PriceUpdateOne {
-	ids := make([]int, len(n))
+	ids := make([]uuid.UUID, len(n))
 	for i := range n {
 		ids[i] = n[i].ID
 	}
@@ -389,14 +408,14 @@ func (puo *PriceUpdateOne) ClearNotifications() *PriceUpdateOne {
 }
 
 // RemoveNotificationIDs removes the "notifications" edge to Notification entities by IDs.
-func (puo *PriceUpdateOne) RemoveNotificationIDs(ids ...int) *PriceUpdateOne {
+func (puo *PriceUpdateOne) RemoveNotificationIDs(ids ...uuid.UUID) *PriceUpdateOne {
 	puo.mutation.RemoveNotificationIDs(ids...)
 	return puo
 }
 
 // RemoveNotifications removes "notifications" edges to Notification entities.
 func (puo *PriceUpdateOne) RemoveNotifications(n ...*Notification) *PriceUpdateOne {
-	ids := make([]int, len(n))
+	ids := make([]uuid.UUID, len(n))
 	for i := range n {
 		ids[i] = n[i].ID
 	}
@@ -443,8 +462,26 @@ func (puo *PriceUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (puo *PriceUpdateOne) check() error {
+	if v, ok := puo.mutation.Name(); ok {
+		if err := price.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Price.name": %w`, err)}
+		}
+	}
+	if v, ok := puo.mutation.Description(); ok {
+		if err := price.DescriptionValidator(v); err != nil {
+			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Price.description": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (puo *PriceUpdateOne) sqlSave(ctx context.Context) (_node *Price, err error) {
-	_spec := sqlgraph.NewUpdateSpec(price.Table, price.Columns, sqlgraph.NewFieldSpec(price.FieldID, field.TypeInt))
+	if err := puo.check(); err != nil {
+		return _node, err
+	}
+	_spec := sqlgraph.NewUpdateSpec(price.Table, price.Columns, sqlgraph.NewFieldSpec(price.FieldID, field.TypeUUID))
 	id, ok := puo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Price.id" for update`)}
@@ -515,26 +552,26 @@ func (puo *PriceUpdateOne) sqlSave(ctx context.Context) (_node *Price, err error
 	}
 	if puo.mutation.NotificationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   price.NotificationsTable,
-			Columns: price.NotificationsPrimaryKey,
+			Columns: []string{price.NotificationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := puo.mutation.RemovedNotificationsIDs(); len(nodes) > 0 && !puo.mutation.NotificationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   price.NotificationsTable,
-			Columns: price.NotificationsPrimaryKey,
+			Columns: []string{price.NotificationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -544,13 +581,13 @@ func (puo *PriceUpdateOne) sqlSave(ctx context.Context) (_node *Price, err error
 	}
 	if nodes := puo.mutation.NotificationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   price.NotificationsTable,
-			Columns: price.NotificationsPrimaryKey,
+			Columns: []string{price.NotificationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

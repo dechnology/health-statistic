@@ -44,7 +44,7 @@ func (mcd *MyCardDelete) ExecX(ctx context.Context) int {
 }
 
 func (mcd *MyCardDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(mycard.Table, sqlgraph.NewFieldSpec(mycard.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewDeleteSpec(mycard.Table, sqlgraph.NewFieldSpec(mycard.FieldID, field.TypeString))
 	if ps := mcd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

@@ -216,14 +216,14 @@ func (uu *UserUpdate) AddQuestionnaireResponses(q ...*QuestionnaireResponse) *Us
 }
 
 // AddNotificationIDs adds the "notifications" edge to the Notification entity by IDs.
-func (uu *UserUpdate) AddNotificationIDs(ids ...int) *UserUpdate {
+func (uu *UserUpdate) AddNotificationIDs(ids ...uuid.UUID) *UserUpdate {
 	uu.mutation.AddNotificationIDs(ids...)
 	return uu
 }
 
 // AddNotifications adds the "notifications" edges to the Notification entity.
 func (uu *UserUpdate) AddNotifications(n ...*Notification) *UserUpdate {
-	ids := make([]int, len(n))
+	ids := make([]uuid.UUID, len(n))
 	for i := range n {
 		ids[i] = n[i].ID
 	}
@@ -263,14 +263,14 @@ func (uu *UserUpdate) ClearNotifications() *UserUpdate {
 }
 
 // RemoveNotificationIDs removes the "notifications" edge to Notification entities by IDs.
-func (uu *UserUpdate) RemoveNotificationIDs(ids ...int) *UserUpdate {
+func (uu *UserUpdate) RemoveNotificationIDs(ids ...uuid.UUID) *UserUpdate {
 	uu.mutation.RemoveNotificationIDs(ids...)
 	return uu
 }
 
 // RemoveNotifications removes "notifications" edges to Notification entities.
 func (uu *UserUpdate) RemoveNotifications(n ...*Notification) *UserUpdate {
-	ids := make([]int, len(n))
+	ids := make([]uuid.UUID, len(n))
 	for i := range n {
 		ids[i] = n[i].ID
 	}
@@ -516,26 +516,26 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if uu.mutation.NotificationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   user.NotificationsTable,
-			Columns: user.NotificationsPrimaryKey,
+			Columns: []string{user.NotificationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := uu.mutation.RemovedNotificationsIDs(); len(nodes) > 0 && !uu.mutation.NotificationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   user.NotificationsTable,
-			Columns: user.NotificationsPrimaryKey,
+			Columns: []string{user.NotificationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -545,13 +545,13 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if nodes := uu.mutation.NotificationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   user.NotificationsTable,
-			Columns: user.NotificationsPrimaryKey,
+			Columns: []string{user.NotificationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -760,14 +760,14 @@ func (uuo *UserUpdateOne) AddQuestionnaireResponses(q ...*QuestionnaireResponse)
 }
 
 // AddNotificationIDs adds the "notifications" edge to the Notification entity by IDs.
-func (uuo *UserUpdateOne) AddNotificationIDs(ids ...int) *UserUpdateOne {
+func (uuo *UserUpdateOne) AddNotificationIDs(ids ...uuid.UUID) *UserUpdateOne {
 	uuo.mutation.AddNotificationIDs(ids...)
 	return uuo
 }
 
 // AddNotifications adds the "notifications" edges to the Notification entity.
 func (uuo *UserUpdateOne) AddNotifications(n ...*Notification) *UserUpdateOne {
-	ids := make([]int, len(n))
+	ids := make([]uuid.UUID, len(n))
 	for i := range n {
 		ids[i] = n[i].ID
 	}
@@ -807,14 +807,14 @@ func (uuo *UserUpdateOne) ClearNotifications() *UserUpdateOne {
 }
 
 // RemoveNotificationIDs removes the "notifications" edge to Notification entities by IDs.
-func (uuo *UserUpdateOne) RemoveNotificationIDs(ids ...int) *UserUpdateOne {
+func (uuo *UserUpdateOne) RemoveNotificationIDs(ids ...uuid.UUID) *UserUpdateOne {
 	uuo.mutation.RemoveNotificationIDs(ids...)
 	return uuo
 }
 
 // RemoveNotifications removes "notifications" edges to Notification entities.
 func (uuo *UserUpdateOne) RemoveNotifications(n ...*Notification) *UserUpdateOne {
-	ids := make([]int, len(n))
+	ids := make([]uuid.UUID, len(n))
 	for i := range n {
 		ids[i] = n[i].ID
 	}
@@ -1090,26 +1090,26 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if uuo.mutation.NotificationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   user.NotificationsTable,
-			Columns: user.NotificationsPrimaryKey,
+			Columns: []string{user.NotificationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := uuo.mutation.RemovedNotificationsIDs(); len(nodes) > 0 && !uuo.mutation.NotificationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   user.NotificationsTable,
-			Columns: user.NotificationsPrimaryKey,
+			Columns: []string{user.NotificationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1119,13 +1119,13 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if nodes := uuo.mutation.NotificationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   user.NotificationsTable,
-			Columns: user.NotificationsPrimaryKey,
+			Columns: []string{user.NotificationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

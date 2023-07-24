@@ -455,7 +455,7 @@ func (c *MyCardClient) UpdateOne(mc *MyCard) *MyCardUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *MyCardClient) UpdateOneID(id int) *MyCardUpdateOne {
+func (c *MyCardClient) UpdateOneID(id string) *MyCardUpdateOne {
 	mutation := newMyCardMutation(c.config, OpUpdateOne, withMyCardID(id))
 	return &MyCardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -472,7 +472,7 @@ func (c *MyCardClient) DeleteOne(mc *MyCard) *MyCardDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *MyCardClient) DeleteOneID(id int) *MyCardDeleteOne {
+func (c *MyCardClient) DeleteOneID(id string) *MyCardDeleteOne {
 	builder := c.Delete().Where(mycard.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -489,12 +489,12 @@ func (c *MyCardClient) Query() *MyCardQuery {
 }
 
 // Get returns a MyCard entity by its id.
-func (c *MyCardClient) Get(ctx context.Context, id int) (*MyCard, error) {
+func (c *MyCardClient) Get(ctx context.Context, id string) (*MyCard, error) {
 	return c.Query().Where(mycard.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *MyCardClient) GetX(ctx context.Context, id int) *MyCard {
+func (c *MyCardClient) GetX(ctx context.Context, id string) *MyCard {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -526,7 +526,7 @@ func (c *MyCardClient) QueryNotifications(mc *MyCard) *NotificationQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(mycard.Table, mycard.FieldID, id),
 			sqlgraph.To(notification.Table, notification.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, mycard.NotificationsTable, mycard.NotificationsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, mycard.NotificationsTable, mycard.NotificationsColumn),
 		)
 		fromV = sqlgraph.Neighbors(mc.driver.Dialect(), step)
 		return fromV, nil
@@ -605,7 +605,7 @@ func (c *NotificationClient) UpdateOne(n *Notification) *NotificationUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *NotificationClient) UpdateOneID(id int) *NotificationUpdateOne {
+func (c *NotificationClient) UpdateOneID(id uuid.UUID) *NotificationUpdateOne {
 	mutation := newNotificationMutation(c.config, OpUpdateOne, withNotificationID(id))
 	return &NotificationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -622,7 +622,7 @@ func (c *NotificationClient) DeleteOne(n *Notification) *NotificationDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *NotificationClient) DeleteOneID(id int) *NotificationDeleteOne {
+func (c *NotificationClient) DeleteOneID(id uuid.UUID) *NotificationDeleteOne {
 	builder := c.Delete().Where(notification.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -639,12 +639,12 @@ func (c *NotificationClient) Query() *NotificationQuery {
 }
 
 // Get returns a Notification entity by its id.
-func (c *NotificationClient) Get(ctx context.Context, id int) (*Notification, error) {
+func (c *NotificationClient) Get(ctx context.Context, id uuid.UUID) (*Notification, error) {
 	return c.Query().Where(notification.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *NotificationClient) GetX(ctx context.Context, id int) *Notification {
+func (c *NotificationClient) GetX(ctx context.Context, id uuid.UUID) *Notification {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -660,7 +660,7 @@ func (c *NotificationClient) QueryRecipient(n *Notification) *UserQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(notification.Table, notification.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, notification.RecipientTable, notification.RecipientPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, notification.RecipientTable, notification.RecipientColumn),
 		)
 		fromV = sqlgraph.Neighbors(n.driver.Dialect(), step)
 		return fromV, nil
@@ -676,7 +676,7 @@ func (c *NotificationClient) QueryMycard(n *Notification) *MyCardQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(notification.Table, notification.FieldID, id),
 			sqlgraph.To(mycard.Table, mycard.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, notification.MycardTable, notification.MycardPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, notification.MycardTable, notification.MycardColumn),
 		)
 		fromV = sqlgraph.Neighbors(n.driver.Dialect(), step)
 		return fromV, nil
@@ -692,7 +692,7 @@ func (c *NotificationClient) QueryPrice(n *Notification) *PriceQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(notification.Table, notification.FieldID, id),
 			sqlgraph.To(price.Table, price.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, notification.PriceTable, notification.PricePrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, notification.PriceTable, notification.PriceColumn),
 		)
 		fromV = sqlgraph.Neighbors(n.driver.Dialect(), step)
 		return fromV, nil
@@ -771,7 +771,7 @@ func (c *PriceClient) UpdateOne(pr *Price) *PriceUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *PriceClient) UpdateOneID(id int) *PriceUpdateOne {
+func (c *PriceClient) UpdateOneID(id uuid.UUID) *PriceUpdateOne {
 	mutation := newPriceMutation(c.config, OpUpdateOne, withPriceID(id))
 	return &PriceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -788,7 +788,7 @@ func (c *PriceClient) DeleteOne(pr *Price) *PriceDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *PriceClient) DeleteOneID(id int) *PriceDeleteOne {
+func (c *PriceClient) DeleteOneID(id uuid.UUID) *PriceDeleteOne {
 	builder := c.Delete().Where(price.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -805,12 +805,12 @@ func (c *PriceClient) Query() *PriceQuery {
 }
 
 // Get returns a Price entity by its id.
-func (c *PriceClient) Get(ctx context.Context, id int) (*Price, error) {
+func (c *PriceClient) Get(ctx context.Context, id uuid.UUID) (*Price, error) {
 	return c.Query().Where(price.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *PriceClient) GetX(ctx context.Context, id int) *Price {
+func (c *PriceClient) GetX(ctx context.Context, id uuid.UUID) *Price {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -842,7 +842,7 @@ func (c *PriceClient) QueryNotifications(pr *Price) *NotificationQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(price.Table, price.FieldID, id),
 			sqlgraph.To(notification.Table, notification.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, price.NotificationsTable, price.NotificationsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, price.NotificationsTable, price.NotificationsColumn),
 		)
 		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 		return fromV, nil
@@ -1458,7 +1458,7 @@ func (c *UserClient) QueryNotifications(u *User) *NotificationQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(notification.Table, notification.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, user.NotificationsTable, user.NotificationsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.NotificationsTable, user.NotificationsColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

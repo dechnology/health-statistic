@@ -17,6 +17,7 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/price"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
+	"github.com/google/uuid"
 )
 
 // PriceCreate is the builder for creating a Price entity.
@@ -66,6 +67,20 @@ func (pc *PriceCreate) SetNillableTakenAt(t *time.Time) *PriceCreate {
 	return pc
 }
 
+// SetID sets the "id" field.
+func (pc *PriceCreate) SetID(u uuid.UUID) *PriceCreate {
+	pc.mutation.SetID(u)
+	return pc
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (pc *PriceCreate) SetNillableID(u *uuid.UUID) *PriceCreate {
+	if u != nil {
+		pc.SetID(*u)
+	}
+	return pc
+}
+
 // SetRecipientID sets the "recipient" edge to the User entity by ID.
 func (pc *PriceCreate) SetRecipientID(id string) *PriceCreate {
 	pc.mutation.SetRecipientID(id)
@@ -86,14 +101,14 @@ func (pc *PriceCreate) SetRecipient(u *User) *PriceCreate {
 }
 
 // AddNotificationIDs adds the "notifications" edge to the Notification entity by IDs.
-func (pc *PriceCreate) AddNotificationIDs(ids ...int) *PriceCreate {
+func (pc *PriceCreate) AddNotificationIDs(ids ...uuid.UUID) *PriceCreate {
 	pc.mutation.AddNotificationIDs(ids...)
 	return pc
 }
 
 // AddNotifications adds the "notifications" edges to the Notification entity.
 func (pc *PriceCreate) AddNotifications(n ...*Notification) *PriceCreate {
-	ids := make([]int, len(n))
+	ids := make([]uuid.UUID, len(n))
 	for i := range n {
 		ids[i] = n[i].ID
 	}
@@ -139,6 +154,10 @@ func (pc *PriceCreate) defaults() {
 		v := price.DefaultCreatedAt()
 		pc.mutation.SetCreatedAt(v)
 	}
+	if _, ok := pc.mutation.ID(); !ok {
+		v := price.DefaultID()
+		pc.mutation.SetID(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -146,8 +165,18 @@ func (pc *PriceCreate) check() error {
 	if _, ok := pc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Price.name"`)}
 	}
+	if v, ok := pc.mutation.Name(); ok {
+		if err := price.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Price.name": %w`, err)}
+		}
+	}
 	if _, ok := pc.mutation.Description(); !ok {
 		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "Price.description"`)}
+	}
+	if v, ok := pc.mutation.Description(); ok {
+		if err := price.DescriptionValidator(v); err != nil {
+			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Price.description": %w`, err)}
+		}
 	}
 	if _, ok := pc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Price.created_at"`)}
@@ -166,8 +195,13 @@ func (pc *PriceCreate) sqlSave(ctx context.Context) (*Price, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
+	}
 	pc.mutation.id = &_node.ID
 	pc.mutation.done = true
 	return _node, nil
@@ -176,8 +210,12 @@ func (pc *PriceCreate) sqlSave(ctx context.Context) (*Price, error) {
 func (pc *PriceCreate) createSpec() (*Price, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Price{config: pc.config}
-		_spec = sqlgraph.NewCreateSpec(price.Table, sqlgraph.NewFieldSpec(price.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(price.Table, sqlgraph.NewFieldSpec(price.FieldID, field.TypeUUID))
 	)
+	if id, ok := pc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = &id
+	}
 	if value, ok := pc.mutation.Name(); ok {
 		_spec.SetField(price.FieldName, field.TypeString, value)
 		_node.Name = value
@@ -213,13 +251,13 @@ func (pc *PriceCreate) createSpec() (*Price, *sqlgraph.CreateSpec) {
 	}
 	if nodes := pc.mutation.NotificationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   price.NotificationsTable,
-			Columns: price.NotificationsPrimaryKey,
+			Columns: []string{price.NotificationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -271,10 +309,6 @@ func (pcb *PriceCreateBulk) Save(ctx context.Context) ([]*Price, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})

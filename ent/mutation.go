@@ -563,16 +563,15 @@ type MyCardMutation struct {
 	config
 	op                   Op
 	typ                  string
-	id                   *int
-	card_number          *string
+	id                   *string
 	card_password        *string
 	created_at           *time.Time
 	taken_at             *time.Time
 	clearedFields        map[string]struct{}
 	recipient            *string
 	clearedrecipient     bool
-	notifications        map[int]struct{}
-	removednotifications map[int]struct{}
+	notifications        map[uuid.UUID]struct{}
+	removednotifications map[uuid.UUID]struct{}
 	clearednotifications bool
 	done                 bool
 	oldValue             func(context.Context) (*MyCard, error)
@@ -599,7 +598,7 @@ func newMyCardMutation(c config, op Op, opts ...mycardOption) *MyCardMutation {
 }
 
 // withMyCardID sets the ID field of the mutation.
-func withMyCardID(id int) mycardOption {
+func withMyCardID(id string) mycardOption {
 	return func(m *MyCardMutation) {
 		var (
 			err   error
@@ -649,9 +648,15 @@ func (m MyCardMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of MyCard entities.
+func (m *MyCardMutation) SetID(id string) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *MyCardMutation) ID() (id int, exists bool) {
+func (m *MyCardMutation) ID() (id string, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -662,12 +667,12 @@ func (m *MyCardMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *MyCardMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *MyCardMutation) IDs(ctx context.Context) ([]string, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []string{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -675,42 +680,6 @@ func (m *MyCardMutation) IDs(ctx context.Context) ([]int, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
-}
-
-// SetCardNumber sets the "card_number" field.
-func (m *MyCardMutation) SetCardNumber(s string) {
-	m.card_number = &s
-}
-
-// CardNumber returns the value of the "card_number" field in the mutation.
-func (m *MyCardMutation) CardNumber() (r string, exists bool) {
-	v := m.card_number
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCardNumber returns the old "card_number" field's value of the MyCard entity.
-// If the MyCard object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MyCardMutation) OldCardNumber(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCardNumber is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCardNumber requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCardNumber: %w", err)
-	}
-	return oldValue.CardNumber, nil
-}
-
-// ResetCardNumber resets all changes to the "card_number" field.
-func (m *MyCardMutation) ResetCardNumber() {
-	m.card_number = nil
 }
 
 // SetCardPassword sets the "card_password" field.
@@ -874,9 +843,9 @@ func (m *MyCardMutation) ResetRecipient() {
 }
 
 // AddNotificationIDs adds the "notifications" edge to the Notification entity by ids.
-func (m *MyCardMutation) AddNotificationIDs(ids ...int) {
+func (m *MyCardMutation) AddNotificationIDs(ids ...uuid.UUID) {
 	if m.notifications == nil {
-		m.notifications = make(map[int]struct{})
+		m.notifications = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		m.notifications[ids[i]] = struct{}{}
@@ -894,9 +863,9 @@ func (m *MyCardMutation) NotificationsCleared() bool {
 }
 
 // RemoveNotificationIDs removes the "notifications" edge to the Notification entity by IDs.
-func (m *MyCardMutation) RemoveNotificationIDs(ids ...int) {
+func (m *MyCardMutation) RemoveNotificationIDs(ids ...uuid.UUID) {
 	if m.removednotifications == nil {
-		m.removednotifications = make(map[int]struct{})
+		m.removednotifications = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		delete(m.notifications, ids[i])
@@ -905,7 +874,7 @@ func (m *MyCardMutation) RemoveNotificationIDs(ids ...int) {
 }
 
 // RemovedNotifications returns the removed IDs of the "notifications" edge to the Notification entity.
-func (m *MyCardMutation) RemovedNotificationsIDs() (ids []int) {
+func (m *MyCardMutation) RemovedNotificationsIDs() (ids []uuid.UUID) {
 	for id := range m.removednotifications {
 		ids = append(ids, id)
 	}
@@ -913,7 +882,7 @@ func (m *MyCardMutation) RemovedNotificationsIDs() (ids []int) {
 }
 
 // NotificationsIDs returns the "notifications" edge IDs in the mutation.
-func (m *MyCardMutation) NotificationsIDs() (ids []int) {
+func (m *MyCardMutation) NotificationsIDs() (ids []uuid.UUID) {
 	for id := range m.notifications {
 		ids = append(ids, id)
 	}
@@ -961,10 +930,7 @@ func (m *MyCardMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MyCardMutation) Fields() []string {
-	fields := make([]string, 0, 4)
-	if m.card_number != nil {
-		fields = append(fields, mycard.FieldCardNumber)
-	}
+	fields := make([]string, 0, 3)
 	if m.card_password != nil {
 		fields = append(fields, mycard.FieldCardPassword)
 	}
@@ -982,8 +948,6 @@ func (m *MyCardMutation) Fields() []string {
 // schema.
 func (m *MyCardMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case mycard.FieldCardNumber:
-		return m.CardNumber()
 	case mycard.FieldCardPassword:
 		return m.CardPassword()
 	case mycard.FieldCreatedAt:
@@ -999,8 +963,6 @@ func (m *MyCardMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *MyCardMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case mycard.FieldCardNumber:
-		return m.OldCardNumber(ctx)
 	case mycard.FieldCardPassword:
 		return m.OldCardPassword(ctx)
 	case mycard.FieldCreatedAt:
@@ -1016,13 +978,6 @@ func (m *MyCardMutation) OldField(ctx context.Context, name string) (ent.Value, 
 // type.
 func (m *MyCardMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case mycard.FieldCardNumber:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCardNumber(v)
-		return nil
 	case mycard.FieldCardPassword:
 		v, ok := value.(string)
 		if !ok {
@@ -1102,9 +1057,6 @@ func (m *MyCardMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *MyCardMutation) ResetField(name string) error {
 	switch name {
-	case mycard.FieldCardNumber:
-		m.ResetCardNumber()
-		return nil
 	case mycard.FieldCardPassword:
 		m.ResetCardPassword()
 		return nil
@@ -1225,19 +1177,17 @@ type NotificationMutation struct {
 	config
 	op               Op
 	typ              string
-	id               *int
+	id               *uuid.UUID
+	_type            *notification.Type
 	sent_at          *time.Time
 	read_at          *time.Time
 	message          *string
 	clearedFields    map[string]struct{}
-	recipient        map[string]struct{}
-	removedrecipient map[string]struct{}
+	recipient        *string
 	clearedrecipient bool
-	mycard           map[int]struct{}
-	removedmycard    map[int]struct{}
+	mycard           *string
 	clearedmycard    bool
-	price            map[int]struct{}
-	removedprice     map[int]struct{}
+	price            *uuid.UUID
 	clearedprice     bool
 	done             bool
 	oldValue         func(context.Context) (*Notification, error)
@@ -1264,7 +1214,7 @@ func newNotificationMutation(c config, op Op, opts ...notificationOption) *Notif
 }
 
 // withNotificationID sets the ID field of the mutation.
-func withNotificationID(id int) notificationOption {
+func withNotificationID(id uuid.UUID) notificationOption {
 	return func(m *NotificationMutation) {
 		var (
 			err   error
@@ -1314,9 +1264,15 @@ func (m NotificationMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Notification entities.
+func (m *NotificationMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *NotificationMutation) ID() (id int, exists bool) {
+func (m *NotificationMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -1327,12 +1283,12 @@ func (m *NotificationMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *NotificationMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *NotificationMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []uuid.UUID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -1340,6 +1296,42 @@ func (m *NotificationMutation) IDs(ctx context.Context) ([]int, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetType sets the "type" field.
+func (m *NotificationMutation) SetType(n notification.Type) {
+	m._type = &n
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *NotificationMutation) GetType() (r notification.Type, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the Notification entity.
+// If the Notification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationMutation) OldType(ctx context.Context) (v notification.Type, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *NotificationMutation) ResetType() {
+	m._type = nil
 }
 
 // SetSentAt sets the "sent_at" field.
@@ -1476,14 +1468,9 @@ func (m *NotificationMutation) ResetMessage() {
 	m.message = nil
 }
 
-// AddRecipientIDs adds the "recipient" edge to the User entity by ids.
-func (m *NotificationMutation) AddRecipientIDs(ids ...string) {
-	if m.recipient == nil {
-		m.recipient = make(map[string]struct{})
-	}
-	for i := range ids {
-		m.recipient[ids[i]] = struct{}{}
-	}
+// SetRecipientID sets the "recipient" edge to the User entity by id.
+func (m *NotificationMutation) SetRecipientID(id string) {
+	m.recipient = &id
 }
 
 // ClearRecipient clears the "recipient" edge to the User entity.
@@ -1496,29 +1483,20 @@ func (m *NotificationMutation) RecipientCleared() bool {
 	return m.clearedrecipient
 }
 
-// RemoveRecipientIDs removes the "recipient" edge to the User entity by IDs.
-func (m *NotificationMutation) RemoveRecipientIDs(ids ...string) {
-	if m.removedrecipient == nil {
-		m.removedrecipient = make(map[string]struct{})
-	}
-	for i := range ids {
-		delete(m.recipient, ids[i])
-		m.removedrecipient[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedRecipient returns the removed IDs of the "recipient" edge to the User entity.
-func (m *NotificationMutation) RemovedRecipientIDs() (ids []string) {
-	for id := range m.removedrecipient {
-		ids = append(ids, id)
+// RecipientID returns the "recipient" edge ID in the mutation.
+func (m *NotificationMutation) RecipientID() (id string, exists bool) {
+	if m.recipient != nil {
+		return *m.recipient, true
 	}
 	return
 }
 
 // RecipientIDs returns the "recipient" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// RecipientID instead. It exists only for internal usage by the builders.
 func (m *NotificationMutation) RecipientIDs() (ids []string) {
-	for id := range m.recipient {
-		ids = append(ids, id)
+	if id := m.recipient; id != nil {
+		ids = append(ids, *id)
 	}
 	return
 }
@@ -1527,17 +1505,11 @@ func (m *NotificationMutation) RecipientIDs() (ids []string) {
 func (m *NotificationMutation) ResetRecipient() {
 	m.recipient = nil
 	m.clearedrecipient = false
-	m.removedrecipient = nil
 }
 
-// AddMycardIDs adds the "mycard" edge to the MyCard entity by ids.
-func (m *NotificationMutation) AddMycardIDs(ids ...int) {
-	if m.mycard == nil {
-		m.mycard = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.mycard[ids[i]] = struct{}{}
-	}
+// SetMycardID sets the "mycard" edge to the MyCard entity by id.
+func (m *NotificationMutation) SetMycardID(id string) {
+	m.mycard = &id
 }
 
 // ClearMycard clears the "mycard" edge to the MyCard entity.
@@ -1550,29 +1522,20 @@ func (m *NotificationMutation) MycardCleared() bool {
 	return m.clearedmycard
 }
 
-// RemoveMycardIDs removes the "mycard" edge to the MyCard entity by IDs.
-func (m *NotificationMutation) RemoveMycardIDs(ids ...int) {
-	if m.removedmycard == nil {
-		m.removedmycard = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.mycard, ids[i])
-		m.removedmycard[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedMycard returns the removed IDs of the "mycard" edge to the MyCard entity.
-func (m *NotificationMutation) RemovedMycardIDs() (ids []int) {
-	for id := range m.removedmycard {
-		ids = append(ids, id)
+// MycardID returns the "mycard" edge ID in the mutation.
+func (m *NotificationMutation) MycardID() (id string, exists bool) {
+	if m.mycard != nil {
+		return *m.mycard, true
 	}
 	return
 }
 
 // MycardIDs returns the "mycard" edge IDs in the mutation.
-func (m *NotificationMutation) MycardIDs() (ids []int) {
-	for id := range m.mycard {
-		ids = append(ids, id)
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// MycardID instead. It exists only for internal usage by the builders.
+func (m *NotificationMutation) MycardIDs() (ids []string) {
+	if id := m.mycard; id != nil {
+		ids = append(ids, *id)
 	}
 	return
 }
@@ -1581,17 +1544,11 @@ func (m *NotificationMutation) MycardIDs() (ids []int) {
 func (m *NotificationMutation) ResetMycard() {
 	m.mycard = nil
 	m.clearedmycard = false
-	m.removedmycard = nil
 }
 
-// AddPriceIDs adds the "price" edge to the Price entity by ids.
-func (m *NotificationMutation) AddPriceIDs(ids ...int) {
-	if m.price == nil {
-		m.price = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.price[ids[i]] = struct{}{}
-	}
+// SetPriceID sets the "price" edge to the Price entity by id.
+func (m *NotificationMutation) SetPriceID(id uuid.UUID) {
+	m.price = &id
 }
 
 // ClearPrice clears the "price" edge to the Price entity.
@@ -1604,29 +1561,20 @@ func (m *NotificationMutation) PriceCleared() bool {
 	return m.clearedprice
 }
 
-// RemovePriceIDs removes the "price" edge to the Price entity by IDs.
-func (m *NotificationMutation) RemovePriceIDs(ids ...int) {
-	if m.removedprice == nil {
-		m.removedprice = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.price, ids[i])
-		m.removedprice[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedPrice returns the removed IDs of the "price" edge to the Price entity.
-func (m *NotificationMutation) RemovedPriceIDs() (ids []int) {
-	for id := range m.removedprice {
-		ids = append(ids, id)
+// PriceID returns the "price" edge ID in the mutation.
+func (m *NotificationMutation) PriceID() (id uuid.UUID, exists bool) {
+	if m.price != nil {
+		return *m.price, true
 	}
 	return
 }
 
 // PriceIDs returns the "price" edge IDs in the mutation.
-func (m *NotificationMutation) PriceIDs() (ids []int) {
-	for id := range m.price {
-		ids = append(ids, id)
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PriceID instead. It exists only for internal usage by the builders.
+func (m *NotificationMutation) PriceIDs() (ids []uuid.UUID) {
+	if id := m.price; id != nil {
+		ids = append(ids, *id)
 	}
 	return
 }
@@ -1635,7 +1583,6 @@ func (m *NotificationMutation) PriceIDs() (ids []int) {
 func (m *NotificationMutation) ResetPrice() {
 	m.price = nil
 	m.clearedprice = false
-	m.removedprice = nil
 }
 
 // Where appends a list predicates to the NotificationMutation builder.
@@ -1672,7 +1619,10 @@ func (m *NotificationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NotificationMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
+	if m._type != nil {
+		fields = append(fields, notification.FieldType)
+	}
 	if m.sent_at != nil {
 		fields = append(fields, notification.FieldSentAt)
 	}
@@ -1690,6 +1640,8 @@ func (m *NotificationMutation) Fields() []string {
 // schema.
 func (m *NotificationMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case notification.FieldType:
+		return m.GetType()
 	case notification.FieldSentAt:
 		return m.SentAt()
 	case notification.FieldReadAt:
@@ -1705,6 +1657,8 @@ func (m *NotificationMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *NotificationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case notification.FieldType:
+		return m.OldType(ctx)
 	case notification.FieldSentAt:
 		return m.OldSentAt(ctx)
 	case notification.FieldReadAt:
@@ -1720,6 +1674,13 @@ func (m *NotificationMutation) OldField(ctx context.Context, name string) (ent.V
 // type.
 func (m *NotificationMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case notification.FieldType:
+		v, ok := value.(notification.Type)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
+		return nil
 	case notification.FieldSentAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -1805,6 +1766,9 @@ func (m *NotificationMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *NotificationMutation) ResetField(name string) error {
 	switch name {
+	case notification.FieldType:
+		m.ResetType()
+		return nil
 	case notification.FieldSentAt:
 		m.ResetSentAt()
 		return nil
@@ -1838,23 +1802,17 @@ func (m *NotificationMutation) AddedEdges() []string {
 func (m *NotificationMutation) AddedIDs(name string) []ent.Value {
 	switch name {
 	case notification.EdgeRecipient:
-		ids := make([]ent.Value, 0, len(m.recipient))
-		for id := range m.recipient {
-			ids = append(ids, id)
+		if id := m.recipient; id != nil {
+			return []ent.Value{*id}
 		}
-		return ids
 	case notification.EdgeMycard:
-		ids := make([]ent.Value, 0, len(m.mycard))
-		for id := range m.mycard {
-			ids = append(ids, id)
+		if id := m.mycard; id != nil {
+			return []ent.Value{*id}
 		}
-		return ids
 	case notification.EdgePrice:
-		ids := make([]ent.Value, 0, len(m.price))
-		for id := range m.price {
-			ids = append(ids, id)
+		if id := m.price; id != nil {
+			return []ent.Value{*id}
 		}
-		return ids
 	}
 	return nil
 }
@@ -1862,41 +1820,12 @@ func (m *NotificationMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *NotificationMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 3)
-	if m.removedrecipient != nil {
-		edges = append(edges, notification.EdgeRecipient)
-	}
-	if m.removedmycard != nil {
-		edges = append(edges, notification.EdgeMycard)
-	}
-	if m.removedprice != nil {
-		edges = append(edges, notification.EdgePrice)
-	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *NotificationMutation) RemovedIDs(name string) []ent.Value {
-	switch name {
-	case notification.EdgeRecipient:
-		ids := make([]ent.Value, 0, len(m.removedrecipient))
-		for id := range m.removedrecipient {
-			ids = append(ids, id)
-		}
-		return ids
-	case notification.EdgeMycard:
-		ids := make([]ent.Value, 0, len(m.removedmycard))
-		for id := range m.removedmycard {
-			ids = append(ids, id)
-		}
-		return ids
-	case notification.EdgePrice:
-		ids := make([]ent.Value, 0, len(m.removedprice))
-		for id := range m.removedprice {
-			ids = append(ids, id)
-		}
-		return ids
-	}
 	return nil
 }
 
@@ -1933,6 +1862,15 @@ func (m *NotificationMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *NotificationMutation) ClearEdge(name string) error {
 	switch name {
+	case notification.EdgeRecipient:
+		m.ClearRecipient()
+		return nil
+	case notification.EdgeMycard:
+		m.ClearMycard()
+		return nil
+	case notification.EdgePrice:
+		m.ClearPrice()
+		return nil
 	}
 	return fmt.Errorf("unknown Notification unique edge %s", name)
 }
@@ -1959,7 +1897,7 @@ type PriceMutation struct {
 	config
 	op                   Op
 	typ                  string
-	id                   *int
+	id                   *uuid.UUID
 	name                 *string
 	description          *string
 	created_at           *time.Time
@@ -1967,8 +1905,8 @@ type PriceMutation struct {
 	clearedFields        map[string]struct{}
 	recipient            *string
 	clearedrecipient     bool
-	notifications        map[int]struct{}
-	removednotifications map[int]struct{}
+	notifications        map[uuid.UUID]struct{}
+	removednotifications map[uuid.UUID]struct{}
 	clearednotifications bool
 	done                 bool
 	oldValue             func(context.Context) (*Price, error)
@@ -1995,7 +1933,7 @@ func newPriceMutation(c config, op Op, opts ...priceOption) *PriceMutation {
 }
 
 // withPriceID sets the ID field of the mutation.
-func withPriceID(id int) priceOption {
+func withPriceID(id uuid.UUID) priceOption {
 	return func(m *PriceMutation) {
 		var (
 			err   error
@@ -2045,9 +1983,15 @@ func (m PriceMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Price entities.
+func (m *PriceMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *PriceMutation) ID() (id int, exists bool) {
+func (m *PriceMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -2058,12 +2002,12 @@ func (m *PriceMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *PriceMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *PriceMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []uuid.UUID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -2270,9 +2214,9 @@ func (m *PriceMutation) ResetRecipient() {
 }
 
 // AddNotificationIDs adds the "notifications" edge to the Notification entity by ids.
-func (m *PriceMutation) AddNotificationIDs(ids ...int) {
+func (m *PriceMutation) AddNotificationIDs(ids ...uuid.UUID) {
 	if m.notifications == nil {
-		m.notifications = make(map[int]struct{})
+		m.notifications = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		m.notifications[ids[i]] = struct{}{}
@@ -2290,9 +2234,9 @@ func (m *PriceMutation) NotificationsCleared() bool {
 }
 
 // RemoveNotificationIDs removes the "notifications" edge to the Notification entity by IDs.
-func (m *PriceMutation) RemoveNotificationIDs(ids ...int) {
+func (m *PriceMutation) RemoveNotificationIDs(ids ...uuid.UUID) {
 	if m.removednotifications == nil {
-		m.removednotifications = make(map[int]struct{})
+		m.removednotifications = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		delete(m.notifications, ids[i])
@@ -2301,7 +2245,7 @@ func (m *PriceMutation) RemoveNotificationIDs(ids ...int) {
 }
 
 // RemovedNotifications returns the removed IDs of the "notifications" edge to the Notification entity.
-func (m *PriceMutation) RemovedNotificationsIDs() (ids []int) {
+func (m *PriceMutation) RemovedNotificationsIDs() (ids []uuid.UUID) {
 	for id := range m.removednotifications {
 		ids = append(ids, id)
 	}
@@ -2309,7 +2253,7 @@ func (m *PriceMutation) RemovedNotificationsIDs() (ids []int) {
 }
 
 // NotificationsIDs returns the "notifications" edge IDs in the mutation.
-func (m *PriceMutation) NotificationsIDs() (ids []int) {
+func (m *PriceMutation) NotificationsIDs() (ids []uuid.UUID) {
 	for id := range m.notifications {
 		ids = append(ids, id)
 	}
@@ -4290,8 +4234,8 @@ type UserMutation struct {
 	questionnaire_responses         map[uuid.UUID]struct{}
 	removedquestionnaire_responses  map[uuid.UUID]struct{}
 	clearedquestionnaire_responses  bool
-	notifications                   map[int]struct{}
-	removednotifications            map[int]struct{}
+	notifications                   map[uuid.UUID]struct{}
+	removednotifications            map[uuid.UUID]struct{}
 	clearednotifications            bool
 	done                            bool
 	oldValue                        func(context.Context) (*User, error)
@@ -5191,9 +5135,9 @@ func (m *UserMutation) ResetQuestionnaireResponses() {
 }
 
 // AddNotificationIDs adds the "notifications" edge to the Notification entity by ids.
-func (m *UserMutation) AddNotificationIDs(ids ...int) {
+func (m *UserMutation) AddNotificationIDs(ids ...uuid.UUID) {
 	if m.notifications == nil {
-		m.notifications = make(map[int]struct{})
+		m.notifications = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		m.notifications[ids[i]] = struct{}{}
@@ -5211,9 +5155,9 @@ func (m *UserMutation) NotificationsCleared() bool {
 }
 
 // RemoveNotificationIDs removes the "notifications" edge to the Notification entity by IDs.
-func (m *UserMutation) RemoveNotificationIDs(ids ...int) {
+func (m *UserMutation) RemoveNotificationIDs(ids ...uuid.UUID) {
 	if m.removednotifications == nil {
-		m.removednotifications = make(map[int]struct{})
+		m.removednotifications = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		delete(m.notifications, ids[i])
@@ -5222,7 +5166,7 @@ func (m *UserMutation) RemoveNotificationIDs(ids ...int) {
 }
 
 // RemovedNotifications returns the removed IDs of the "notifications" edge to the Notification entity.
-func (m *UserMutation) RemovedNotificationsIDs() (ids []int) {
+func (m *UserMutation) RemovedNotificationsIDs() (ids []uuid.UUID) {
 	for id := range m.removednotifications {
 		ids = append(ids, id)
 	}
@@ -5230,7 +5174,7 @@ func (m *UserMutation) RemovedNotificationsIDs() (ids []int) {
 }
 
 // NotificationsIDs returns the "notifications" edge IDs in the mutation.
-func (m *UserMutation) NotificationsIDs() (ids []int) {
+func (m *UserMutation) NotificationsIDs() (ids []uuid.UUID) {
 	for id := range m.notifications {
 		ids = append(ids, id)
 	}

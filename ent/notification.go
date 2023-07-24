@@ -14,14 +14,20 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
+	"github.com/eesoymilk/health-statistic-api/ent/price"
+	"github.com/eesoymilk/health-statistic-api/ent/user"
+	"github.com/google/uuid"
 )
 
 // Notification is the model entity for the Notification schema.
 type Notification struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
+	// Type holds the value of the "type" field.
+	Type notification.Type `json:"type,omitempty"`
 	// SentAt holds the value of the "sent_at" field.
 	SentAt time.Time `json:"sent_at,omitempty"`
 	// ReadAt holds the value of the "read_at" field.
@@ -30,45 +36,60 @@ type Notification struct {
 	Message string `json:"message,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the NotificationQuery when eager-loading is set.
-	Edges        NotificationEdges `json:"-"`
-	selectValues sql.SelectValues
+	Edges                 NotificationEdges `json:"-"`
+	my_card_notifications *string
+	price_notifications   *uuid.UUID
+	user_notifications    *string
+	selectValues          sql.SelectValues
 }
 
 // NotificationEdges holds the relations/edges for other nodes in the graph.
 type NotificationEdges struct {
 	// Recipient holds the value of the recipient edge.
-	Recipient []*User `json:"recipient,omitempty"`
+	Recipient *User `json:"recipient,omitempty"`
 	// Mycard holds the value of the mycard edge.
-	Mycard []*MyCard `json:"mycard,omitempty"`
+	Mycard *MyCard `json:"mycard,omitempty"`
 	// Price holds the value of the price edge.
-	Price []*Price `json:"price,omitempty"`
+	Price *Price `json:"price,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [3]bool
 }
 
 // RecipientOrErr returns the Recipient value or an error if the edge
-// was not loaded in eager-loading.
-func (e NotificationEdges) RecipientOrErr() ([]*User, error) {
+// was not loaded in eager-loading, or loaded but was not found.
+func (e NotificationEdges) RecipientOrErr() (*User, error) {
 	if e.loadedTypes[0] {
+		if e.Recipient == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
 		return e.Recipient, nil
 	}
 	return nil, &NotLoadedError{edge: "recipient"}
 }
 
 // MycardOrErr returns the Mycard value or an error if the edge
-// was not loaded in eager-loading.
-func (e NotificationEdges) MycardOrErr() ([]*MyCard, error) {
+// was not loaded in eager-loading, or loaded but was not found.
+func (e NotificationEdges) MycardOrErr() (*MyCard, error) {
 	if e.loadedTypes[1] {
+		if e.Mycard == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: mycard.Label}
+		}
 		return e.Mycard, nil
 	}
 	return nil, &NotLoadedError{edge: "mycard"}
 }
 
 // PriceOrErr returns the Price value or an error if the edge
-// was not loaded in eager-loading.
-func (e NotificationEdges) PriceOrErr() ([]*Price, error) {
+// was not loaded in eager-loading, or loaded but was not found.
+func (e NotificationEdges) PriceOrErr() (*Price, error) {
 	if e.loadedTypes[2] {
+		if e.Price == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: price.Label}
+		}
 		return e.Price, nil
 	}
 	return nil, &NotLoadedError{edge: "price"}
@@ -79,12 +100,18 @@ func (*Notification) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case notification.FieldID:
-			values[i] = new(sql.NullInt64)
-		case notification.FieldMessage:
+		case notification.FieldType, notification.FieldMessage:
 			values[i] = new(sql.NullString)
 		case notification.FieldSentAt, notification.FieldReadAt:
 			values[i] = new(sql.NullTime)
+		case notification.FieldID:
+			values[i] = new(uuid.UUID)
+		case notification.ForeignKeys[0]: // my_card_notifications
+			values[i] = new(sql.NullString)
+		case notification.ForeignKeys[1]: // price_notifications
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case notification.ForeignKeys[2]: // user_notifications
+			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -101,11 +128,17 @@ func (n *Notification) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case notification.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value != nil {
+				n.ID = *value
 			}
-			n.ID = int(value.Int64)
+		case notification.FieldType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field type", values[i])
+			} else if value.Valid {
+				n.Type = notification.Type(value.String)
+			}
 		case notification.FieldSentAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field sent_at", values[i])
@@ -123,6 +156,27 @@ func (n *Notification) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field message", values[i])
 			} else if value.Valid {
 				n.Message = value.String
+			}
+		case notification.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field my_card_notifications", values[i])
+			} else if value.Valid {
+				n.my_card_notifications = new(string)
+				*n.my_card_notifications = value.String
+			}
+		case notification.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field price_notifications", values[i])
+			} else if value.Valid {
+				n.price_notifications = new(uuid.UUID)
+				*n.price_notifications = *value.S.(*uuid.UUID)
+			}
+		case notification.ForeignKeys[2]:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field user_notifications", values[i])
+			} else if value.Valid {
+				n.user_notifications = new(string)
+				*n.user_notifications = value.String
 			}
 		default:
 			n.selectValues.Set(columns[i], values[i])
@@ -175,6 +229,9 @@ func (n *Notification) String() string {
 	var builder strings.Builder
 	builder.WriteString("Notification(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", n.ID))
+	builder.WriteString("type=")
+	builder.WriteString(fmt.Sprintf("%v", n.Type))
+	builder.WriteString(", ")
 	builder.WriteString("sent_at=")
 	builder.WriteString(n.SentAt.Format(time.ANSIC))
 	builder.WriteString(", ")

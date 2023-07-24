@@ -55,8 +55,8 @@ func (h *QuestionnaireHandler) GetQuestionnaire(c *gin.Context) {
 		Query().
 		Where(questionnaire.ID(id)).
 		WithQuestions().
-		WithQuestionnaireResponses(func(qr *ent.QuestionnaireResponseQuery) {
-			qr.WithUser().WithAnswers().All(c.Request.Context())
+		WithQuestionnaireResponses(func(q *ent.QuestionnaireResponseQuery) {
+			q.WithUser().WithAnswers().All(c.Request.Context())
 		}).
 		Only(c.Request.Context())
 

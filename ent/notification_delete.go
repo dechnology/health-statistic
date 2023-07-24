@@ -44,7 +44,7 @@ func (nd *NotificationDelete) ExecX(ctx context.Context) int {
 }
 
 func (nd *NotificationDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(notification.Table, sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewDeleteSpec(notification.Table, sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID))
 	if ps := nd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

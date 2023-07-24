@@ -7,8 +7,11 @@
 package notification
 
 import (
+	"fmt"
+
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/google/uuid"
 )
 
 const (
@@ -16,6 +19,8 @@ const (
 	Label = "notification"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldType holds the string denoting the type field in the database.
+	FieldType = "type"
 	// FieldSentAt holds the string denoting the sent_at field in the database.
 	FieldSentAt = "sent_at"
 	// FieldReadAt holds the string denoting the read_at field in the database.
@@ -28,44 +33,49 @@ const (
 	EdgeMycard = "mycard"
 	// EdgePrice holds the string denoting the price edge name in mutations.
 	EdgePrice = "price"
+	// MyCardFieldID holds the string denoting the ID field of the MyCard.
+	MyCardFieldID = "card_number"
 	// Table holds the table name of the notification in the database.
 	Table = "notifications"
-	// RecipientTable is the table that holds the recipient relation/edge. The primary key declared below.
-	RecipientTable = "user_notifications"
+	// RecipientTable is the table that holds the recipient relation/edge.
+	RecipientTable = "notifications"
 	// RecipientInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	RecipientInverseTable = "users"
-	// MycardTable is the table that holds the mycard relation/edge. The primary key declared below.
-	MycardTable = "my_card_notifications"
+	// RecipientColumn is the table column denoting the recipient relation/edge.
+	RecipientColumn = "user_notifications"
+	// MycardTable is the table that holds the mycard relation/edge.
+	MycardTable = "notifications"
 	// MycardInverseTable is the table name for the MyCard entity.
 	// It exists in this package in order to avoid circular dependency with the "mycard" package.
 	MycardInverseTable = "my_cards"
-	// PriceTable is the table that holds the price relation/edge. The primary key declared below.
-	PriceTable = "price_notifications"
+	// MycardColumn is the table column denoting the mycard relation/edge.
+	MycardColumn = "my_card_notifications"
+	// PriceTable is the table that holds the price relation/edge.
+	PriceTable = "notifications"
 	// PriceInverseTable is the table name for the Price entity.
 	// It exists in this package in order to avoid circular dependency with the "price" package.
 	PriceInverseTable = "prices"
+	// PriceColumn is the table column denoting the price relation/edge.
+	PriceColumn = "price_notifications"
 )
 
 // Columns holds all SQL columns for notification fields.
 var Columns = []string{
 	FieldID,
+	FieldType,
 	FieldSentAt,
 	FieldReadAt,
 	FieldMessage,
 }
 
-var (
-	// RecipientPrimaryKey and RecipientColumn2 are the table columns denoting the
-	// primary key for the recipient relation (M2M).
-	RecipientPrimaryKey = []string{"user_id", "notification_id"}
-	// MycardPrimaryKey and MycardColumn2 are the table columns denoting the
-	// primary key for the mycard relation (M2M).
-	MycardPrimaryKey = []string{"my_card_id", "notification_id"}
-	// PricePrimaryKey and PriceColumn2 are the table columns denoting the
-	// primary key for the price relation (M2M).
-	PricePrimaryKey = []string{"price_id", "notification_id"}
-)
+// ForeignKeys holds the SQL foreign-keys that are owned by the "notifications"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"my_card_notifications",
+	"price_notifications",
+	"user_notifications",
+}
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -74,7 +84,41 @@ func ValidColumn(column string) bool {
 			return true
 		}
 	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
+			return true
+		}
+	}
 	return false
+}
+
+var (
+	// DefaultID holds the default value on creation for the "id" field.
+	DefaultID func() uuid.UUID
+)
+
+// Type defines the type for the "type" enum field.
+type Type string
+
+// Type values.
+const (
+	TypeNormal Type = "normal"
+	TypeMycard Type = "mycard"
+	TypePrice  Type = "price"
+)
+
+func (_type Type) String() string {
+	return string(_type)
+}
+
+// TypeValidator is a validator for the "type" field enum values. It is called by the builders before save.
+func TypeValidator(_type Type) error {
+	switch _type {
+	case TypeNormal, TypeMycard, TypePrice:
+		return nil
+	default:
+		return fmt.Errorf("notification: invalid enum value for type field: %q", _type)
+	}
 }
 
 // OrderOption defines the ordering options for the Notification queries.
@@ -83,6 +127,11 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByType orders the results by the type field.
+func ByType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldType, opts...).ToFunc()
 }
 
 // BySentAt orders the results by the sent_at field.
@@ -100,65 +149,44 @@ func ByMessage(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldMessage, opts...).ToFunc()
 }
 
-// ByRecipientCount orders the results by recipient count.
-func ByRecipientCount(opts ...sql.OrderTermOption) OrderOption {
+// ByRecipientField orders the results by recipient field.
+func ByRecipientField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newRecipientStep(), opts...)
+		sqlgraph.OrderByNeighborTerms(s, newRecipientStep(), sql.OrderByField(field, opts...))
 	}
 }
 
-// ByRecipient orders the results by recipient terms.
-func ByRecipient(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByMycardField orders the results by mycard field.
+func ByMycardField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newRecipientStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newMycardStep(), sql.OrderByField(field, opts...))
 	}
 }
 
-// ByMycardCount orders the results by mycard count.
-func ByMycardCount(opts ...sql.OrderTermOption) OrderOption {
+// ByPriceField orders the results by price field.
+func ByPriceField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newMycardStep(), opts...)
-	}
-}
-
-// ByMycard orders the results by mycard terms.
-func ByMycard(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newMycardStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
-// ByPriceCount orders the results by price count.
-func ByPriceCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newPriceStep(), opts...)
-	}
-}
-
-// ByPrice orders the results by price terms.
-func ByPrice(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newPriceStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newPriceStep(), sql.OrderByField(field, opts...))
 	}
 }
 func newRecipientStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(RecipientInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, true, RecipientTable, RecipientPrimaryKey...),
+		sqlgraph.Edge(sqlgraph.M2O, true, RecipientTable, RecipientColumn),
 	)
 }
 func newMycardStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(MycardInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, true, MycardTable, MycardPrimaryKey...),
+		sqlgraph.To(MycardInverseTable, MyCardFieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, MycardTable, MycardColumn),
 	)
 }
 func newPriceStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(PriceInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, true, PriceTable, PricePrimaryKey...),
+		sqlgraph.Edge(sqlgraph.M2O, true, PriceTable, PriceColumn),
 	)
 }

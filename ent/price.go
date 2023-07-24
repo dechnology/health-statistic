@@ -16,13 +16,14 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/eesoymilk/health-statistic-api/ent/price"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
+	"github.com/google/uuid"
 )
 
 // Price is the model entity for the Price schema.
 type Price struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// Description holds the value of the "description" field.
@@ -76,12 +77,12 @@ func (*Price) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case price.FieldID:
-			values[i] = new(sql.NullInt64)
 		case price.FieldName, price.FieldDescription:
 			values[i] = new(sql.NullString)
 		case price.FieldCreatedAt, price.FieldTakenAt:
 			values[i] = new(sql.NullTime)
+		case price.FieldID:
+			values[i] = new(uuid.UUID)
 		case price.ForeignKeys[0]: // price_recipient
 			values[i] = new(sql.NullString)
 		default:
@@ -100,11 +101,11 @@ func (pr *Price) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case price.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value != nil {
+				pr.ID = *value
 			}
-			pr.ID = int(value.Int64)
 		case price.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])

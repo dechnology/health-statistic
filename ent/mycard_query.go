@@ -103,7 +103,7 @@ func (mcq *MyCardQuery) QueryNotifications() *NotificationQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(mycard.Table, mycard.FieldID, selector),
 			sqlgraph.To(notification.Table, notification.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, mycard.NotificationsTable, mycard.NotificationsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, mycard.NotificationsTable, mycard.NotificationsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(mcq.driver.Dialect(), step)
 		return fromU, nil
@@ -135,8 +135,8 @@ func (mcq *MyCardQuery) FirstX(ctx context.Context) *MyCard {
 
 // FirstID returns the first MyCard ID from the query.
 // Returns a *NotFoundError when no MyCard ID was found.
-func (mcq *MyCardQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (mcq *MyCardQuery) FirstID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = mcq.Limit(1).IDs(setContextOp(ctx, mcq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -148,7 +148,7 @@ func (mcq *MyCardQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (mcq *MyCardQuery) FirstIDX(ctx context.Context) int {
+func (mcq *MyCardQuery) FirstIDX(ctx context.Context) string {
 	id, err := mcq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -186,8 +186,8 @@ func (mcq *MyCardQuery) OnlyX(ctx context.Context) *MyCard {
 // OnlyID is like Only, but returns the only MyCard ID in the query.
 // Returns a *NotSingularError when more than one MyCard ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (mcq *MyCardQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (mcq *MyCardQuery) OnlyID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = mcq.Limit(2).IDs(setContextOp(ctx, mcq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -203,7 +203,7 @@ func (mcq *MyCardQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (mcq *MyCardQuery) OnlyIDX(ctx context.Context) int {
+func (mcq *MyCardQuery) OnlyIDX(ctx context.Context) string {
 	id, err := mcq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -231,7 +231,7 @@ func (mcq *MyCardQuery) AllX(ctx context.Context) []*MyCard {
 }
 
 // IDs executes the query and returns a list of MyCard IDs.
-func (mcq *MyCardQuery) IDs(ctx context.Context) (ids []int, err error) {
+func (mcq *MyCardQuery) IDs(ctx context.Context) (ids []string, err error) {
 	if mcq.ctx.Unique == nil && mcq.path != nil {
 		mcq.Unique(true)
 	}
@@ -243,7 +243,7 @@ func (mcq *MyCardQuery) IDs(ctx context.Context) (ids []int, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (mcq *MyCardQuery) IDsX(ctx context.Context) []int {
+func (mcq *MyCardQuery) IDsX(ctx context.Context) []string {
 	ids, err := mcq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -339,12 +339,12 @@ func (mcq *MyCardQuery) WithNotifications(opts ...func(*NotificationQuery)) *MyC
 // Example:
 //
 //	var v []struct {
-//		CardNumber string `json:"card_number,omitempty"`
+//		CardPassword string `json:"card_password,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.MyCard.Query().
-//		GroupBy(mycard.FieldCardNumber).
+//		GroupBy(mycard.FieldCardPassword).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (mcq *MyCardQuery) GroupBy(field string, fields ...string) *MyCardGroupBy {
@@ -362,11 +362,11 @@ func (mcq *MyCardQuery) GroupBy(field string, fields ...string) *MyCardGroupBy {
 // Example:
 //
 //	var v []struct {
-//		CardNumber string `json:"card_number,omitempty"`
+//		CardPassword string `json:"card_password,omitempty"`
 //	}
 //
 //	client.MyCard.Query().
-//		Select(mycard.FieldCardNumber).
+//		Select(mycard.FieldCardPassword).
 //		Scan(ctx, &v)
 func (mcq *MyCardQuery) Select(fields ...string) *MyCardSelect {
 	mcq.ctx.Fields = append(mcq.ctx.Fields, fields...)
@@ -490,63 +490,33 @@ func (mcq *MyCardQuery) loadRecipient(ctx context.Context, query *UserQuery, nod
 	return nil
 }
 func (mcq *MyCardQuery) loadNotifications(ctx context.Context, query *NotificationQuery, nodes []*MyCard, init func(*MyCard), assign func(*MyCard, *Notification)) error {
-	edgeIDs := make([]driver.Value, len(nodes))
-	byID := make(map[int]*MyCard)
-	nids := make(map[int]map[*MyCard]struct{})
-	for i, node := range nodes {
-		edgeIDs[i] = node.ID
-		byID[node.ID] = node
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*MyCard)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
 		if init != nil {
-			init(node)
+			init(nodes[i])
 		}
 	}
-	query.Where(func(s *sql.Selector) {
-		joinT := sql.Table(mycard.NotificationsTable)
-		s.Join(joinT).On(s.C(notification.FieldID), joinT.C(mycard.NotificationsPrimaryKey[1]))
-		s.Where(sql.InValues(joinT.C(mycard.NotificationsPrimaryKey[0]), edgeIDs...))
-		columns := s.SelectedColumns()
-		s.Select(joinT.C(mycard.NotificationsPrimaryKey[0]))
-		s.AppendSelect(columns...)
-		s.SetDistinct(false)
-	})
-	if err := query.prepareQuery(ctx); err != nil {
-		return err
-	}
-	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
-		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
-			assign := spec.Assign
-			values := spec.ScanValues
-			spec.ScanValues = func(columns []string) ([]any, error) {
-				values, err := values(columns[1:])
-				if err != nil {
-					return nil, err
-				}
-				return append([]any{new(sql.NullInt64)}, values...), nil
-			}
-			spec.Assign = func(columns []string, values []any) error {
-				outValue := int(values[0].(*sql.NullInt64).Int64)
-				inValue := int(values[1].(*sql.NullInt64).Int64)
-				if nids[inValue] == nil {
-					nids[inValue] = map[*MyCard]struct{}{byID[outValue]: {}}
-					return assign(columns[1:], values[1:])
-				}
-				nids[inValue][byID[outValue]] = struct{}{}
-				return nil
-			}
-		})
-	})
-	neighbors, err := withInterceptors[[]*Notification](ctx, query, qr, query.inters)
+	query.withFKs = true
+	query.Where(predicate.Notification(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(mycard.NotificationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		nodes, ok := nids[n.ID]
+		fk := n.my_card_notifications
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "my_card_notifications" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected "notifications" node returned %v`, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "my_card_notifications" returned %v for node %v`, *fk, n.ID)
 		}
-		for kn := range nodes {
-			assign(kn, n)
-		}
+		assign(node, n)
 	}
 	return nil
 }
@@ -561,7 +531,7 @@ func (mcq *MyCardQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (mcq *MyCardQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(mycard.Table, mycard.Columns, sqlgraph.NewFieldSpec(mycard.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewQuerySpec(mycard.Table, mycard.Columns, sqlgraph.NewFieldSpec(mycard.FieldID, field.TypeString))
 	_spec.From = mcq.sql
 	if unique := mcq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

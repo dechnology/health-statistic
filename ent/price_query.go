@@ -19,6 +19,7 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
 	"github.com/eesoymilk/health-statistic-api/ent/price"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
+	"github.com/google/uuid"
 )
 
 // PriceQuery is the builder for querying Price entities.
@@ -103,7 +104,7 @@ func (pq *PriceQuery) QueryNotifications() *NotificationQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(price.Table, price.FieldID, selector),
 			sqlgraph.To(notification.Table, notification.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, price.NotificationsTable, price.NotificationsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, price.NotificationsTable, price.NotificationsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
@@ -135,8 +136,8 @@ func (pq *PriceQuery) FirstX(ctx context.Context) *Price {
 
 // FirstID returns the first Price ID from the query.
 // Returns a *NotFoundError when no Price ID was found.
-func (pq *PriceQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (pq *PriceQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = pq.Limit(1).IDs(setContextOp(ctx, pq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -148,7 +149,7 @@ func (pq *PriceQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (pq *PriceQuery) FirstIDX(ctx context.Context) int {
+func (pq *PriceQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	id, err := pq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -186,8 +187,8 @@ func (pq *PriceQuery) OnlyX(ctx context.Context) *Price {
 // OnlyID is like Only, but returns the only Price ID in the query.
 // Returns a *NotSingularError when more than one Price ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (pq *PriceQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (pq *PriceQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = pq.Limit(2).IDs(setContextOp(ctx, pq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -203,7 +204,7 @@ func (pq *PriceQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (pq *PriceQuery) OnlyIDX(ctx context.Context) int {
+func (pq *PriceQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	id, err := pq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -231,7 +232,7 @@ func (pq *PriceQuery) AllX(ctx context.Context) []*Price {
 }
 
 // IDs executes the query and returns a list of Price IDs.
-func (pq *PriceQuery) IDs(ctx context.Context) (ids []int, err error) {
+func (pq *PriceQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
 	if pq.ctx.Unique == nil && pq.path != nil {
 		pq.Unique(true)
 	}
@@ -243,7 +244,7 @@ func (pq *PriceQuery) IDs(ctx context.Context) (ids []int, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (pq *PriceQuery) IDsX(ctx context.Context) []int {
+func (pq *PriceQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := pq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -490,63 +491,33 @@ func (pq *PriceQuery) loadRecipient(ctx context.Context, query *UserQuery, nodes
 	return nil
 }
 func (pq *PriceQuery) loadNotifications(ctx context.Context, query *NotificationQuery, nodes []*Price, init func(*Price), assign func(*Price, *Notification)) error {
-	edgeIDs := make([]driver.Value, len(nodes))
-	byID := make(map[int]*Price)
-	nids := make(map[int]map[*Price]struct{})
-	for i, node := range nodes {
-		edgeIDs[i] = node.ID
-		byID[node.ID] = node
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Price)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
 		if init != nil {
-			init(node)
+			init(nodes[i])
 		}
 	}
-	query.Where(func(s *sql.Selector) {
-		joinT := sql.Table(price.NotificationsTable)
-		s.Join(joinT).On(s.C(notification.FieldID), joinT.C(price.NotificationsPrimaryKey[1]))
-		s.Where(sql.InValues(joinT.C(price.NotificationsPrimaryKey[0]), edgeIDs...))
-		columns := s.SelectedColumns()
-		s.Select(joinT.C(price.NotificationsPrimaryKey[0]))
-		s.AppendSelect(columns...)
-		s.SetDistinct(false)
-	})
-	if err := query.prepareQuery(ctx); err != nil {
-		return err
-	}
-	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
-		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
-			assign := spec.Assign
-			values := spec.ScanValues
-			spec.ScanValues = func(columns []string) ([]any, error) {
-				values, err := values(columns[1:])
-				if err != nil {
-					return nil, err
-				}
-				return append([]any{new(sql.NullInt64)}, values...), nil
-			}
-			spec.Assign = func(columns []string, values []any) error {
-				outValue := int(values[0].(*sql.NullInt64).Int64)
-				inValue := int(values[1].(*sql.NullInt64).Int64)
-				if nids[inValue] == nil {
-					nids[inValue] = map[*Price]struct{}{byID[outValue]: {}}
-					return assign(columns[1:], values[1:])
-				}
-				nids[inValue][byID[outValue]] = struct{}{}
-				return nil
-			}
-		})
-	})
-	neighbors, err := withInterceptors[[]*Notification](ctx, query, qr, query.inters)
+	query.withFKs = true
+	query.Where(predicate.Notification(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(price.NotificationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		nodes, ok := nids[n.ID]
+		fk := n.price_notifications
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "price_notifications" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected "notifications" node returned %v`, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "price_notifications" returned %v for node %v`, *fk, n.ID)
 		}
-		for kn := range nodes {
-			assign(kn, n)
-		}
+		assign(node, n)
 	}
 	return nil
 }
@@ -561,7 +532,7 @@ func (pq *PriceQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (pq *PriceQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(price.Table, price.Columns, sqlgraph.NewFieldSpec(price.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewQuerySpec(price.Table, price.Columns, sqlgraph.NewFieldSpec(price.FieldID, field.TypeUUID))
 	_spec.From = pq.sql
 	if unique := pq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

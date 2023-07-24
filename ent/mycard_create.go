@@ -17,6 +17,7 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
+	"github.com/google/uuid"
 )
 
 // MyCardCreate is the builder for creating a MyCard entity.
@@ -24,12 +25,6 @@ type MyCardCreate struct {
 	config
 	mutation *MyCardMutation
 	hooks    []Hook
-}
-
-// SetCardNumber sets the "card_number" field.
-func (mcc *MyCardCreate) SetCardNumber(s string) *MyCardCreate {
-	mcc.mutation.SetCardNumber(s)
-	return mcc
 }
 
 // SetCardPassword sets the "card_password" field.
@@ -66,6 +61,12 @@ func (mcc *MyCardCreate) SetNillableTakenAt(t *time.Time) *MyCardCreate {
 	return mcc
 }
 
+// SetID sets the "id" field.
+func (mcc *MyCardCreate) SetID(s string) *MyCardCreate {
+	mcc.mutation.SetID(s)
+	return mcc
+}
+
 // SetRecipientID sets the "recipient" edge to the User entity by ID.
 func (mcc *MyCardCreate) SetRecipientID(id string) *MyCardCreate {
 	mcc.mutation.SetRecipientID(id)
@@ -86,14 +87,14 @@ func (mcc *MyCardCreate) SetRecipient(u *User) *MyCardCreate {
 }
 
 // AddNotificationIDs adds the "notifications" edge to the Notification entity by IDs.
-func (mcc *MyCardCreate) AddNotificationIDs(ids ...int) *MyCardCreate {
+func (mcc *MyCardCreate) AddNotificationIDs(ids ...uuid.UUID) *MyCardCreate {
 	mcc.mutation.AddNotificationIDs(ids...)
 	return mcc
 }
 
 // AddNotifications adds the "notifications" edges to the Notification entity.
 func (mcc *MyCardCreate) AddNotifications(n ...*Notification) *MyCardCreate {
-	ids := make([]int, len(n))
+	ids := make([]uuid.UUID, len(n))
 	for i := range n {
 		ids[i] = n[i].ID
 	}
@@ -143,14 +144,6 @@ func (mcc *MyCardCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (mcc *MyCardCreate) check() error {
-	if _, ok := mcc.mutation.CardNumber(); !ok {
-		return &ValidationError{Name: "card_number", err: errors.New(`ent: missing required field "MyCard.card_number"`)}
-	}
-	if v, ok := mcc.mutation.CardNumber(); ok {
-		if err := mycard.CardNumberValidator(v); err != nil {
-			return &ValidationError{Name: "card_number", err: fmt.Errorf(`ent: validator failed for field "MyCard.card_number": %w`, err)}
-		}
-	}
 	if _, ok := mcc.mutation.CardPassword(); !ok {
 		return &ValidationError{Name: "card_password", err: errors.New(`ent: missing required field "MyCard.card_password"`)}
 	}
@@ -161,6 +154,11 @@ func (mcc *MyCardCreate) check() error {
 	}
 	if _, ok := mcc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "MyCard.created_at"`)}
+	}
+	if v, ok := mcc.mutation.ID(); ok {
+		if err := mycard.IDValidator(v); err != nil {
+			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "MyCard.id": %w`, err)}
+		}
 	}
 	return nil
 }
@@ -176,8 +174,13 @@ func (mcc *MyCardCreate) sqlSave(ctx context.Context) (*MyCard, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(string); ok {
+			_node.ID = id
+		} else {
+			return nil, fmt.Errorf("unexpected MyCard.ID type: %T", _spec.ID.Value)
+		}
+	}
 	mcc.mutation.id = &_node.ID
 	mcc.mutation.done = true
 	return _node, nil
@@ -186,11 +189,11 @@ func (mcc *MyCardCreate) sqlSave(ctx context.Context) (*MyCard, error) {
 func (mcc *MyCardCreate) createSpec() (*MyCard, *sqlgraph.CreateSpec) {
 	var (
 		_node = &MyCard{config: mcc.config}
-		_spec = sqlgraph.NewCreateSpec(mycard.Table, sqlgraph.NewFieldSpec(mycard.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(mycard.Table, sqlgraph.NewFieldSpec(mycard.FieldID, field.TypeString))
 	)
-	if value, ok := mcc.mutation.CardNumber(); ok {
-		_spec.SetField(mycard.FieldCardNumber, field.TypeString, value)
-		_node.CardNumber = value
+	if id, ok := mcc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = id
 	}
 	if value, ok := mcc.mutation.CardPassword(); ok {
 		_spec.SetField(mycard.FieldCardPassword, field.TypeString, value)
@@ -223,13 +226,13 @@ func (mcc *MyCardCreate) createSpec() (*MyCard, *sqlgraph.CreateSpec) {
 	}
 	if nodes := mcc.mutation.NotificationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   mycard.NotificationsTable,
-			Columns: mycard.NotificationsPrimaryKey,
+			Columns: []string{mycard.NotificationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -281,10 +284,6 @@ func (mccb *MyCardCreateBulk) Save(ctx context.Context) ([]*MyCard, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})

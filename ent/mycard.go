@@ -22,9 +22,7 @@ import (
 type MyCard struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
-	// CardNumber holds the value of the "card_number" field.
-	CardNumber string `json:"card_number,omitempty"`
+	ID string `json:"id,omitempty"`
 	// CardPassword holds the value of the "card_password" field.
 	CardPassword string `json:"card_password,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -76,9 +74,7 @@ func (*MyCard) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case mycard.FieldID:
-			values[i] = new(sql.NullInt64)
-		case mycard.FieldCardNumber, mycard.FieldCardPassword:
+		case mycard.FieldID, mycard.FieldCardPassword:
 			values[i] = new(sql.NullString)
 		case mycard.FieldCreatedAt, mycard.FieldTakenAt:
 			values[i] = new(sql.NullTime)
@@ -100,16 +96,10 @@ func (mc *MyCard) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case mycard.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
-			}
-			mc.ID = int(value.Int64)
-		case mycard.FieldCardNumber:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field card_number", values[i])
+				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value.Valid {
-				mc.CardNumber = value.String
+				mc.ID = value.String
 			}
 		case mycard.FieldCardPassword:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -182,9 +172,6 @@ func (mc *MyCard) String() string {
 	var builder strings.Builder
 	builder.WriteString("MyCard(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", mc.ID))
-	builder.WriteString("card_number=")
-	builder.WriteString(mc.CardNumber)
-	builder.WriteString(", ")
 	builder.WriteString("card_password=")
 	builder.WriteString(mc.CardPassword)
 	builder.WriteString(", ")

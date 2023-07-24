@@ -47,6 +47,13 @@ import (
 /*		- fetch a specific question											*/
 /* 19. DELETE	/questions/:id												*/
 /*		- delete a specific question										*/
+/* ======================================================================== */
+/* 16. GET		/mycards													*/
+/*		- fetch all questions												*/
+/* 18. GET		/questions/:id												*/
+/*		- fetch a specific question											*/
+/* 19. DELETE	/questions/:id												*/
+/*		- delete a specific question										*/
 /****************************************************************************/
 
 // New registers the routes and returns the router.
@@ -84,9 +91,16 @@ func New(db *ent.Client) *gin.Engine {
 			h := handlers.UserHandler{DB: db}
 			userGroup.GET("/", h.GetUsers)
 			userGroup.POST("/", h.CreateUser)
-			userGroup.GET("/:id", h.GetUser)
-			userGroup.PUT("/:id", h.UpdateUser)
-			userGroup.DELETE("/:id", h.DeleteUser)
+
+			idGroup := userGroup.Group("/:id")
+			{
+				idGroup.GET("/", h.GetUser)
+				idGroup.PUT("/", h.UpdateUser)
+				idGroup.DELETE("/", h.DeleteUser)
+				idGroup.GET("/notifications", h.GetUserNotifications)
+				idGroup.GET("/mycards", h.GetUserMyCards)
+				idGroup.GET("/prices", h.GetUserPrices)
+			}
 		}
 
 		questionnaireGroup := v1.Group("/questionnaires")
@@ -118,6 +132,30 @@ func New(db *ent.Client) *gin.Engine {
 			questionGroup.GET("/", h.GetQuestions)
 			questionGroup.GET("/:id", h.GetQuestion)
 			questionGroup.DELETE("/:id", h.DeleteQuestion)
+		}
+
+		notificationGroup := v1.Group("/notifications")
+		{
+			h := handlers.NotificationHandler{DB: db}
+			notificationGroup.GET("/", h.GetNotifications)
+			notificationGroup.GET("/:id", h.GetNotification)
+			notificationGroup.DELETE("/:id", h.DeleteNotification)
+		}
+
+		myCardGroup := v1.Group("/mycards")
+		{
+			h := handlers.MyCardHandler{DB: db}
+			myCardGroup.GET("/", h.GetMyCards)
+			myCardGroup.GET("/:id", h.GetMyCard)
+			myCardGroup.DELETE("/:id", h.DeleteMyCard)
+		}
+
+		priceGroup := v1.Group("/prices")
+		{
+			h := handlers.PriceHandler{DB: db}
+			priceGroup.GET("/", h.GetPrices)
+			priceGroup.GET("/:id", h.GetPrice)
+			priceGroup.DELETE("/:id", h.DeletePrice)
 		}
 	}
 

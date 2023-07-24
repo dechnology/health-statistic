@@ -1,5 +1,57 @@
 basePath: /api/v1
 definitions:
+  ent.MyCard:
+    properties:
+      card_password:
+        description: CardPassword holds the value of the "card_password" field.
+        type: string
+      created_at:
+        description: CreatedAt holds the value of the "created_at" field.
+        type: string
+      id:
+        description: ID of the ent.
+        type: string
+      taken_at:
+        description: TakenAt holds the value of the "taken_at" field.
+        type: string
+    type: object
+  ent.Notification:
+    properties:
+      id:
+        description: ID of the ent.
+        type: string
+      message:
+        description: Message holds the value of the "message" field.
+        type: string
+      read_at:
+        description: ReadAt holds the value of the "read_at" field.
+        type: string
+      sent_at:
+        description: SentAt holds the value of the "sent_at" field.
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/notification.Type'
+        description: Type holds the value of the "type" field.
+    type: object
+  ent.Price:
+    properties:
+      created_at:
+        description: CreatedAt holds the value of the "created_at" field.
+        type: string
+      description:
+        description: Description holds the value of the "description" field.
+        type: string
+      id:
+        description: ID of the ent.
+        type: string
+      name:
+        description: Name holds the value of the "name" field.
+        type: string
+      taken_at:
+        description: TakenAt holds the value of the "taken_at" field.
+        type: string
+    type: object
   ent.Question:
     properties:
       body:
@@ -110,11 +162,21 @@ definitions:
         description: Health message
         type: string
     type: object
+  notification.Type:
+    enum:
+    - normal
+    - mycard
+    - price
+    type: string
+    x-enum-varnames:
+    - TypeNormal
+    - TypeMycard
+    - TypePrice
   types.BaseAnswer:
-    description: The json body for creating a new answer in a new response.
     properties:
       body:
         description: The answer body.
+        example: 我這週心情還不錯！
         type: string
       question_id:
         description: |-
@@ -123,15 +185,16 @@ definitions:
         type: string
     type: object
   types.BaseQuestion:
-    description: The json body for creating a new question.
     properties:
       body:
         description: The question body
+        example: 你這週的心情如何？
         type: string
       type:
         description: |-
           The question type, currently we accept string but in the future this
           field will be enums.
+        example: 簡答題
         type: string
     type: object
   types.BaseQuestionnaire:
@@ -139,6 +202,7 @@ definitions:
     properties:
       name:
         description: The name of the questionnaire
+        example: 問卷標題
         type: string
       questions:
         description: |-
@@ -159,6 +223,111 @@ definitions:
       user_id:
         description: The user ID of the user who submit the response.
         type: string
+    type: object
+  types.BaseUser:
+    properties:
+      birth_year:
+        example: 2000
+        type: integer
+      demented_among_direct_relatives:
+        example: false
+        type: boolean
+      ear_condition:
+        enum:
+        - normal
+        - slightly_affecting_conversation
+        - need_hearing_aid
+        example: normal
+        type: string
+      education_level:
+        enum:
+        - elementry_school_or_below
+        - middle_school
+        - high_school
+        - bachelor
+        - master
+        - doctorate
+        example: doctorate
+        type: string
+      eyesight_condition:
+        enum:
+        - normal
+        - slightly_affecting_reading
+        - need_glasses
+        example: normal
+        type: string
+      first_name:
+        example: 中天
+        type: string
+      gender:
+        example: male
+        type: string
+      head_injury_experience:
+        example: false
+        type: boolean
+      height:
+        example: 185.2
+        type: number
+      id:
+        type: string
+      last_name:
+        example: 大
+        type: string
+      marriage:
+        enum:
+        - single
+        - married
+        - divorced
+        - widowed
+        example: single
+        type: string
+      medical_history:
+        example: none
+        type: string
+      medication_status:
+        example: none
+        type: string
+      occupation:
+        enum:
+        - student
+        - government_employee
+        - service_industry
+        - industry_and_commerce
+        - freelancer
+        - domestic
+        example: student
+        type: string
+      smoking_habit:
+        enum:
+        - none
+        - sometimes
+        - everyday
+        example: none
+        type: string
+      weight:
+        example: 80.3
+        type: number
+    type: object
+  types.NotificationWithRecipient:
+    properties:
+      id:
+        description: ID of the ent.
+        type: string
+      message:
+        description: Message holds the value of the "message" field.
+        type: string
+      read_at:
+        description: ReadAt holds the value of the "read_at" field.
+        type: string
+      recipient:
+        $ref: '#/definitions/ent.User'
+      sent_at:
+        description: SentAt holds the value of the "sent_at" field.
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/notification.Type'
+        description: Type holds the value of the "type" field.
     type: object
   types.QuestionWithQuestionnaire:
     properties:
@@ -332,6 +501,149 @@ paths:
       summary: Health Check
       tags:
       - Health
+  /mycards:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/ent.MyCard'
+            type: array
+      summary: Get MyCards
+      tags:
+      - MyCard
+  /mycards/{id}:
+    delete:
+      parameters:
+      - description: The mycard's ID.
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Delete MyCard
+      tags:
+      - MyCard
+    get:
+      parameters:
+      - description: The mycard's ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ent.MyCard'
+      summary: Get MyCard
+      tags:
+      - MyCard
+  /notifications:
+    get:
+      description: |
+        Get all notifications from the database. For each notification, the user who received this notification is also included.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/types.NotificationWithRecipient'
+            type: array
+      summary: Get Notifications
+      tags:
+      - Notification
+  /notifications/{id}:
+    delete:
+      parameters:
+      - description: The notification's ID.
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Delete Notification
+      tags:
+      - Notification
+    get:
+      parameters:
+      - description: The notification's ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.NotificationWithRecipient'
+      summary: Get Notification
+      tags:
+      - Notification
+  /prices:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/ent.Price'
+            type: array
+      summary: Get Prices
+      tags:
+      - Price
+  /prices/{id}:
+    delete:
+      parameters:
+      - description: The price's ID.
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Delete Price
+      tags:
+      - Price
+    get:
+      parameters:
+      - description: The price's ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ent.Price'
+      summary: Get Price
+      tags:
+      - Price
   /questionnaires:
     get:
       description: |
@@ -594,7 +906,7 @@ paths:
       - Response
   /users:
     get:
-      description: Get all users from the database
+      description: Get all users from the database.
       produces:
       - application/json
       responses:
@@ -610,14 +922,23 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create a new user
+      description: |-
+        Create a new user.
+
+        ## Request Body
+
+        - `first_name` *`string`* **Required**
+            The body of one of the question in the questionnaire.
+
+        - `last_name` *`string`* **Required**
+            The type of the question. For now, we accept all strings but in the future this field might be an enum.
       parameters:
       - description: The user to be created
         in: body
         name: user
         required: true
         schema:
-          $ref: '#/definitions/ent.User'
+          $ref: '#/definitions/types.BaseUser'
       produces:
       - application/json
       responses:
@@ -630,7 +951,6 @@ paths:
       - User
   /users/{id}:
     delete:
-      description: Delete a user by Auth0 ID
       parameters:
       - description: The user's Auth0 ID
         in: path
@@ -646,7 +966,8 @@ paths:
       tags:
       - User
     get:
-      description: Get a user by an Auth0 ID.
+      description: |
+        Get the user specified by the `id` path param.
       parameters:
       - description: The user's Auth0 ID
         in: path
@@ -666,7 +987,6 @@ paths:
     put:
       consumes:
       - application/json
-      description: update a user with specified Auth0 ID
       parameters:
       - description: The user's Auth0 ID
         in: path
@@ -687,6 +1007,70 @@ paths:
           schema:
             $ref: '#/definitions/ent.User'
       summary: Update User
+      tags:
+      - User
+  /users/{id}/mycards:
+    get:
+      parameters:
+      - description: The user's Auth0 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/ent.MyCard'
+            type: array
+      summary: Get All MyCards From an User
+      tags:
+      - User
+  /users/{id}/notifications:
+    get:
+      description: |
+        Get all notifications of an user.
+      parameters:
+      - description: The user's Auth0 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              items:
+                $ref: '#/definitions/ent.Notification'
+              type: array
+            type: array
+      summary: Get All Notifications From an User
+      tags:
+      - User
+  /users/{id}/prices:
+    get:
+      parameters:
+      - description: The user's Auth0 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/ent.Price'
+            type: array
+      summary: Get All Prices From an User
       tags:
       - User
 schemes:

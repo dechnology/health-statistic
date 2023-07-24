@@ -11,6 +11,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/google/uuid"
 )
 
 const (
@@ -39,11 +40,13 @@ const (
 	RecipientInverseTable = "users"
 	// RecipientColumn is the table column denoting the recipient relation/edge.
 	RecipientColumn = "price_recipient"
-	// NotificationsTable is the table that holds the notifications relation/edge. The primary key declared below.
-	NotificationsTable = "price_notifications"
+	// NotificationsTable is the table that holds the notifications relation/edge.
+	NotificationsTable = "notifications"
 	// NotificationsInverseTable is the table name for the Notification entity.
 	// It exists in this package in order to avoid circular dependency with the "notification" package.
 	NotificationsInverseTable = "notifications"
+	// NotificationsColumn is the table column denoting the notifications relation/edge.
+	NotificationsColumn = "price_notifications"
 )
 
 // Columns holds all SQL columns for price fields.
@@ -61,12 +64,6 @@ var ForeignKeys = []string{
 	"price_recipient",
 }
 
-var (
-	// NotificationsPrimaryKey and NotificationsColumn2 are the table columns denoting the
-	// primary key for the notifications relation (M2M).
-	NotificationsPrimaryKey = []string{"price_id", "notification_id"}
-)
-
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
@@ -83,8 +80,14 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// NameValidator is a validator for the "name" field. It is called by the builders before save.
+	NameValidator func(string) error
+	// DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	DescriptionValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
+	// DefaultID holds the default value on creation for the "id" field.
+	DefaultID func() uuid.UUID
 )
 
 // OrderOption defines the ordering options for the Price queries.
@@ -146,6 +149,6 @@ func newNotificationsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(NotificationsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, NotificationsTable, NotificationsPrimaryKey...),
+		sqlgraph.Edge(sqlgraph.O2M, false, NotificationsTable, NotificationsColumn),
 	)
 }

@@ -189,14 +189,14 @@ func (uc *UserCreate) AddQuestionnaireResponses(q ...*QuestionnaireResponse) *Us
 }
 
 // AddNotificationIDs adds the "notifications" edge to the Notification entity by IDs.
-func (uc *UserCreate) AddNotificationIDs(ids ...int) *UserCreate {
+func (uc *UserCreate) AddNotificationIDs(ids ...uuid.UUID) *UserCreate {
 	uc.mutation.AddNotificationIDs(ids...)
 	return uc
 }
 
 // AddNotifications adds the "notifications" edges to the Notification entity.
 func (uc *UserCreate) AddNotifications(n ...*Notification) *UserCreate {
-	ids := make([]int, len(n))
+	ids := make([]uuid.UUID, len(n))
 	for i := range n {
 		ids[i] = n[i].ID
 	}
@@ -493,13 +493,13 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	}
 	if nodes := uc.mutation.NotificationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   user.NotificationsTable,
-			Columns: user.NotificationsPrimaryKey,
+			Columns: []string{user.NotificationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

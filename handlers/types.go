@@ -77,3 +77,15 @@ type ResponseHandler struct {
 type QuestionHandler struct {
 	DB *ent.Client
 }
+
+type NotificationHandler struct {
+	DB *ent.Client
+}
+
+type MyCardHandler struct {
+	DB *ent.Client
+}
+
+type PriceHandler struct {
+	DB *ent.Client
+}

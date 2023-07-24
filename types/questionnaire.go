@@ -5,19 +5,17 @@ import (
 	"github.com/google/uuid"
 )
 
-//	@Description	The json body for creating a new question.
 type BaseQuestion struct {
 	// The question body
-	Body string `json:"body"`
+	Body string `json:"body" example:"你這週的心情如何？"`
 	// The question type, currently we accept string but in the future this
 	// field will be enums.
-	Type string `json:"type"`
+	Type string `json:"type" example:"簡答題"`
 }
 
-//	@Description	The json body for creating a new answer in a new response.
 type BaseAnswer struct {
 	// The answer body.
-	Body string `json:"body"`
+	Body string `json:"body" example:"我這週心情還不錯！"`
 	// The question this answer relates to, the question also needs to be in
 	// the same questionnaire as the response.
 	QuestionId uuid.UUID `json:"question_id"`
@@ -26,7 +24,7 @@ type BaseAnswer struct {
 //	@Description	BaseQuestionnaire
 type BaseQuestionnaire struct {
 	// The name of the questionnaire
-	Name string `json:"name"`
+	Name string `json:"name" example:"問卷標題"`
 	// The initial questions in this questionnaire. This field may be empty
 	// and you can add questions later using post request to
 	// `quesionnaires/:id/new/question`.

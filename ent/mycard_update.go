@@ -19,6 +19,7 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
+	"github.com/google/uuid"
 )
 
 // MyCardUpdate is the builder for updating MyCard entities.
@@ -31,18 +32,6 @@ type MyCardUpdate struct {
 // Where appends a list predicates to the MyCardUpdate builder.
 func (mcu *MyCardUpdate) Where(ps ...predicate.MyCard) *MyCardUpdate {
 	mcu.mutation.Where(ps...)
-	return mcu
-}
-
-// SetCardNumber sets the "card_number" field.
-func (mcu *MyCardUpdate) SetCardNumber(s string) *MyCardUpdate {
-	mcu.mutation.SetCardNumber(s)
-	return mcu
-}
-
-// SetCardPassword sets the "card_password" field.
-func (mcu *MyCardUpdate) SetCardPassword(s string) *MyCardUpdate {
-	mcu.mutation.SetCardPassword(s)
 	return mcu
 }
 
@@ -100,14 +89,14 @@ func (mcu *MyCardUpdate) SetRecipient(u *User) *MyCardUpdate {
 }
 
 // AddNotificationIDs adds the "notifications" edge to the Notification entity by IDs.
-func (mcu *MyCardUpdate) AddNotificationIDs(ids ...int) *MyCardUpdate {
+func (mcu *MyCardUpdate) AddNotificationIDs(ids ...uuid.UUID) *MyCardUpdate {
 	mcu.mutation.AddNotificationIDs(ids...)
 	return mcu
 }
 
 // AddNotifications adds the "notifications" edges to the Notification entity.
 func (mcu *MyCardUpdate) AddNotifications(n ...*Notification) *MyCardUpdate {
-	ids := make([]int, len(n))
+	ids := make([]uuid.UUID, len(n))
 	for i := range n {
 		ids[i] = n[i].ID
 	}
@@ -132,14 +121,14 @@ func (mcu *MyCardUpdate) ClearNotifications() *MyCardUpdate {
 }
 
 // RemoveNotificationIDs removes the "notifications" edge to Notification entities by IDs.
-func (mcu *MyCardUpdate) RemoveNotificationIDs(ids ...int) *MyCardUpdate {
+func (mcu *MyCardUpdate) RemoveNotificationIDs(ids ...uuid.UUID) *MyCardUpdate {
 	mcu.mutation.RemoveNotificationIDs(ids...)
 	return mcu
 }
 
 // RemoveNotifications removes "notifications" edges to Notification entities.
 func (mcu *MyCardUpdate) RemoveNotifications(n ...*Notification) *MyCardUpdate {
-	ids := make([]int, len(n))
+	ids := make([]uuid.UUID, len(n))
 	for i := range n {
 		ids[i] = n[i].ID
 	}
@@ -173,38 +162,14 @@ func (mcu *MyCardUpdate) ExecX(ctx context.Context) {
 	}
 }
 
-// check runs all checks and user-defined validators on the builder.
-func (mcu *MyCardUpdate) check() error {
-	if v, ok := mcu.mutation.CardNumber(); ok {
-		if err := mycard.CardNumberValidator(v); err != nil {
-			return &ValidationError{Name: "card_number", err: fmt.Errorf(`ent: validator failed for field "MyCard.card_number": %w`, err)}
-		}
-	}
-	if v, ok := mcu.mutation.CardPassword(); ok {
-		if err := mycard.CardPasswordValidator(v); err != nil {
-			return &ValidationError{Name: "card_password", err: fmt.Errorf(`ent: validator failed for field "MyCard.card_password": %w`, err)}
-		}
-	}
-	return nil
-}
-
 func (mcu *MyCardUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	if err := mcu.check(); err != nil {
-		return n, err
-	}
-	_spec := sqlgraph.NewUpdateSpec(mycard.Table, mycard.Columns, sqlgraph.NewFieldSpec(mycard.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(mycard.Table, mycard.Columns, sqlgraph.NewFieldSpec(mycard.FieldID, field.TypeString))
 	if ps := mcu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := mcu.mutation.CardNumber(); ok {
-		_spec.SetField(mycard.FieldCardNumber, field.TypeString, value)
-	}
-	if value, ok := mcu.mutation.CardPassword(); ok {
-		_spec.SetField(mycard.FieldCardPassword, field.TypeString, value)
 	}
 	if value, ok := mcu.mutation.CreatedAt(); ok {
 		_spec.SetField(mycard.FieldCreatedAt, field.TypeTime, value)
@@ -246,26 +211,26 @@ func (mcu *MyCardUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if mcu.mutation.NotificationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   mycard.NotificationsTable,
-			Columns: mycard.NotificationsPrimaryKey,
+			Columns: []string{mycard.NotificationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := mcu.mutation.RemovedNotificationsIDs(); len(nodes) > 0 && !mcu.mutation.NotificationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   mycard.NotificationsTable,
-			Columns: mycard.NotificationsPrimaryKey,
+			Columns: []string{mycard.NotificationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -275,13 +240,13 @@ func (mcu *MyCardUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if nodes := mcu.mutation.NotificationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   mycard.NotificationsTable,
-			Columns: mycard.NotificationsPrimaryKey,
+			Columns: []string{mycard.NotificationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -307,18 +272,6 @@ type MyCardUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *MyCardMutation
-}
-
-// SetCardNumber sets the "card_number" field.
-func (mcuo *MyCardUpdateOne) SetCardNumber(s string) *MyCardUpdateOne {
-	mcuo.mutation.SetCardNumber(s)
-	return mcuo
-}
-
-// SetCardPassword sets the "card_password" field.
-func (mcuo *MyCardUpdateOne) SetCardPassword(s string) *MyCardUpdateOne {
-	mcuo.mutation.SetCardPassword(s)
-	return mcuo
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -375,14 +328,14 @@ func (mcuo *MyCardUpdateOne) SetRecipient(u *User) *MyCardUpdateOne {
 }
 
 // AddNotificationIDs adds the "notifications" edge to the Notification entity by IDs.
-func (mcuo *MyCardUpdateOne) AddNotificationIDs(ids ...int) *MyCardUpdateOne {
+func (mcuo *MyCardUpdateOne) AddNotificationIDs(ids ...uuid.UUID) *MyCardUpdateOne {
 	mcuo.mutation.AddNotificationIDs(ids...)
 	return mcuo
 }
 
 // AddNotifications adds the "notifications" edges to the Notification entity.
 func (mcuo *MyCardUpdateOne) AddNotifications(n ...*Notification) *MyCardUpdateOne {
-	ids := make([]int, len(n))
+	ids := make([]uuid.UUID, len(n))
 	for i := range n {
 		ids[i] = n[i].ID
 	}
@@ -407,14 +360,14 @@ func (mcuo *MyCardUpdateOne) ClearNotifications() *MyCardUpdateOne {
 }
 
 // RemoveNotificationIDs removes the "notifications" edge to Notification entities by IDs.
-func (mcuo *MyCardUpdateOne) RemoveNotificationIDs(ids ...int) *MyCardUpdateOne {
+func (mcuo *MyCardUpdateOne) RemoveNotificationIDs(ids ...uuid.UUID) *MyCardUpdateOne {
 	mcuo.mutation.RemoveNotificationIDs(ids...)
 	return mcuo
 }
 
 // RemoveNotifications removes "notifications" edges to Notification entities.
 func (mcuo *MyCardUpdateOne) RemoveNotifications(n ...*Notification) *MyCardUpdateOne {
-	ids := make([]int, len(n))
+	ids := make([]uuid.UUID, len(n))
 	for i := range n {
 		ids[i] = n[i].ID
 	}
@@ -461,26 +414,8 @@ func (mcuo *MyCardUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
-// check runs all checks and user-defined validators on the builder.
-func (mcuo *MyCardUpdateOne) check() error {
-	if v, ok := mcuo.mutation.CardNumber(); ok {
-		if err := mycard.CardNumberValidator(v); err != nil {
-			return &ValidationError{Name: "card_number", err: fmt.Errorf(`ent: validator failed for field "MyCard.card_number": %w`, err)}
-		}
-	}
-	if v, ok := mcuo.mutation.CardPassword(); ok {
-		if err := mycard.CardPasswordValidator(v); err != nil {
-			return &ValidationError{Name: "card_password", err: fmt.Errorf(`ent: validator failed for field "MyCard.card_password": %w`, err)}
-		}
-	}
-	return nil
-}
-
 func (mcuo *MyCardUpdateOne) sqlSave(ctx context.Context) (_node *MyCard, err error) {
-	if err := mcuo.check(); err != nil {
-		return _node, err
-	}
-	_spec := sqlgraph.NewUpdateSpec(mycard.Table, mycard.Columns, sqlgraph.NewFieldSpec(mycard.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(mycard.Table, mycard.Columns, sqlgraph.NewFieldSpec(mycard.FieldID, field.TypeString))
 	id, ok := mcuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "MyCard.id" for update`)}
@@ -504,12 +439,6 @@ func (mcuo *MyCardUpdateOne) sqlSave(ctx context.Context) (_node *MyCard, err er
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := mcuo.mutation.CardNumber(); ok {
-		_spec.SetField(mycard.FieldCardNumber, field.TypeString, value)
-	}
-	if value, ok := mcuo.mutation.CardPassword(); ok {
-		_spec.SetField(mycard.FieldCardPassword, field.TypeString, value)
 	}
 	if value, ok := mcuo.mutation.CreatedAt(); ok {
 		_spec.SetField(mycard.FieldCreatedAt, field.TypeTime, value)
@@ -551,26 +480,26 @@ func (mcuo *MyCardUpdateOne) sqlSave(ctx context.Context) (_node *MyCard, err er
 	}
 	if mcuo.mutation.NotificationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   mycard.NotificationsTable,
-			Columns: mycard.NotificationsPrimaryKey,
+			Columns: []string{mycard.NotificationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := mcuo.mutation.RemovedNotificationsIDs(); len(nodes) > 0 && !mcuo.mutation.NotificationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   mycard.NotificationsTable,
-			Columns: mycard.NotificationsPrimaryKey,
+			Columns: []string{mycard.NotificationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -580,13 +509,13 @@ func (mcuo *MyCardUpdateOne) sqlSave(ctx context.Context) (_node *MyCard, err er
 	}
 	if nodes := mcuo.mutation.NotificationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   mycard.NotificationsTable,
-			Columns: mycard.NotificationsPrimaryKey,
+			Columns: []string{mycard.NotificationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

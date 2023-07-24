@@ -8,7 +8,6 @@ package ent
 
 import (
 	"context"
-	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -20,6 +19,7 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
 	"github.com/eesoymilk/health-statistic-api/ent/price"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
+	"github.com/google/uuid"
 )
 
 // NotificationQuery is the builder for querying Notification entities.
@@ -32,6 +32,7 @@ type NotificationQuery struct {
 	withRecipient *UserQuery
 	withMycard    *MyCardQuery
 	withPrice     *PriceQuery
+	withFKs       bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -82,7 +83,7 @@ func (nq *NotificationQuery) QueryRecipient() *UserQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(notification.Table, notification.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, notification.RecipientTable, notification.RecipientPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, notification.RecipientTable, notification.RecipientColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(nq.driver.Dialect(), step)
 		return fromU, nil
@@ -104,7 +105,7 @@ func (nq *NotificationQuery) QueryMycard() *MyCardQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(notification.Table, notification.FieldID, selector),
 			sqlgraph.To(mycard.Table, mycard.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, notification.MycardTable, notification.MycardPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, notification.MycardTable, notification.MycardColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(nq.driver.Dialect(), step)
 		return fromU, nil
@@ -126,7 +127,7 @@ func (nq *NotificationQuery) QueryPrice() *PriceQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(notification.Table, notification.FieldID, selector),
 			sqlgraph.To(price.Table, price.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, notification.PriceTable, notification.PricePrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, notification.PriceTable, notification.PriceColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(nq.driver.Dialect(), step)
 		return fromU, nil
@@ -158,8 +159,8 @@ func (nq *NotificationQuery) FirstX(ctx context.Context) *Notification {
 
 // FirstID returns the first Notification ID from the query.
 // Returns a *NotFoundError when no Notification ID was found.
-func (nq *NotificationQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (nq *NotificationQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = nq.Limit(1).IDs(setContextOp(ctx, nq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -171,7 +172,7 @@ func (nq *NotificationQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (nq *NotificationQuery) FirstIDX(ctx context.Context) int {
+func (nq *NotificationQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	id, err := nq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -209,8 +210,8 @@ func (nq *NotificationQuery) OnlyX(ctx context.Context) *Notification {
 // OnlyID is like Only, but returns the only Notification ID in the query.
 // Returns a *NotSingularError when more than one Notification ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (nq *NotificationQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (nq *NotificationQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = nq.Limit(2).IDs(setContextOp(ctx, nq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -226,7 +227,7 @@ func (nq *NotificationQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (nq *NotificationQuery) OnlyIDX(ctx context.Context) int {
+func (nq *NotificationQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	id, err := nq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -254,7 +255,7 @@ func (nq *NotificationQuery) AllX(ctx context.Context) []*Notification {
 }
 
 // IDs executes the query and returns a list of Notification IDs.
-func (nq *NotificationQuery) IDs(ctx context.Context) (ids []int, err error) {
+func (nq *NotificationQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
 	if nq.ctx.Unique == nil && nq.path != nil {
 		nq.Unique(true)
 	}
@@ -266,7 +267,7 @@ func (nq *NotificationQuery) IDs(ctx context.Context) (ids []int, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (nq *NotificationQuery) IDsX(ctx context.Context) []int {
+func (nq *NotificationQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := nq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -374,12 +375,12 @@ func (nq *NotificationQuery) WithPrice(opts ...func(*PriceQuery)) *NotificationQ
 // Example:
 //
 //	var v []struct {
-//		SentAt time.Time `json:"sent_at,omitempty"`
+//		Type notification.Type `json:"type,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Notification.Query().
-//		GroupBy(notification.FieldSentAt).
+//		GroupBy(notification.FieldType).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (nq *NotificationQuery) GroupBy(field string, fields ...string) *NotificationGroupBy {
@@ -397,11 +398,11 @@ func (nq *NotificationQuery) GroupBy(field string, fields ...string) *Notificati
 // Example:
 //
 //	var v []struct {
-//		SentAt time.Time `json:"sent_at,omitempty"`
+//		Type notification.Type `json:"type,omitempty"`
 //	}
 //
 //	client.Notification.Query().
-//		Select(notification.FieldSentAt).
+//		Select(notification.FieldType).
 //		Scan(ctx, &v)
 func (nq *NotificationQuery) Select(fields ...string) *NotificationSelect {
 	nq.ctx.Fields = append(nq.ctx.Fields, fields...)
@@ -445,6 +446,7 @@ func (nq *NotificationQuery) prepareQuery(ctx context.Context) error {
 func (nq *NotificationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Notification, error) {
 	var (
 		nodes       = []*Notification{}
+		withFKs     = nq.withFKs
 		_spec       = nq.querySpec()
 		loadedTypes = [3]bool{
 			nq.withRecipient != nil,
@@ -452,6 +454,12 @@ func (nq *NotificationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			nq.withPrice != nil,
 		}
 	)
+	if nq.withRecipient != nil || nq.withMycard != nil || nq.withPrice != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, notification.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Notification).scanValues(nil, columns)
 	}
@@ -471,23 +479,20 @@ func (nq *NotificationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 		return nodes, nil
 	}
 	if query := nq.withRecipient; query != nil {
-		if err := nq.loadRecipient(ctx, query, nodes,
-			func(n *Notification) { n.Edges.Recipient = []*User{} },
-			func(n *Notification, e *User) { n.Edges.Recipient = append(n.Edges.Recipient, e) }); err != nil {
+		if err := nq.loadRecipient(ctx, query, nodes, nil,
+			func(n *Notification, e *User) { n.Edges.Recipient = e }); err != nil {
 			return nil, err
 		}
 	}
 	if query := nq.withMycard; query != nil {
-		if err := nq.loadMycard(ctx, query, nodes,
-			func(n *Notification) { n.Edges.Mycard = []*MyCard{} },
-			func(n *Notification, e *MyCard) { n.Edges.Mycard = append(n.Edges.Mycard, e) }); err != nil {
+		if err := nq.loadMycard(ctx, query, nodes, nil,
+			func(n *Notification, e *MyCard) { n.Edges.Mycard = e }); err != nil {
 			return nil, err
 		}
 	}
 	if query := nq.withPrice; query != nil {
-		if err := nq.loadPrice(ctx, query, nodes,
-			func(n *Notification) { n.Edges.Price = []*Price{} },
-			func(n *Notification, e *Price) { n.Edges.Price = append(n.Edges.Price, e) }); err != nil {
+		if err := nq.loadPrice(ctx, query, nodes, nil,
+			func(n *Notification, e *Price) { n.Edges.Price = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -495,184 +500,97 @@ func (nq *NotificationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 }
 
 func (nq *NotificationQuery) loadRecipient(ctx context.Context, query *UserQuery, nodes []*Notification, init func(*Notification), assign func(*Notification, *User)) error {
-	edgeIDs := make([]driver.Value, len(nodes))
-	byID := make(map[int]*Notification)
-	nids := make(map[string]map[*Notification]struct{})
-	for i, node := range nodes {
-		edgeIDs[i] = node.ID
-		byID[node.ID] = node
-		if init != nil {
-			init(node)
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*Notification)
+	for i := range nodes {
+		if nodes[i].user_notifications == nil {
+			continue
 		}
+		fk := *nodes[i].user_notifications
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
-	query.Where(func(s *sql.Selector) {
-		joinT := sql.Table(notification.RecipientTable)
-		s.Join(joinT).On(s.C(user.FieldID), joinT.C(notification.RecipientPrimaryKey[0]))
-		s.Where(sql.InValues(joinT.C(notification.RecipientPrimaryKey[1]), edgeIDs...))
-		columns := s.SelectedColumns()
-		s.Select(joinT.C(notification.RecipientPrimaryKey[1]))
-		s.AppendSelect(columns...)
-		s.SetDistinct(false)
-	})
-	if err := query.prepareQuery(ctx); err != nil {
-		return err
+	if len(ids) == 0 {
+		return nil
 	}
-	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
-		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
-			assign := spec.Assign
-			values := spec.ScanValues
-			spec.ScanValues = func(columns []string) ([]any, error) {
-				values, err := values(columns[1:])
-				if err != nil {
-					return nil, err
-				}
-				return append([]any{new(sql.NullInt64)}, values...), nil
-			}
-			spec.Assign = func(columns []string, values []any) error {
-				outValue := int(values[0].(*sql.NullInt64).Int64)
-				inValue := values[1].(*sql.NullString).String
-				if nids[inValue] == nil {
-					nids[inValue] = map[*Notification]struct{}{byID[outValue]: {}}
-					return assign(columns[1:], values[1:])
-				}
-				nids[inValue][byID[outValue]] = struct{}{}
-				return nil
-			}
-		})
-	})
-	neighbors, err := withInterceptors[[]*User](ctx, query, qr, query.inters)
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		nodes, ok := nids[n.ID]
+		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected "recipient" node returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "user_notifications" returned %v`, n.ID)
 		}
-		for kn := range nodes {
-			assign(kn, n)
+		for i := range nodes {
+			assign(nodes[i], n)
 		}
 	}
 	return nil
 }
 func (nq *NotificationQuery) loadMycard(ctx context.Context, query *MyCardQuery, nodes []*Notification, init func(*Notification), assign func(*Notification, *MyCard)) error {
-	edgeIDs := make([]driver.Value, len(nodes))
-	byID := make(map[int]*Notification)
-	nids := make(map[int]map[*Notification]struct{})
-	for i, node := range nodes {
-		edgeIDs[i] = node.ID
-		byID[node.ID] = node
-		if init != nil {
-			init(node)
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*Notification)
+	for i := range nodes {
+		if nodes[i].my_card_notifications == nil {
+			continue
 		}
+		fk := *nodes[i].my_card_notifications
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
-	query.Where(func(s *sql.Selector) {
-		joinT := sql.Table(notification.MycardTable)
-		s.Join(joinT).On(s.C(mycard.FieldID), joinT.C(notification.MycardPrimaryKey[0]))
-		s.Where(sql.InValues(joinT.C(notification.MycardPrimaryKey[1]), edgeIDs...))
-		columns := s.SelectedColumns()
-		s.Select(joinT.C(notification.MycardPrimaryKey[1]))
-		s.AppendSelect(columns...)
-		s.SetDistinct(false)
-	})
-	if err := query.prepareQuery(ctx); err != nil {
-		return err
+	if len(ids) == 0 {
+		return nil
 	}
-	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
-		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
-			assign := spec.Assign
-			values := spec.ScanValues
-			spec.ScanValues = func(columns []string) ([]any, error) {
-				values, err := values(columns[1:])
-				if err != nil {
-					return nil, err
-				}
-				return append([]any{new(sql.NullInt64)}, values...), nil
-			}
-			spec.Assign = func(columns []string, values []any) error {
-				outValue := int(values[0].(*sql.NullInt64).Int64)
-				inValue := int(values[1].(*sql.NullInt64).Int64)
-				if nids[inValue] == nil {
-					nids[inValue] = map[*Notification]struct{}{byID[outValue]: {}}
-					return assign(columns[1:], values[1:])
-				}
-				nids[inValue][byID[outValue]] = struct{}{}
-				return nil
-			}
-		})
-	})
-	neighbors, err := withInterceptors[[]*MyCard](ctx, query, qr, query.inters)
+	query.Where(mycard.IDIn(ids...))
+	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		nodes, ok := nids[n.ID]
+		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected "mycard" node returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "my_card_notifications" returned %v`, n.ID)
 		}
-		for kn := range nodes {
-			assign(kn, n)
+		for i := range nodes {
+			assign(nodes[i], n)
 		}
 	}
 	return nil
 }
 func (nq *NotificationQuery) loadPrice(ctx context.Context, query *PriceQuery, nodes []*Notification, init func(*Notification), assign func(*Notification, *Price)) error {
-	edgeIDs := make([]driver.Value, len(nodes))
-	byID := make(map[int]*Notification)
-	nids := make(map[int]map[*Notification]struct{})
-	for i, node := range nodes {
-		edgeIDs[i] = node.ID
-		byID[node.ID] = node
-		if init != nil {
-			init(node)
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Notification)
+	for i := range nodes {
+		if nodes[i].price_notifications == nil {
+			continue
 		}
+		fk := *nodes[i].price_notifications
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
-	query.Where(func(s *sql.Selector) {
-		joinT := sql.Table(notification.PriceTable)
-		s.Join(joinT).On(s.C(price.FieldID), joinT.C(notification.PricePrimaryKey[0]))
-		s.Where(sql.InValues(joinT.C(notification.PricePrimaryKey[1]), edgeIDs...))
-		columns := s.SelectedColumns()
-		s.Select(joinT.C(notification.PricePrimaryKey[1]))
-		s.AppendSelect(columns...)
-		s.SetDistinct(false)
-	})
-	if err := query.prepareQuery(ctx); err != nil {
-		return err
+	if len(ids) == 0 {
+		return nil
 	}
-	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
-		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
-			assign := spec.Assign
-			values := spec.ScanValues
-			spec.ScanValues = func(columns []string) ([]any, error) {
-				values, err := values(columns[1:])
-				if err != nil {
-					return nil, err
-				}
-				return append([]any{new(sql.NullInt64)}, values...), nil
-			}
-			spec.Assign = func(columns []string, values []any) error {
-				outValue := int(values[0].(*sql.NullInt64).Int64)
-				inValue := int(values[1].(*sql.NullInt64).Int64)
-				if nids[inValue] == nil {
-					nids[inValue] = map[*Notification]struct{}{byID[outValue]: {}}
-					return assign(columns[1:], values[1:])
-				}
-				nids[inValue][byID[outValue]] = struct{}{}
-				return nil
-			}
-		})
-	})
-	neighbors, err := withInterceptors[[]*Price](ctx, query, qr, query.inters)
+	query.Where(price.IDIn(ids...))
+	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		nodes, ok := nids[n.ID]
+		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected "price" node returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "price_notifications" returned %v`, n.ID)
 		}
-		for kn := range nodes {
-			assign(kn, n)
+		for i := range nodes {
+			assign(nodes[i], n)
 		}
 	}
 	return nil
@@ -688,7 +606,7 @@ func (nq *NotificationQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (nq *NotificationQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(notification.Table, notification.Columns, sqlgraph.NewFieldSpec(notification.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewQuerySpec(notification.Table, notification.Columns, sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID))
 	_spec.From = nq.sql
 	if unique := nq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

@@ -68,11 +68,13 @@ const (
 	QuestionnaireResponsesInverseTable = "questionnaire_responses"
 	// QuestionnaireResponsesColumn is the table column denoting the questionnaire_responses relation/edge.
 	QuestionnaireResponsesColumn = "user_questionnaire_responses"
-	// NotificationsTable is the table that holds the notifications relation/edge. The primary key declared below.
-	NotificationsTable = "user_notifications"
+	// NotificationsTable is the table that holds the notifications relation/edge.
+	NotificationsTable = "notifications"
 	// NotificationsInverseTable is the table name for the Notification entity.
 	// It exists in this package in order to avoid circular dependency with the "notification" package.
 	NotificationsInverseTable = "notifications"
+	// NotificationsColumn is the table column denoting the notifications relation/edge.
+	NotificationsColumn = "user_notifications"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -97,12 +99,6 @@ var Columns = []string{
 	FieldEyesightCondition,
 	FieldSmokingHabit,
 }
-
-var (
-	// NotificationsPrimaryKey and NotificationsColumn2 are the table columns denoting the
-	// primary key for the notifications relation (M2M).
-	NotificationsPrimaryKey = []string{"user_id", "notification_id"}
-)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -448,6 +444,6 @@ func newNotificationsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(NotificationsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, NotificationsTable, NotificationsPrimaryKey...),
+		sqlgraph.Edge(sqlgraph.O2M, false, NotificationsTable, NotificationsColumn),
 	)
 }

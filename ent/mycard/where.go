@@ -15,53 +15,58 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.MyCard {
+func ID(id string) predicate.MyCard {
 	return predicate.MyCard(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.MyCard {
+func IDEQ(id string) predicate.MyCard {
 	return predicate.MyCard(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.MyCard {
+func IDNEQ(id string) predicate.MyCard {
 	return predicate.MyCard(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.MyCard {
+func IDIn(ids ...string) predicate.MyCard {
 	return predicate.MyCard(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.MyCard {
+func IDNotIn(ids ...string) predicate.MyCard {
 	return predicate.MyCard(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.MyCard {
+func IDGT(id string) predicate.MyCard {
 	return predicate.MyCard(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.MyCard {
+func IDGTE(id string) predicate.MyCard {
 	return predicate.MyCard(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.MyCard {
+func IDLT(id string) predicate.MyCard {
 	return predicate.MyCard(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.MyCard {
+func IDLTE(id string) predicate.MyCard {
 	return predicate.MyCard(sql.FieldLTE(FieldID, id))
 }
 
-// CardNumber applies equality check predicate on the "card_number" field. It's identical to CardNumberEQ.
-func CardNumber(v string) predicate.MyCard {
-	return predicate.MyCard(sql.FieldEQ(FieldCardNumber, v))
+// IDEqualFold applies the EqualFold predicate on the ID field.
+func IDEqualFold(id string) predicate.MyCard {
+	return predicate.MyCard(sql.FieldEqualFold(FieldID, id))
+}
+
+// IDContainsFold applies the ContainsFold predicate on the ID field.
+func IDContainsFold(id string) predicate.MyCard {
+	return predicate.MyCard(sql.FieldContainsFold(FieldID, id))
 }
 
 // CardPassword applies equality check predicate on the "card_password" field. It's identical to CardPasswordEQ.
@@ -77,71 +82,6 @@ func CreatedAt(v time.Time) predicate.MyCard {
 // TakenAt applies equality check predicate on the "taken_at" field. It's identical to TakenAtEQ.
 func TakenAt(v time.Time) predicate.MyCard {
 	return predicate.MyCard(sql.FieldEQ(FieldTakenAt, v))
-}
-
-// CardNumberEQ applies the EQ predicate on the "card_number" field.
-func CardNumberEQ(v string) predicate.MyCard {
-	return predicate.MyCard(sql.FieldEQ(FieldCardNumber, v))
-}
-
-// CardNumberNEQ applies the NEQ predicate on the "card_number" field.
-func CardNumberNEQ(v string) predicate.MyCard {
-	return predicate.MyCard(sql.FieldNEQ(FieldCardNumber, v))
-}
-
-// CardNumberIn applies the In predicate on the "card_number" field.
-func CardNumberIn(vs ...string) predicate.MyCard {
-	return predicate.MyCard(sql.FieldIn(FieldCardNumber, vs...))
-}
-
-// CardNumberNotIn applies the NotIn predicate on the "card_number" field.
-func CardNumberNotIn(vs ...string) predicate.MyCard {
-	return predicate.MyCard(sql.FieldNotIn(FieldCardNumber, vs...))
-}
-
-// CardNumberGT applies the GT predicate on the "card_number" field.
-func CardNumberGT(v string) predicate.MyCard {
-	return predicate.MyCard(sql.FieldGT(FieldCardNumber, v))
-}
-
-// CardNumberGTE applies the GTE predicate on the "card_number" field.
-func CardNumberGTE(v string) predicate.MyCard {
-	return predicate.MyCard(sql.FieldGTE(FieldCardNumber, v))
-}
-
-// CardNumberLT applies the LT predicate on the "card_number" field.
-func CardNumberLT(v string) predicate.MyCard {
-	return predicate.MyCard(sql.FieldLT(FieldCardNumber, v))
-}
-
-// CardNumberLTE applies the LTE predicate on the "card_number" field.
-func CardNumberLTE(v string) predicate.MyCard {
-	return predicate.MyCard(sql.FieldLTE(FieldCardNumber, v))
-}
-
-// CardNumberContains applies the Contains predicate on the "card_number" field.
-func CardNumberContains(v string) predicate.MyCard {
-	return predicate.MyCard(sql.FieldContains(FieldCardNumber, v))
-}
-
-// CardNumberHasPrefix applies the HasPrefix predicate on the "card_number" field.
-func CardNumberHasPrefix(v string) predicate.MyCard {
-	return predicate.MyCard(sql.FieldHasPrefix(FieldCardNumber, v))
-}
-
-// CardNumberHasSuffix applies the HasSuffix predicate on the "card_number" field.
-func CardNumberHasSuffix(v string) predicate.MyCard {
-	return predicate.MyCard(sql.FieldHasSuffix(FieldCardNumber, v))
-}
-
-// CardNumberEqualFold applies the EqualFold predicate on the "card_number" field.
-func CardNumberEqualFold(v string) predicate.MyCard {
-	return predicate.MyCard(sql.FieldEqualFold(FieldCardNumber, v))
-}
-
-// CardNumberContainsFold applies the ContainsFold predicate on the "card_number" field.
-func CardNumberContainsFold(v string) predicate.MyCard {
-	return predicate.MyCard(sql.FieldContainsFold(FieldCardNumber, v))
 }
 
 // CardPasswordEQ applies the EQ predicate on the "card_password" field.
@@ -327,7 +267,7 @@ func HasNotifications() predicate.MyCard {
 	return predicate.MyCard(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, NotificationsTable, NotificationsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, NotificationsTable, NotificationsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})

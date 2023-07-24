@@ -12,50 +12,51 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
+	"github.com/google/uuid"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.Notification {
+func ID(id uuid.UUID) predicate.Notification {
 	return predicate.Notification(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.Notification {
+func IDEQ(id uuid.UUID) predicate.Notification {
 	return predicate.Notification(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.Notification {
+func IDNEQ(id uuid.UUID) predicate.Notification {
 	return predicate.Notification(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.Notification {
+func IDIn(ids ...uuid.UUID) predicate.Notification {
 	return predicate.Notification(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.Notification {
+func IDNotIn(ids ...uuid.UUID) predicate.Notification {
 	return predicate.Notification(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.Notification {
+func IDGT(id uuid.UUID) predicate.Notification {
 	return predicate.Notification(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.Notification {
+func IDGTE(id uuid.UUID) predicate.Notification {
 	return predicate.Notification(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.Notification {
+func IDLT(id uuid.UUID) predicate.Notification {
 	return predicate.Notification(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.Notification {
+func IDLTE(id uuid.UUID) predicate.Notification {
 	return predicate.Notification(sql.FieldLTE(FieldID, id))
 }
 
@@ -72,6 +73,26 @@ func ReadAt(v time.Time) predicate.Notification {
 // Message applies equality check predicate on the "message" field. It's identical to MessageEQ.
 func Message(v string) predicate.Notification {
 	return predicate.Notification(sql.FieldEQ(FieldMessage, v))
+}
+
+// TypeEQ applies the EQ predicate on the "type" field.
+func TypeEQ(v Type) predicate.Notification {
+	return predicate.Notification(sql.FieldEQ(FieldType, v))
+}
+
+// TypeNEQ applies the NEQ predicate on the "type" field.
+func TypeNEQ(v Type) predicate.Notification {
+	return predicate.Notification(sql.FieldNEQ(FieldType, v))
+}
+
+// TypeIn applies the In predicate on the "type" field.
+func TypeIn(vs ...Type) predicate.Notification {
+	return predicate.Notification(sql.FieldIn(FieldType, vs...))
+}
+
+// TypeNotIn applies the NotIn predicate on the "type" field.
+func TypeNotIn(vs ...Type) predicate.Notification {
+	return predicate.Notification(sql.FieldNotIn(FieldType, vs...))
 }
 
 // SentAtEQ applies the EQ predicate on the "sent_at" field.
@@ -244,7 +265,7 @@ func HasRecipient() predicate.Notification {
 	return predicate.Notification(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, RecipientTable, RecipientPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, RecipientTable, RecipientColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -267,7 +288,7 @@ func HasMycard() predicate.Notification {
 	return predicate.Notification(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, MycardTable, MycardPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, MycardTable, MycardColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -290,7 +311,7 @@ func HasPrice() predicate.Notification {
 	return predicate.Notification(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, PriceTable, PricePrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, PriceTable, PriceColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
