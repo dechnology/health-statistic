@@ -9,6 +9,7 @@ import (
 
 	"github.com/eesoymilk/health-statistic-api/ent"
 	"github.com/eesoymilk/health-statistic-api/types"
+	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 )
 
@@ -46,7 +47,14 @@ func Migrate(db *ent.Client) error {
 		return err
 	}
 
+	id, err := uuid.Parse(questionnaireData.ID)
+
+	if err != nil {
+		return fmt.Errorf("failed parsing id: %v", err)
+	}
+
 	questionnaireNode, err := db.Questionnaire.Create().
+		SetID(id).
 		SetName(questionnaireData.Name).
 		Save(context.Background())
 
