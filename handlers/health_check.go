@@ -8,7 +8,7 @@ import (
 
 //	@Description	Datatype of health status
 type HealthStatus struct {
-	Message string `json:"message"` // Health message
+	Message string `json:"message" example:"Hello, this is an example message!"` // Health message
 }
 
 var (

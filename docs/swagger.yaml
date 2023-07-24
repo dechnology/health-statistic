@@ -160,6 +160,7 @@ definitions:
     properties:
       message:
         description: Health message
+        example: Hello, this is an example message!
         type: string
     type: object
   notification.Type:

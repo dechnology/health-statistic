@@ -1082,7 +1082,8 @@ const docTemplate = `{
             "properties": {
                 "message": {
                     "description": "Health message",
-                    "type": "string"
+                    "type": "string",
+                    "example": "Hello, this is an example message!"
                 }
             }
         },
