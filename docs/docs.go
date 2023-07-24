@@ -35,6 +35,7 @@ const docTemplate = `{
         },
         "/mycards": {
             "get": {
+                "description": "Get all MyCards from the database.\n",
                 "produces": [
                     "application/json"
                 ],
@@ -50,6 +51,37 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/ent.MyCard"
                             }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MyCard"
+                ],
+                "summary": "Create MyCard",
+                "parameters": [
+                    {
+                        "description": "The mycard to be created",
+                        "name": "mycard",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.BaseMyCard"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ent.MyCard"
                         }
                     }
                 }
@@ -197,6 +229,37 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/ent.Price"
                             }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Price"
+                ],
+                "summary": "Create Price",
+                "parameters": [
+                    {
+                        "description": "The price to be created",
+                        "name": "price",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.BasePrice"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ent.Price"
                         }
                     }
                 }
@@ -709,7 +772,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ent.User"
+                            "$ref": "#/definitions/types.BaseUser"
                         }
                     }
                 ],
@@ -1110,6 +1173,28 @@ const docTemplate = `{
                 },
                 "question_id": {
                     "description": "The question this answer relates to, the question also needs to be in\nthe same questionnaire as the response.",
+                    "type": "string"
+                }
+            }
+        },
+        "types.BaseMyCard": {
+            "type": "object",
+            "properties": {
+                "card_number": {
+                    "type": "string"
+                },
+                "card_password": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.BasePrice": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }

@@ -1,9 +1,13 @@
 package handlers
 
 import (
+	"encoding/json"
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/eesoymilk/health-statistic-api/ent/mycard"
+	"github.com/eesoymilk/health-statistic-api/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -50,6 +54,43 @@ func (h *MyCardHandler) GetMyCard(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, mycards)
+}
+
+//	@Summary				Create MyCard
+//	@Description.markdown	mycard.post
+//	@Tags					MyCard
+//	@Accept					json
+//	@Produce				json
+//	@Param					mycard	body		types.BaseMyCard	true	"The mycard to be created"
+//	@Success				200		{object}	ent.MyCard
+//	@Router					/mycards [post]
+func (h *MyCardHandler) CreateMyCard(c *gin.Context) {
+	var body types.BaseMyCard
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	out, err := json.MarshalIndent(body, "", "  ")
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
+
+	log.Print(string(out))
+
+	mycardNode, err := h.DB.MyCard.
+		Create().
+		SetID(body.CardNumber).
+		SetCardPassword(body.CardPassword).
+		Save(c.Request.Context())
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, mycardNode)
 }
 
 //	@Summary				Delete MyCard

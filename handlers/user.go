@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/eesoymilk/health-statistic-api/ent"
 	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/price"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
+	"github.com/eesoymilk/health-statistic-api/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -54,7 +54,7 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 //	@Success				200		{object}	ent.User
 //	@Router					/users [post]
 func (h *UserHandler) CreateUser(c *gin.Context) {
-	var body ent.User
+	var body types.BaseUser
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -100,12 +100,12 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 //	@Tags					User
 //	@Accept					json
 //	@Produce				json
-//	@Param					id		path		string		true	"The user's Auth0 ID"
-//	@Param					user	body		ent.User	true	"user to be updated"
+//	@Param					id		path		string			true	"The user's Auth0 ID"
+//	@Param					user	body		types.BaseUser	true	"user to be updated"
 //	@Success				200		{object}	ent.User
 //	@Router					/users/{id} [put]
 func (h *UserHandler) UpdateUser(c *gin.Context) {
-	var body ent.User
+	var body types.BaseUser
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

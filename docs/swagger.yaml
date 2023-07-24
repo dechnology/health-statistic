@@ -185,6 +185,20 @@ definitions:
           the same questionnaire as the response.
         type: string
     type: object
+  types.BaseMyCard:
+    properties:
+      card_number:
+        type: string
+      card_password:
+        type: string
+    type: object
+  types.BasePrice:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    type: object
   types.BaseQuestion:
     properties:
       body:
@@ -504,6 +518,8 @@ paths:
       - Health
   /mycards:
     get:
+      description: |
+        Get all MyCards from the database.
       produces:
       - application/json
       responses:
@@ -514,6 +530,26 @@ paths:
               $ref: '#/definitions/ent.MyCard'
             type: array
       summary: Get MyCards
+      tags:
+      - MyCard
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: The mycard to be created
+        in: body
+        name: mycard
+        required: true
+        schema:
+          $ref: '#/definitions/types.BaseMyCard'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ent.MyCard'
+      summary: Create MyCard
       tags:
       - MyCard
   /mycards/{id}:
@@ -610,6 +646,26 @@ paths:
               $ref: '#/definitions/ent.Price'
             type: array
       summary: Get Prices
+      tags:
+      - Price
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: The price to be created
+        in: body
+        name: price
+        required: true
+        schema:
+          $ref: '#/definitions/types.BasePrice'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ent.Price'
+      summary: Create Price
       tags:
       - Price
   /prices/{id}:
@@ -999,7 +1055,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/ent.User'
+          $ref: '#/definitions/types.BaseUser'
       produces:
       - application/json
       responses:

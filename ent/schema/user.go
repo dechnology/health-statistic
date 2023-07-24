@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"errors"
 	"time"
 
 	"entgo.io/ent"
@@ -27,7 +28,13 @@ func (User) Fields() []ent.Field {
 		field.String("first_name").MaxLen(30),
 		field.String("last_name").MaxLen(30),
 		field.Int("birth_year").
-			Positive(),
+			Positive().
+			Validate(func(y int) error {
+				if time.Now().Year()-y < 45 {
+					return errors.New("the user must be 45 years old or above")
+				}
+				return nil
+			}),
 		field.Float("height").
 			Positive(),
 		field.Float("weight").
