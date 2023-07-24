@@ -369,6 +369,22 @@ definitions:
           $ref: '#/definitions/types.Response'
         type: array
     type: object
+  types.QuestionnaireWithQuestions:
+    properties:
+      created_at:
+        description: CreatedAt holds the value of the "created_at" field.
+        type: string
+      id:
+        description: ID of the ent.
+        type: string
+      name:
+        description: Name holds the value of the "name" field.
+        type: string
+      questions:
+        items:
+          $ref: '#/definitions/ent.Question'
+        type: array
+    type: object
   types.RegisterData:
     properties:
       response:
@@ -874,19 +890,13 @@ paths:
       - Questionnaire
   /questionnaires/registration:
     get:
-      parameters:
-      - description: The questionnaire's ID
-        in: path
-        name: id
-        required: true
-        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/types.QuestionnaireDetails'
+            $ref: '#/definitions/types.QuestionnaireWithQuestions'
       summary: Get Registration Questionnaire
       tags:
       - Questionnaire

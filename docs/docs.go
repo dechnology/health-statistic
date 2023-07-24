@@ -380,20 +380,11 @@ const docTemplate = `{
                     "Questionnaire"
                 ],
                 "summary": "Get Registration Questionnaire",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The questionnaire's ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.QuestionnaireDetails"
+                            "$ref": "#/definitions/types.QuestionnaireWithQuestions"
                         }
                     }
                 }
@@ -1486,6 +1477,29 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/types.Response"
+                    }
+                }
+            }
+        },
+        "types.QuestionnaireWithQuestions": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "CreatedAt holds the value of the \"created_at\" field.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID of the ent.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Name holds the value of the \"name\" field.",
+                    "type": "string"
+                },
+                "questions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ent.Question"
                     }
                 }
             }
