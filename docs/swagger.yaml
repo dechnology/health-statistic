@@ -538,7 +538,7 @@ info:
     here. For detailed types of params, body, or response, please refer to the full
     descriptiions below. \n\n### Server Health Check - `/health_check` [**GET**]\n\nThis
     endpoint checks if the server is alive and the database is connected. It returns
-    a code of 200 if ture.\n\n---\n\n### Get Registration Questionnaire - `/questionnaire/registration`
+    a code of 200 if ture.\n\n---\n\n### Get Registration Questionnaire - `/questionnaires/registration`
     [**GET**]\n\nFor the sake of scalibility, we make the questionnaire system a general
     one. That is, we can later create more questionnaires in our application. Upon
     initialization of our database, the registration questionnaire is created and
