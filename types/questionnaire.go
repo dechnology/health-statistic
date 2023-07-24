@@ -18,7 +18,7 @@ type BaseAnswer struct {
 	QuestionId uuid.UUID `json:"question_id"`
 }
 
-// @Description	BaseQuestionnaire
+//	@Description	BaseQuestionnaire
 type BaseQuestionnaire struct {
 	// The name of the questionnaire
 	Name string `json:"name" example:"問卷標題"`
@@ -64,8 +64,13 @@ type QuestionnaireWithId struct {
 	ID string `json:"id"`
 }
 
+type QuestionnaireWithQuestions struct {
+	ent.Questionnaire
+	Questions []ent.Question `json:"questions"`
+}
+
 type QuestionnaireDetails struct {
 	ent.Questionnaire
-	Questions []ent.Question
-	Responses []Response
+	Questions []ent.Question `json:"questions"`
+	Responses []Response     `json:"responses"`
 }

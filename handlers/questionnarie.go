@@ -36,6 +36,38 @@ func (h *QuestionnaireHandler) GetQuestionnaires(c *gin.Context) {
 	c.JSON(http.StatusOK, questionnaires)
 }
 
+// @Summary				Get Registration Questionnaire
+// @Description.markdown	registration_questionnaire.get
+// @Tags					Questionnaire
+// @Produce				json
+// @Param					id	path		string	true	"The questionnaire's ID"
+// @Success				200	{object}	types.QuestionnaireDetails
+// @Router					/questionnaires/registration [get]
+func (h *QuestionnaireHandler) GetRegistrationQuestionnaire(c *gin.Context) {
+	id, err := uuid.Parse("88888888-8888-4888-8888-888888888888")
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	questionnaireNode, err := h.DB.Questionnaire.
+		Query().
+		Where(questionnaire.ID(id)).
+		WithQuestions().
+		WithQuestionnaireResponses(func(q *ent.QuestionnaireResponseQuery) {
+			q.WithUser().WithAnswers().All(c.Request.Context())
+		}).
+		Only(c.Request.Context())
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, questionnaireNode)
+}
+
 // @Summary				Get Questionnaire
 // @Description.markdown	questionnaire.get
 // @Tags					Questionnaire

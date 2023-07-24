@@ -371,6 +371,34 @@ const docTemplate = `{
                 }
             }
         },
+        "/questionnaires/registration": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Questionnaire"
+                ],
+                "summary": "Get Registration Questionnaire",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The questionnaire's ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.QuestionnaireDetails"
+                        }
+                    }
+                }
+            }
+        },
         "/questionnaires/{id}": {
             "get": {
                 "description": "Get the questionnaire specified by the ` + "`" + `id` + "`" + ` path param. All questions and responses of the questionnaire are also included.\n",
@@ -1027,9 +1055,9 @@ const docTemplate = `{
                     "description": "ID of the ent.",
                     "type": "string"
                 },
-                "type": {
-                    "description": "Type holds the value of the \"type\" field.",
-                    "type": "string"
+                "order": {
+                    "description": "Order holds the value of the \"order\" field.",
+                    "type": "integer"
                 }
             }
         },
@@ -1239,11 +1267,6 @@ const docTemplate = `{
                     "description": "The question body",
                     "type": "string",
                     "example": "你這週的心情如何？"
-                },
-                "type": {
-                    "description": "The question type, currently we accept string but in the future this\nfield will be enums.",
-                    "type": "string",
-                    "example": "簡答題"
                 }
             }
         },
@@ -1429,12 +1452,12 @@ const docTemplate = `{
                     "description": "ID of the ent.",
                     "type": "string"
                 },
+                "order": {
+                    "description": "Order holds the value of the \"order\" field.",
+                    "type": "integer"
+                },
                 "questionnaire": {
                     "$ref": "#/definitions/ent.Questionnaire"
-                },
-                "type": {
-                    "description": "Type holds the value of the \"type\" field.",
-                    "type": "string"
                 }
             }
         },
