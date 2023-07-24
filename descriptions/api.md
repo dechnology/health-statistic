@@ -7,6 +7,8 @@ This is the API documentation for 「健康資料公鏈」
 
 ## API Endpoints for Frontend Application
 
+Full descriptions of all endpoints are described below; however, more common endpoints for a client application are described here. For detailed types of params, body, or response, please refer to the full descriptiions below. 
+
 ### Server Health Check - `/health_check` [**GET**]
 
 This endpoint checks if the server is alive and the database is connected. It returns a code of 200 if ture.

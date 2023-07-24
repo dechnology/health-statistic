@@ -18,8 +18,10 @@ func (Notification) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.Enum("type").
 			Values("normal", "mycard", "price"),
-		field.Time("sent_at").Optional(),
-		field.Time("read_at").Optional(),
+		field.Time("sent_at").
+			Optional(),
+		field.Time("read_at").
+			Optional(),
 		field.Text("message"),
 	}
 }
