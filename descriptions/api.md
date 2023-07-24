@@ -15,7 +15,7 @@ This endpoint checks if the server is alive and the database is connected. It re
 
 ---
 
-### Get Registration Questionnaire - `/questionnaire/registration` [**GET**]
+### Get Registration Questionnaire - `/questionnaires/registration` [**GET**]
 
 For the sake of scalibility, we make the questionnaire system a general one. That is, we can later create more questionnaires in our application. Upon initialization of our database, the registration questionnaire is created and assigned a fixed UUID. Before the user register, we need to have them fill in the registration questionnaire. This questionniare can be fetch using this endpoint. Note that this questionnaire correspond to question 16 to 30 since the answers to question 1 to 15 are part of the user data.
 

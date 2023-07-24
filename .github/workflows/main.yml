@@ -1,5 +1,5 @@
 name: deploy-images-to-gh-registry
-run-name: ${{ github.actor }} is deploying...
+run-name: EC2 Deployment
 
 on:
   push:
