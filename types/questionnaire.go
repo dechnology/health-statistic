@@ -8,9 +8,6 @@ import (
 type BaseQuestion struct {
 	// The question body
 	Body string `json:"body" example:"你這週的心情如何？"`
-	// The question type, currently we accept string but in the future this
-	// field will be enums.
-	Type string `json:"type" example:"簡答題"`
 }
 
 type BaseAnswer struct {
@@ -21,7 +18,7 @@ type BaseAnswer struct {
 	QuestionId uuid.UUID `json:"question_id"`
 }
 
-//	@Description	BaseQuestionnaire
+// @Description	BaseQuestionnaire
 type BaseQuestionnaire struct {
 	// The name of the questionnaire
 	Name string `json:"name" example:"問卷標題"`
@@ -32,15 +29,24 @@ type BaseQuestionnaire struct {
 }
 
 type BaseResponse struct {
-	// The user ID of the user who submit the response.
-	UserId string `json:"user_id"`
 	// The answers to all questions in a questionnaire.
 	Answers []*BaseAnswer `json:"answers"`
 }
 
+type ResponseWithUserId struct {
+	// The user ID of the user who submit the response.
+	UserId string `json:"user_id"`
+	BaseResponse
+}
+
+type ResponseWithQuestionnaireId struct {
+	QuestionnaireId string `json:"quesionnaire_id"`
+	BaseResponse
+}
+
 type Response struct {
 	ent.QuestionnaireResponse
-	BaseResponse
+	ResponseWithUserId
 }
 
 type ResponseWithQuestionnaire struct {
@@ -51,6 +57,11 @@ type ResponseWithQuestionnaire struct {
 type QuestionWithQuestionnaire struct {
 	ent.Question
 	Questionnaire ent.Questionnaire
+}
+
+type QuestionnaireWithId struct {
+	BaseQuestionnaire
+	ID string `json:"id"`
 }
 
 type QuestionnaireDetails struct {

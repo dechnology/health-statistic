@@ -86,6 +86,12 @@ func New(db *ent.Client) *gin.Engine {
 		// Health check endpoint for ELB
 		v1.GET("/health_check", handlers.HealthCheck)
 
+		registerGroup := v1.Group("/register")
+		{
+			h := handlers.RegisterHandler{DB: db}
+			registerGroup.POST("/", h.Register)
+		}
+
 		userGroup := v1.Group("/users")
 		{
 			h := handlers.UserHandler{DB: db}
@@ -108,6 +114,7 @@ func New(db *ent.Client) *gin.Engine {
 			h := handlers.QuestionnaireHandler{DB: db}
 			questionnaireGroup.GET("/", h.GetQuestionnaires)
 			questionnaireGroup.POST("/", h.CreateQuestionnaire)
+			questionnaireGroup.GET("/registration")
 
 			idGroup := questionnaireGroup.Group("/:id")
 			{

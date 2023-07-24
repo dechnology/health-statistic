@@ -25,8 +25,8 @@ type Question struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// Body holds the value of the "body" field.
 	Body string `json:"body,omitempty"`
-	// Type holds the value of the "type" field.
-	Type string `json:"type,omitempty"`
+	// Order holds the value of the "order" field.
+	Order int `json:"order,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the QuestionQuery when eager-loading is set.
 	Edges                   QuestionEdges `json:"-"`
@@ -72,7 +72,9 @@ func (*Question) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case question.FieldBody, question.FieldType:
+		case question.FieldOrder:
+			values[i] = new(sql.NullInt64)
+		case question.FieldBody:
 			values[i] = new(sql.NullString)
 		case question.FieldID:
 			values[i] = new(uuid.UUID)
@@ -105,11 +107,11 @@ func (q *Question) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				q.Body = value.String
 			}
-		case question.FieldType:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field type", values[i])
+		case question.FieldOrder:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field order", values[i])
 			} else if value.Valid {
-				q.Type = value.String
+				q.Order = int(value.Int64)
 			}
 		case question.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -167,8 +169,8 @@ func (q *Question) String() string {
 	builder.WriteString("body=")
 	builder.WriteString(q.Body)
 	builder.WriteString(", ")
-	builder.WriteString("type=")
-	builder.WriteString(q.Type)
+	builder.WriteString("order=")
+	builder.WriteString(fmt.Sprintf("%v", q.Order))
 	builder.WriteByte(')')
 	return builder.String()
 }

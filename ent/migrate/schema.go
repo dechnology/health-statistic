@@ -126,7 +126,7 @@ var (
 	QuestionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "body", Type: field.TypeString, Size: 2147483647},
-		{Name: "type", Type: field.TypeString, Size: 2147483647},
+		{Name: "order", Type: field.TypeInt},
 		{Name: "questionnaire_questions", Type: field.TypeUUID, Nullable: true},
 	}
 	// QuestionsTable holds the schema information for the "questions" table.

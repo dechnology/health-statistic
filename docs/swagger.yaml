@@ -235,9 +235,6 @@ definitions:
         items:
           $ref: '#/definitions/types.BaseAnswer'
         type: array
-      user_id:
-        description: The user ID of the user who submit the response.
-        type: string
     type: object
   types.BaseUser:
     properties:
@@ -378,6 +375,20 @@ definitions:
           $ref: '#/definitions/types.Response'
         type: array
     type: object
+  types.RegisterData:
+    properties:
+      response:
+        $ref: '#/definitions/types.ResponseWithQuestionnaireId'
+      user:
+        $ref: '#/definitions/types.BaseUser'
+    type: object
+  types.RegisterResponse:
+    properties:
+      response:
+        $ref: '#/definitions/ent.QuestionnaireResponse'
+      user:
+        $ref: '#/definitions/ent.User'
+    type: object
   types.Response:
     properties:
       answers:
@@ -412,6 +423,16 @@ definitions:
         $ref: '#/definitions/ent.Questionnaire'
       user_id:
         description: The user ID of the user who submit the response.
+        type: string
+    type: object
+  types.ResponseWithQuestionnaireId:
+    properties:
+      answers:
+        description: The answers to all questions in a questionnaire.
+        items:
+          $ref: '#/definitions/types.BaseAnswer'
+        type: array
+      quesionnaire_id:
         type: string
     type: object
   user.EarCondition:
@@ -909,6 +930,27 @@ paths:
       summary: Get Question
       tags:
       - Question
+  /register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: The registration data.
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/types.RegisterData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.RegisterResponse'
+      summary: Register an User
+      tags:
+      - Registration
   /responses:
     get:
       description: |

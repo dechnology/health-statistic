@@ -19,8 +19,8 @@ const (
 	FieldID = "id"
 	// FieldBody holds the string denoting the body field in the database.
 	FieldBody = "body"
-	// FieldType holds the string denoting the type field in the database.
-	FieldType = "type"
+	// FieldOrder holds the string denoting the order field in the database.
+	FieldOrder = "order"
 	// EdgeQuestionnaire holds the string denoting the questionnaire edge name in mutations.
 	EdgeQuestionnaire = "questionnaire"
 	// EdgeAnswers holds the string denoting the answers edge name in mutations.
@@ -47,7 +47,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldBody,
-	FieldType,
+	FieldOrder,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "questions"
@@ -72,6 +72,10 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// BodyValidator is a validator for the "body" field. It is called by the builders before save.
+	BodyValidator func(string) error
+	// OrderValidator is a validator for the "order" field. It is called by the builders before save.
+	OrderValidator func(int) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -89,9 +93,9 @@ func ByBody(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldBody, opts...).ToFunc()
 }
 
-// ByType orders the results by the type field.
-func ByType(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldType, opts...).ToFunc()
+// ByOrder orders the results by the order field.
+func ByOrder(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOrder, opts...).ToFunc()
 }
 
 // ByQuestionnaireField orders the results by questionnaire field.

@@ -63,9 +63,9 @@ func Body(v string) predicate.Question {
 	return predicate.Question(sql.FieldEQ(FieldBody, v))
 }
 
-// Type applies equality check predicate on the "type" field. It's identical to TypeEQ.
-func Type(v string) predicate.Question {
-	return predicate.Question(sql.FieldEQ(FieldType, v))
+// Order applies equality check predicate on the "order" field. It's identical to OrderEQ.
+func Order(v int) predicate.Question {
+	return predicate.Question(sql.FieldEQ(FieldOrder, v))
 }
 
 // BodyEQ applies the EQ predicate on the "body" field.
@@ -133,69 +133,44 @@ func BodyContainsFold(v string) predicate.Question {
 	return predicate.Question(sql.FieldContainsFold(FieldBody, v))
 }
 
-// TypeEQ applies the EQ predicate on the "type" field.
-func TypeEQ(v string) predicate.Question {
-	return predicate.Question(sql.FieldEQ(FieldType, v))
+// OrderEQ applies the EQ predicate on the "order" field.
+func OrderEQ(v int) predicate.Question {
+	return predicate.Question(sql.FieldEQ(FieldOrder, v))
 }
 
-// TypeNEQ applies the NEQ predicate on the "type" field.
-func TypeNEQ(v string) predicate.Question {
-	return predicate.Question(sql.FieldNEQ(FieldType, v))
+// OrderNEQ applies the NEQ predicate on the "order" field.
+func OrderNEQ(v int) predicate.Question {
+	return predicate.Question(sql.FieldNEQ(FieldOrder, v))
 }
 
-// TypeIn applies the In predicate on the "type" field.
-func TypeIn(vs ...string) predicate.Question {
-	return predicate.Question(sql.FieldIn(FieldType, vs...))
+// OrderIn applies the In predicate on the "order" field.
+func OrderIn(vs ...int) predicate.Question {
+	return predicate.Question(sql.FieldIn(FieldOrder, vs...))
 }
 
-// TypeNotIn applies the NotIn predicate on the "type" field.
-func TypeNotIn(vs ...string) predicate.Question {
-	return predicate.Question(sql.FieldNotIn(FieldType, vs...))
+// OrderNotIn applies the NotIn predicate on the "order" field.
+func OrderNotIn(vs ...int) predicate.Question {
+	return predicate.Question(sql.FieldNotIn(FieldOrder, vs...))
 }
 
-// TypeGT applies the GT predicate on the "type" field.
-func TypeGT(v string) predicate.Question {
-	return predicate.Question(sql.FieldGT(FieldType, v))
+// OrderGT applies the GT predicate on the "order" field.
+func OrderGT(v int) predicate.Question {
+	return predicate.Question(sql.FieldGT(FieldOrder, v))
 }
 
-// TypeGTE applies the GTE predicate on the "type" field.
-func TypeGTE(v string) predicate.Question {
-	return predicate.Question(sql.FieldGTE(FieldType, v))
+// OrderGTE applies the GTE predicate on the "order" field.
+func OrderGTE(v int) predicate.Question {
+	return predicate.Question(sql.FieldGTE(FieldOrder, v))
 }
 
-// TypeLT applies the LT predicate on the "type" field.
-func TypeLT(v string) predicate.Question {
-	return predicate.Question(sql.FieldLT(FieldType, v))
+// OrderLT applies the LT predicate on the "order" field.
+func OrderLT(v int) predicate.Question {
+	return predicate.Question(sql.FieldLT(FieldOrder, v))
 }
 
-// TypeLTE applies the LTE predicate on the "type" field.
-func TypeLTE(v string) predicate.Question {
-	return predicate.Question(sql.FieldLTE(FieldType, v))
-}
-
-// TypeContains applies the Contains predicate on the "type" field.
-func TypeContains(v string) predicate.Question {
-	return predicate.Question(sql.FieldContains(FieldType, v))
-}
-
-// TypeHasPrefix applies the HasPrefix predicate on the "type" field.
-func TypeHasPrefix(v string) predicate.Question {
-	return predicate.Question(sql.FieldHasPrefix(FieldType, v))
-}
-
-// TypeHasSuffix applies the HasSuffix predicate on the "type" field.
-func TypeHasSuffix(v string) predicate.Question {
-	return predicate.Question(sql.FieldHasSuffix(FieldType, v))
-}
-
-// TypeEqualFold applies the EqualFold predicate on the "type" field.
-func TypeEqualFold(v string) predicate.Question {
-	return predicate.Question(sql.FieldEqualFold(FieldType, v))
-}
-
-// TypeContainsFold applies the ContainsFold predicate on the "type" field.
-func TypeContainsFold(v string) predicate.Question {
-	return predicate.Question(sql.FieldContainsFold(FieldType, v))
+// OrderLTE applies the LTE predicate on the "order" field.
+func OrderLTE(v int) predicate.Question {
+	return predicate.Question(sql.FieldLTE(FieldOrder, v))
 }
 
 // HasQuestionnaire applies the HasEdge predicate on the "questionnaire" edge.

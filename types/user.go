@@ -1,5 +1,7 @@
 package types
 
+import "github.com/eesoymilk/health-statistic-api/ent"
+
 type BaseUser struct {
 	ID                           string  `json:"id"`
 	FirstName                    string  `json:"first_name" example:"中天"`
@@ -18,4 +20,14 @@ type BaseUser struct {
 	EarCondition                 string  `json:"ear_condition" example:"normal" enums:"normal,slightly_affecting_conversation,need_hearing_aid"`
 	EyesightCondition            string  `json:"eyesight_condition" example:"normal" enums:"normal,slightly_affecting_reading,need_glasses"`
 	SmokingHabit                 string  `json:"smoking_habit" example:"none" enums:"none,sometimes,everyday"`
+}
+
+type RegisterData struct {
+	User     BaseUser                    `json:"user"`
+	Response ResponseWithQuestionnaireId `json:"response"`
+}
+
+type RegisterResponse struct {
+	User     *ent.User                  `json:"user"`
+	Response *ent.QuestionnaireResponse `json:"response"`
 }

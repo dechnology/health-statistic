@@ -32,9 +32,9 @@ func (qc *QuestionCreate) SetBody(s string) *QuestionCreate {
 	return qc
 }
 
-// SetType sets the "type" field.
-func (qc *QuestionCreate) SetType(s string) *QuestionCreate {
-	qc.mutation.SetType(s)
+// SetOrder sets the "order" field.
+func (qc *QuestionCreate) SetOrder(i int) *QuestionCreate {
+	qc.mutation.SetOrder(i)
 	return qc
 }
 
@@ -132,8 +132,18 @@ func (qc *QuestionCreate) check() error {
 	if _, ok := qc.mutation.Body(); !ok {
 		return &ValidationError{Name: "body", err: errors.New(`ent: missing required field "Question.body"`)}
 	}
-	if _, ok := qc.mutation.GetType(); !ok {
-		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "Question.type"`)}
+	if v, ok := qc.mutation.Body(); ok {
+		if err := question.BodyValidator(v); err != nil {
+			return &ValidationError{Name: "body", err: fmt.Errorf(`ent: validator failed for field "Question.body": %w`, err)}
+		}
+	}
+	if _, ok := qc.mutation.Order(); !ok {
+		return &ValidationError{Name: "order", err: errors.New(`ent: missing required field "Question.order"`)}
+	}
+	if v, ok := qc.mutation.Order(); ok {
+		if err := question.OrderValidator(v); err != nil {
+			return &ValidationError{Name: "order", err: fmt.Errorf(`ent: validator failed for field "Question.order": %w`, err)}
+		}
 	}
 	return nil
 }
@@ -174,9 +184,9 @@ func (qc *QuestionCreate) createSpec() (*Question, *sqlgraph.CreateSpec) {
 		_spec.SetField(question.FieldBody, field.TypeString, value)
 		_node.Body = value
 	}
-	if value, ok := qc.mutation.GetType(); ok {
-		_spec.SetField(question.FieldType, field.TypeString, value)
-		_node.Type = value
+	if value, ok := qc.mutation.Order(); ok {
+		_spec.SetField(question.FieldOrder, field.TypeInt, value)
+		_node.Order = value
 	}
 	if nodes := qc.mutation.QuestionnaireIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

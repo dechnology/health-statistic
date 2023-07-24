@@ -15,9 +15,12 @@ type Question struct {
 // Fields of the Question.
 func (Question) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("id", uuid.UUID{}).Default(uuid.New),
-		field.Text("body"),
-		field.Text("type"),
+		field.UUID("id", uuid.UUID{}).
+			Default(uuid.New),
+		field.Text("body").
+			NotEmpty(),
+		field.Int("order").
+			NonNegative(),
 	}
 }
 

@@ -12,7 +12,6 @@ package main
 /************************************/
 
 import (
-	"context"
 	"log"
 	"os"
 
@@ -22,12 +21,12 @@ import (
 	"github.com/joho/godotenv"
 )
 
-//	@title			Web3 - 健康資料公鏈API開發文件
-//	@version		1.0
-//	@description	This is the API documentation for 「健康資料公鏈」.
-//	@host			health-statistic.dechnology.com.tw
-//	@schemes		https
-//	@BasePath		/api/v1
+// @title			Web3 - 健康資料公鏈API開發文件
+// @version		1.0
+// @description	This is the API documentation for 「健康資料公鏈」.
+// @host			health-statistic.dechnology.com.tw
+// @schemes		https
+// @BasePath		/api/v1
 func main() {
 	// Loading environment variables when not using a docker container
 	if os.Getenv("RUNNING_IN_DOCKER") == "" {
@@ -37,14 +36,12 @@ func main() {
 		}
 	}
 
-	db := db.New()
-	defer db.Close()
+	entClient := db.New()
+	defer entClient.Close()
 
-	// for migration
-	if err := db.Schema.Create(context.Background()); err != nil {
-		log.Fatalf("failed creating schema resources: %v", err)
-	}
+	// migration code: perform it only onces is enough
+	db.Migrate(entClient)
 
-	r := router.New(db)
+	r := router.New(entClient)
 	r.Run()
 }

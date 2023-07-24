@@ -2567,7 +2567,8 @@ type QuestionMutation struct {
 	typ                  string
 	id                   *uuid.UUID
 	body                 *string
-	_type                *string
+	_order               *int
+	add_order            *int
 	clearedFields        map[string]struct{}
 	questionnaire        *uuid.UUID
 	clearedquestionnaire bool
@@ -2719,40 +2720,60 @@ func (m *QuestionMutation) ResetBody() {
 	m.body = nil
 }
 
-// SetType sets the "type" field.
-func (m *QuestionMutation) SetType(s string) {
-	m._type = &s
+// SetOrder sets the "order" field.
+func (m *QuestionMutation) SetOrder(i int) {
+	m._order = &i
+	m.add_order = nil
 }
 
-// GetType returns the value of the "type" field in the mutation.
-func (m *QuestionMutation) GetType() (r string, exists bool) {
-	v := m._type
+// Order returns the value of the "order" field in the mutation.
+func (m *QuestionMutation) Order() (r int, exists bool) {
+	v := m._order
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldType returns the old "type" field's value of the Question entity.
+// OldOrder returns the old "order" field's value of the Question entity.
 // If the Question object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *QuestionMutation) OldType(ctx context.Context) (v string, err error) {
+func (m *QuestionMutation) OldOrder(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldType is only allowed on UpdateOne operations")
+		return v, errors.New("OldOrder is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldType requires an ID field in the mutation")
+		return v, errors.New("OldOrder requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldType: %w", err)
+		return v, fmt.Errorf("querying old value for OldOrder: %w", err)
 	}
-	return oldValue.Type, nil
+	return oldValue.Order, nil
 }
 
-// ResetType resets all changes to the "type" field.
-func (m *QuestionMutation) ResetType() {
-	m._type = nil
+// AddOrder adds i to the "order" field.
+func (m *QuestionMutation) AddOrder(i int) {
+	if m.add_order != nil {
+		*m.add_order += i
+	} else {
+		m.add_order = &i
+	}
+}
+
+// AddedOrder returns the value that was added to the "order" field in this mutation.
+func (m *QuestionMutation) AddedOrder() (r int, exists bool) {
+	v := m.add_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetOrder resets all changes to the "order" field.
+func (m *QuestionMutation) ResetOrder() {
+	m._order = nil
+	m.add_order = nil
 }
 
 // SetQuestionnaireID sets the "questionnaire" edge to the Questionnaire entity by id.
@@ -2886,8 +2907,8 @@ func (m *QuestionMutation) Fields() []string {
 	if m.body != nil {
 		fields = append(fields, question.FieldBody)
 	}
-	if m._type != nil {
-		fields = append(fields, question.FieldType)
+	if m._order != nil {
+		fields = append(fields, question.FieldOrder)
 	}
 	return fields
 }
@@ -2899,8 +2920,8 @@ func (m *QuestionMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case question.FieldBody:
 		return m.Body()
-	case question.FieldType:
-		return m.GetType()
+	case question.FieldOrder:
+		return m.Order()
 	}
 	return nil, false
 }
@@ -2912,8 +2933,8 @@ func (m *QuestionMutation) OldField(ctx context.Context, name string) (ent.Value
 	switch name {
 	case question.FieldBody:
 		return m.OldBody(ctx)
-	case question.FieldType:
-		return m.OldType(ctx)
+	case question.FieldOrder:
+		return m.OldOrder(ctx)
 	}
 	return nil, fmt.Errorf("unknown Question field %s", name)
 }
@@ -2930,12 +2951,12 @@ func (m *QuestionMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetBody(v)
 		return nil
-	case question.FieldType:
-		v, ok := value.(string)
+	case question.FieldOrder:
+		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetType(v)
+		m.SetOrder(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Question field %s", name)
@@ -2944,13 +2965,21 @@ func (m *QuestionMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *QuestionMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.add_order != nil {
+		fields = append(fields, question.FieldOrder)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *QuestionMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case question.FieldOrder:
+		return m.AddedOrder()
+	}
 	return nil, false
 }
 
@@ -2959,6 +2988,13 @@ func (m *QuestionMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *QuestionMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case question.FieldOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddOrder(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Question numeric field %s", name)
 }
@@ -2989,8 +3025,8 @@ func (m *QuestionMutation) ResetField(name string) error {
 	case question.FieldBody:
 		m.ResetBody()
 		return nil
-	case question.FieldType:
-		m.ResetType()
+	case question.FieldOrder:
+		m.ResetOrder()
 		return nil
 	}
 	return fmt.Errorf("unknown Question field %s", name)

@@ -40,9 +40,16 @@ func (qu *QuestionUpdate) SetBody(s string) *QuestionUpdate {
 	return qu
 }
 
-// SetType sets the "type" field.
-func (qu *QuestionUpdate) SetType(s string) *QuestionUpdate {
-	qu.mutation.SetType(s)
+// SetOrder sets the "order" field.
+func (qu *QuestionUpdate) SetOrder(i int) *QuestionUpdate {
+	qu.mutation.ResetOrder()
+	qu.mutation.SetOrder(i)
+	return qu
+}
+
+// AddOrder adds i to the "order" field.
+func (qu *QuestionUpdate) AddOrder(i int) *QuestionUpdate {
+	qu.mutation.AddOrder(i)
 	return qu
 }
 
@@ -139,7 +146,25 @@ func (qu *QuestionUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (qu *QuestionUpdate) check() error {
+	if v, ok := qu.mutation.Body(); ok {
+		if err := question.BodyValidator(v); err != nil {
+			return &ValidationError{Name: "body", err: fmt.Errorf(`ent: validator failed for field "Question.body": %w`, err)}
+		}
+	}
+	if v, ok := qu.mutation.Order(); ok {
+		if err := question.OrderValidator(v); err != nil {
+			return &ValidationError{Name: "order", err: fmt.Errorf(`ent: validator failed for field "Question.order": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (qu *QuestionUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := qu.check(); err != nil {
+		return n, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(question.Table, question.Columns, sqlgraph.NewFieldSpec(question.FieldID, field.TypeUUID))
 	if ps := qu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -151,8 +176,11 @@ func (qu *QuestionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := qu.mutation.Body(); ok {
 		_spec.SetField(question.FieldBody, field.TypeString, value)
 	}
-	if value, ok := qu.mutation.GetType(); ok {
-		_spec.SetField(question.FieldType, field.TypeString, value)
+	if value, ok := qu.mutation.Order(); ok {
+		_spec.SetField(question.FieldOrder, field.TypeInt, value)
+	}
+	if value, ok := qu.mutation.AddedOrder(); ok {
+		_spec.AddField(question.FieldOrder, field.TypeInt, value)
 	}
 	if qu.mutation.QuestionnaireCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -254,9 +282,16 @@ func (quo *QuestionUpdateOne) SetBody(s string) *QuestionUpdateOne {
 	return quo
 }
 
-// SetType sets the "type" field.
-func (quo *QuestionUpdateOne) SetType(s string) *QuestionUpdateOne {
-	quo.mutation.SetType(s)
+// SetOrder sets the "order" field.
+func (quo *QuestionUpdateOne) SetOrder(i int) *QuestionUpdateOne {
+	quo.mutation.ResetOrder()
+	quo.mutation.SetOrder(i)
+	return quo
+}
+
+// AddOrder adds i to the "order" field.
+func (quo *QuestionUpdateOne) AddOrder(i int) *QuestionUpdateOne {
+	quo.mutation.AddOrder(i)
 	return quo
 }
 
@@ -366,7 +401,25 @@ func (quo *QuestionUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (quo *QuestionUpdateOne) check() error {
+	if v, ok := quo.mutation.Body(); ok {
+		if err := question.BodyValidator(v); err != nil {
+			return &ValidationError{Name: "body", err: fmt.Errorf(`ent: validator failed for field "Question.body": %w`, err)}
+		}
+	}
+	if v, ok := quo.mutation.Order(); ok {
+		if err := question.OrderValidator(v); err != nil {
+			return &ValidationError{Name: "order", err: fmt.Errorf(`ent: validator failed for field "Question.order": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (quo *QuestionUpdateOne) sqlSave(ctx context.Context) (_node *Question, err error) {
+	if err := quo.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(question.Table, question.Columns, sqlgraph.NewFieldSpec(question.FieldID, field.TypeUUID))
 	id, ok := quo.mutation.ID()
 	if !ok {
@@ -395,8 +448,11 @@ func (quo *QuestionUpdateOne) sqlSave(ctx context.Context) (_node *Question, err
 	if value, ok := quo.mutation.Body(); ok {
 		_spec.SetField(question.FieldBody, field.TypeString, value)
 	}
-	if value, ok := quo.mutation.GetType(); ok {
-		_spec.SetField(question.FieldType, field.TypeString, value)
+	if value, ok := quo.mutation.Order(); ok {
+		_spec.SetField(question.FieldOrder, field.TypeInt, value)
+	}
+	if value, ok := quo.mutation.AddedOrder(); ok {
+		_spec.AddField(question.FieldOrder, field.TypeInt, value)
 	}
 	if quo.mutation.QuestionnaireCleared() {
 		edge := &sqlgraph.EdgeSpec{

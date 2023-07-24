@@ -103,6 +103,14 @@ func init() {
 	price.DefaultID = priceDescID.Default.(func() uuid.UUID)
 	questionFields := schema.Question{}.Fields()
 	_ = questionFields
+	// questionDescBody is the schema descriptor for body field.
+	questionDescBody := questionFields[1].Descriptor()
+	// question.BodyValidator is a validator for the "body" field. It is called by the builders before save.
+	question.BodyValidator = questionDescBody.Validators[0].(func(string) error)
+	// questionDescOrder is the schema descriptor for order field.
+	questionDescOrder := questionFields[2].Descriptor()
+	// question.OrderValidator is a validator for the "order" field. It is called by the builders before save.
+	question.OrderValidator = questionDescOrder.Validators[0].(func(int) error)
 	// questionDescID is the schema descriptor for id field.
 	questionDescID := questionFields[0].Descriptor()
 	// question.DefaultID holds the default value on creation for the id field.
@@ -150,7 +158,21 @@ func init() {
 	// userDescBirthYear is the schema descriptor for birth_year field.
 	userDescBirthYear := userFields[5].Descriptor()
 	// user.BirthYearValidator is a validator for the "birth_year" field. It is called by the builders before save.
-	user.BirthYearValidator = userDescBirthYear.Validators[0].(func(int) error)
+	user.BirthYearValidator = func() func(int) error {
+		validators := userDescBirthYear.Validators
+		fns := [...]func(int) error{
+			validators[0].(func(int) error),
+			validators[1].(func(int) error),
+		}
+		return func(birth_year int) error {
+			for _, fn := range fns {
+				if err := fn(birth_year); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// userDescHeight is the schema descriptor for height field.
 	userDescHeight := userFields[6].Descriptor()
 	// user.HeightValidator is a validator for the "height" field. It is called by the builders before save.

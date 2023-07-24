@@ -62,6 +62,10 @@ import (
 // 	Questions *[]ent.Question `json:"questions"`
 // }
 
+type RegisterHandler struct {
+	DB *ent.Client
+}
+
 type UserHandler struct {
 	DB *ent.Client
 }

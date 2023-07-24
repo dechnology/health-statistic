@@ -588,6 +588,39 @@ const docTemplate = `{
                 }
             }
         },
+        "/register": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Registration"
+                ],
+                "summary": "Register an User",
+                "parameters": [
+                    {
+                        "description": "The registration data.",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.RegisterData"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.RegisterResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/responses": {
             "get": {
                 "description": "Get all responses from the database. **This will NOT include questionnaires and questions.**\n",
@@ -1241,10 +1274,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/types.BaseAnswer"
                     }
-                },
-                "user_id": {
-                    "description": "The user ID of the user who submit the response.",
-                    "type": "string"
                 }
             }
         },
@@ -1438,6 +1467,28 @@ const docTemplate = `{
                 }
             }
         },
+        "types.RegisterData": {
+            "type": "object",
+            "properties": {
+                "response": {
+                    "$ref": "#/definitions/types.ResponseWithQuestionnaireId"
+                },
+                "user": {
+                    "$ref": "#/definitions/types.BaseUser"
+                }
+            }
+        },
+        "types.RegisterResponse": {
+            "type": "object",
+            "properties": {
+                "response": {
+                    "$ref": "#/definitions/ent.QuestionnaireResponse"
+                },
+                "user": {
+                    "$ref": "#/definitions/ent.User"
+                }
+            }
+        },
         "types.Response": {
             "type": "object",
             "properties": {
@@ -1485,6 +1536,21 @@ const docTemplate = `{
                 },
                 "user_id": {
                     "description": "The user ID of the user who submit the response.",
+                    "type": "string"
+                }
+            }
+        },
+        "types.ResponseWithQuestionnaireId": {
+            "type": "object",
+            "properties": {
+                "answers": {
+                    "description": "The answers to all questions in a questionnaire.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.BaseAnswer"
+                    }
+                },
+                "quesionnaire_id": {
                     "type": "string"
                 }
             }
