@@ -29,6 +29,226 @@
                 }
             }
         },
+        "/mycards": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MyCard"
+                ],
+                "summary": "Get MyCards",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/ent.MyCard"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/mycards/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MyCard"
+                ],
+                "summary": "Get MyCard",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The mycard's ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ent.MyCard"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MyCard"
+                ],
+                "summary": "Delete MyCard",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The mycard's ID.",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/notifications": {
+            "get": {
+                "description": "Get all notifications from the database. For each notification, the user who received this notification is also included.\n",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notification"
+                ],
+                "summary": "Get Notifications",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/types.NotificationWithRecipient"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/notifications/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notification"
+                ],
+                "summary": "Get Notification",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The notification's ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.NotificationWithRecipient"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notification"
+                ],
+                "summary": "Delete Notification",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The notification's ID.",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/prices": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Price"
+                ],
+                "summary": "Get Prices",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/ent.Price"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/prices/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Price"
+                ],
+                "summary": "Get Price",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The price's ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ent.Price"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Price"
+                ],
+                "summary": "Delete Price",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The price's ID.",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/questionnaires": {
             "get": {
                 "description": "Get all questionnaires from the database. For each questionnaire, all questions and responses of this questionnaire are also included.\n",
@@ -379,7 +599,7 @@
         },
         "/users": {
             "get": {
-                "description": "Get all users from the database",
+                "description": "Get all users from the database.",
                 "produces": [
                     "application/json"
                 ],
@@ -400,7 +620,7 @@
                 }
             },
             "post": {
-                "description": "Create a new user",
+                "description": "Create a new user.\n\n## Request Body\n\n- `first_name` *`string`* **Required**\n    The body of one of the question in the questionnaire.\n\n- `last_name` *`string`* **Required**\n    The type of the question. For now, we accept all strings but in the future this field might be an enum.",
                 "consumes": [
                     "application/json"
                 ],
@@ -418,7 +638,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ent.User"
+                            "$ref": "#/definitions/types.BaseUser"
                         }
                     }
                 ],
@@ -434,7 +654,7 @@
         },
         "/users/{id}": {
             "get": {
-                "description": "Get a user by an Auth0 ID.",
+                "description": "Get the user specified by the `id` path param.\n",
                 "produces": [
                     "application/json"
                 ],
@@ -461,7 +681,6 @@
                 }
             },
             "put": {
-                "description": "update a user with specified Auth0 ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -500,7 +719,6 @@
                 }
             },
             "delete": {
-                "description": "Delete a user by Auth0 ID",
                 "produces": [
                     "application/json"
                 ],
@@ -523,9 +741,181 @@
                     }
                 }
             }
+        },
+        "/users/{id}/mycards": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get All MyCards From an User",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The user's Auth0 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/ent.MyCard"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{id}/notifications": {
+            "get": {
+                "description": "Get all notifications of an user.\n",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get All Notifications From an User",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The user's Auth0 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/ent.Notification"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{id}/prices": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get All Prices From an User",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The user's Auth0 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/ent.Price"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "ent.MyCard": {
+            "type": "object",
+            "properties": {
+                "card_password": {
+                    "description": "CardPassword holds the value of the \"card_password\" field.",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "CreatedAt holds the value of the \"created_at\" field.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID of the ent.",
+                    "type": "string"
+                },
+                "taken_at": {
+                    "description": "TakenAt holds the value of the \"taken_at\" field.",
+                    "type": "string"
+                }
+            }
+        },
+        "ent.Notification": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "description": "ID of the ent.",
+                    "type": "string"
+                },
+                "message": {
+                    "description": "Message holds the value of the \"message\" field.",
+                    "type": "string"
+                },
+                "read_at": {
+                    "description": "ReadAt holds the value of the \"read_at\" field.",
+                    "type": "string"
+                },
+                "sent_at": {
+                    "description": "SentAt holds the value of the \"sent_at\" field.",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Type holds the value of the \"type\" field.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/notification.Type"
+                        }
+                    ]
+                }
+            }
+        },
+        "ent.Price": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "CreatedAt holds the value of the \"created_at\" field.",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "Description holds the value of the \"description\" field.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID of the ent.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Name holds the value of the \"name\" field.",
+                    "type": "string"
+                },
+                "taken_at": {
+                    "description": "TakenAt holds the value of the \"taken_at\" field.",
+                    "type": "string"
+                }
+            }
+        },
         "ent.Question": {
             "type": "object",
             "properties": {
@@ -692,13 +1082,26 @@
                 }
             }
         },
+        "notification.Type": {
+            "type": "string",
+            "enum": [
+                "normal",
+                "mycard",
+                "price"
+            ],
+            "x-enum-varnames": [
+                "TypeNormal",
+                "TypeMycard",
+                "TypePrice"
+            ]
+        },
         "types.BaseAnswer": {
-            "description": "The json body for creating a new answer in a new response.",
             "type": "object",
             "properties": {
                 "body": {
                     "description": "The answer body.",
-                    "type": "string"
+                    "type": "string",
+                    "example": "我這週心情還不錯！"
                 },
                 "question_id": {
                     "description": "The question this answer relates to, the question also needs to be in\nthe same questionnaire as the response.",
@@ -707,16 +1110,17 @@
             }
         },
         "types.BaseQuestion": {
-            "description": "The json body for creating a new question.",
             "type": "object",
             "properties": {
                 "body": {
                     "description": "The question body",
-                    "type": "string"
+                    "type": "string",
+                    "example": "你這週的心情如何？"
                 },
                 "type": {
                     "description": "The question type, currently we accept string but in the future this\nfield will be enums.",
-                    "type": "string"
+                    "type": "string",
+                    "example": "簡答題"
                 }
             }
         },
@@ -726,7 +1130,8 @@
             "properties": {
                 "name": {
                     "description": "The name of the questionnaire",
-                    "type": "string"
+                    "type": "string",
+                    "example": "問卷標題"
                 },
                 "questions": {
                     "description": "The initial questions in this questionnaire. This field may be empty\nand you can add questions later using post request to\n`quesionnaires/:id/new/question`.",
@@ -750,6 +1155,147 @@
                 "user_id": {
                     "description": "The user ID of the user who submit the response.",
                     "type": "string"
+                }
+            }
+        },
+        "types.BaseUser": {
+            "type": "object",
+            "properties": {
+                "birth_year": {
+                    "type": "integer",
+                    "example": 2000
+                },
+                "demented_among_direct_relatives": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "ear_condition": {
+                    "type": "string",
+                    "enum": [
+                        "normal",
+                        "slightly_affecting_conversation",
+                        "need_hearing_aid"
+                    ],
+                    "example": "normal"
+                },
+                "education_level": {
+                    "type": "string",
+                    "enum": [
+                        "elementry_school_or_below",
+                        "middle_school",
+                        "high_school",
+                        "bachelor",
+                        "master",
+                        "doctorate"
+                    ],
+                    "example": "doctorate"
+                },
+                "eyesight_condition": {
+                    "type": "string",
+                    "enum": [
+                        "normal",
+                        "slightly_affecting_reading",
+                        "need_glasses"
+                    ],
+                    "example": "normal"
+                },
+                "first_name": {
+                    "type": "string",
+                    "example": "中天"
+                },
+                "gender": {
+                    "type": "string",
+                    "example": "male"
+                },
+                "head_injury_experience": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "height": {
+                    "type": "number",
+                    "example": 185.2
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string",
+                    "example": "大"
+                },
+                "marriage": {
+                    "type": "string",
+                    "enum": [
+                        "single",
+                        "married",
+                        "divorced",
+                        "widowed"
+                    ],
+                    "example": "single"
+                },
+                "medical_history": {
+                    "type": "string",
+                    "example": "none"
+                },
+                "medication_status": {
+                    "type": "string",
+                    "example": "none"
+                },
+                "occupation": {
+                    "type": "string",
+                    "enum": [
+                        "student",
+                        "government_employee",
+                        "service_industry",
+                        "industry_and_commerce",
+                        "freelancer",
+                        "domestic"
+                    ],
+                    "example": "student"
+                },
+                "smoking_habit": {
+                    "type": "string",
+                    "enum": [
+                        "none",
+                        "sometimes",
+                        "everyday"
+                    ],
+                    "example": "none"
+                },
+                "weight": {
+                    "type": "number",
+                    "example": 80.3
+                }
+            }
+        },
+        "types.NotificationWithRecipient": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "description": "ID of the ent.",
+                    "type": "string"
+                },
+                "message": {
+                    "description": "Message holds the value of the \"message\" field.",
+                    "type": "string"
+                },
+                "read_at": {
+                    "description": "ReadAt holds the value of the \"read_at\" field.",
+                    "type": "string"
+                },
+                "recipient": {
+                    "$ref": "#/definitions/ent.User"
+                },
+                "sent_at": {
+                    "description": "SentAt holds the value of the \"sent_at\" field.",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Type holds the value of the \"type\" field.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/notification.Type"
+                        }
+                    ]
                 }
             }
         },
