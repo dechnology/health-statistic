@@ -12,13 +12,17 @@ type BaseQuestion struct {
 	Choices []string `json:"choices" example:"[是,否]"`
 }
 
+type BaseChoice struct {
+	Id string `json:"id"`
+}
+
 type BaseAnswer struct {
 	// The question this answer relates to, the question also needs to be in
 	// the same questionnaire as the response.
-	QuestionId uuid.UUID `json:"question_id"`
+	QuestionId uuid.UUID `json:"question_id" example:"88888888-8888-4888-8888-888888888888"`
 	// The answer body.
-	Body    *string       `json:"body" example:"我這週心情還不錯！"`
-	Choices *[]ent.Choice `json:"choices"`
+	Body      *string      `json:"body" example:"我這週心情還不錯！"`
+	ChoiceIds *[]uuid.UUID `json:"choice_ids" example:"88888888-8888-4888-8888-888888888888,88888888-8888-4444-8888-888888888888"`
 }
 
 //	@Description	BaseQuestionnaire

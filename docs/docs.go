@@ -446,7 +446,7 @@ const docTemplate = `{
         },
         "/questionnaires/{id}/questions": {
             "post": {
-                "description": "Create a new question for the questionnaire  by the ` + "`" + `id` + "`" + ` path param.\n\n## Request Body\n\n- ` + "`" + `body` + "`" + ` *` + "`" + `string` + "`" + `* **Required**\n    The body of one of the question in the questionnaire.\n\n- ` + "`" + `type` + "`" + ` *` + "`" + `string` + "`" + `* **Required**\n    The type of the question. For now, we accept all strings but in the future this field might be an enum.",
+                "description": "Get all questions from the database. **This will NOT include questionnaires and responses.**\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -492,7 +492,7 @@ const docTemplate = `{
             }
         },
         "/questionnaires/{id}/responses": {
-            "post": {
+            "get": {
                 "consumes": [
                     "application/json"
                 ],
@@ -510,6 +510,47 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/ent.QuestionnaireResponse"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Questionnaire"
+                ],
+                "summary": "Create Questionnaire Response",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The questionnaire's ID.",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "The response to be created.",
+                        "name": "response",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.BaseResponse"
+                        }
                     }
                 ],
                 "responses": {
@@ -952,23 +993,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "ent.Choice": {
-            "type": "object",
-            "properties": {
-                "body": {
-                    "description": "Body holds the value of the \"body\" field.",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "ID of the ent.",
-                    "type": "string"
-                },
-                "order": {
-                    "description": "Order holds the value of the \"order\" field.",
-                    "type": "integer"
-                }
-            }
-        },
         "ent.MyCard": {
             "type": "object",
             "properties": {
@@ -1245,15 +1269,20 @@ const docTemplate = `{
                     "type": "string",
                     "example": "我這週心情還不錯！"
                 },
-                "choices": {
+                "choice_ids": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ent.Choice"
-                    }
+                        "type": "string"
+                    },
+                    "example": [
+                        "88888888-8888-4888-8888-888888888888",
+                        "88888888-8888-4444-8888-888888888888"
+                    ]
                 },
                 "question_id": {
                     "description": "The question this answer relates to, the question also needs to be in\nthe same questionnaire as the response.",
-                    "type": "string"
+                    "type": "string",
+                    "example": "88888888-8888-4888-8888-888888888888"
                 }
             }
         },
@@ -1754,7 +1783,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api/v1",
 	Schemes:          []string{"https"},
 	Title:            "Web3 - 健康資料公鏈API開發文件",
-	Description:      "This is the API documentation for 「健康資料公鏈」\n\n# Usage\n\n## Flow Diagram\n![flow_diagram](https://cdn.discordapp.com/attachments/874556062815100940/1132920083174408222/App-.drawio.png)\n\n## API Endpoints for Frontend Application\n\nFull descriptions of all endpoints are described below; however, more common endpoints for a client application are described here. For detailed types of params, body, or response, please refer to the full descriptiions below. \n\n### Server Health Check - `/health_check` [**GET**]\n\nThis endpoint checks if the server is alive and the database is connected. It returns a code of 200 if ture.\n\n---\n\n### Get Registration Questionnaire - `/questionnaires/registration` [**GET**]\n\nFor the sake of scalibility, we make the questionnaire system a general one. That is, we can later create more questionnaires in our application. Upon initialization of our database, the registration questionnaire is created and assigned a fixed UUID. Before the user register, we need to have them fill in the registration questionnaire. This questionniare can be fetch using this endpoint. Note that this questionnaire correspond to question 16 to 30 since the answers to question 1 to 15 are part of the user data.\n\n---\n\n### User Registration - `/register` [**POST**]\n\nWhile the initial questionnaire may have 30 questions, some answers are part of the user data like \"birth_year\", \"gender\", and so on. Therefore, we will use some of the data as inputs to create the user while other questions are combined and treated like a questionnaire called \"registration questionnaire\".\n\nHence, the user registration needs two things: user data and the response to the registration questionnaire. A user can only be register using this endpoint. Note that the ID field needs to be provided and it needs to match the Auth0 ID. This endpoint does 4 things in order: create a new user, respond to the registration questionnaire, assign one MyCard to this user, and send a notification via FCM.\n\n---\n\n### After User Registration\n\n#### Get user data - `/users/{id}` [**GET**]\n\n#### Get user's history notifications - `/users/{id}/notifications` [**GET**]\n\n#### Get user's prices - `/users/{id}/prices` [**GET**]\nGet all prices the user has won. Practically, a user may only have 1 or no prices. But for the sake of scalibility, we allow multiple prices to be owned by an user.\n\n#### Get user's MyCards - `/users/{id}/mycards` [**GET**]\nNote that the ID of this data is the card number. Currently, all users will have only one MyCard assigned to them. However, for the sake of scalibility, multiple MyCards can be assigned to an user.\n\n#### Get all prices - `/prices` [**GET**]\nGet all prices from the database, this is merely for demonstration purposes. The prices will be assigned randomly after the event is finished.",
+	Description:      "This is the API documentation for 「健康資料公鏈」\n\n# Usage\n\n## Flow Diagram\n<!-- ![flow_diagram](https://cdn.discordapp.com/attachments/874556062815100940/1132920083174408222/App-.drawio.png) -->\n\n## API Endpoints for Frontend Application\n\nFull descriptions of all endpoints are described below; however, more common endpoints for a client application are described here. For detailed types of params, body, or response, please refer to the full descriptiions below. \n\n### Server Health Check - `/health_check` [**GET**]\n\nThis endpoint checks if the server is alive and the database is connected. It returns a code of 200 if ture.\n\n---\n\n### Get Registration Questionnaire - `/questionnaires/registration` [**GET**]\n\nFor the sake of scalibility, we make the questionnaire system a general one. That is, we can later create more questionnaires in our application. Upon initialization of our database, the registration questionnaire is created and assigned a fixed UUID. Before the user register, we need to have them fill in the registration questionnaire. This questionniare can be fetch using this endpoint. Note that this questionnaire correspond to question 16 to 30 since the answers to question 1 to 15 are part of the user data.\n\n---\n\n### User Registration - `/register` [**POST**]\n\nWhile the initial questionnaire may have 30 questions, some answers are part of the user data like \"birth_year\", \"gender\", and so on. Therefore, we will use some of the data as inputs to create the user while other questions are combined and treated like a questionnaire called \"registration questionnaire\".\n\nHence, the user registration needs two things: user data and the response to the registration questionnaire. A user can only be register using this endpoint. Note that the ID field needs to be provided and it needs to match the Auth0 ID. This endpoint does 4 things in order: create a new user, respond to the registration questionnaire, assign one MyCard to this user, and send a notification via FCM.\n\n---\n\n### After User Registration\n\n#### Get user data - `/users/{id}` [**GET**]\n\n#### Get user's history notifications - `/users/{id}/notifications` [**GET**]\n\n#### Get user's prices - `/users/{id}/prices` [**GET**]\nGet all prices the user has won. Practically, a user may only have 1 or no prices. But for the sake of scalibility, we allow multiple prices to be owned by an user.\n\n#### Get user's MyCards - `/users/{id}/mycards` [**GET**]\nNote that the ID of this data is the card number. Currently, all users will have only one MyCard assigned to them. However, for the sake of scalibility, multiple MyCards can be assigned to an user.\n\n#### Get all prices - `/prices` [**GET**]\nGet all prices from the database, this is merely for demonstration purposes. The prices will be assigned randomly after the event is finished.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

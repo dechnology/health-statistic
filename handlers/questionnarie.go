@@ -222,7 +222,7 @@ func (h *Handler) DeleteQuestionnaire(c *gin.Context) {
 }
 
 //	@Summary				Create Question
-//	@Description.markdown	question.post
+//	@Description.markdown	questionnaire_questions.post
 //	@Tags					Questionnaire
 //	@Accept					json
 //	@Produce				json
@@ -256,8 +256,8 @@ func (h *Handler) CreateQuestions(c *gin.Context) {
 	c.JSON(http.StatusOK, nil)
 }
 
-//	@Summary				Create Response
-//	@Description.markdown	response.post
+//	@Summary				Create Questionnaire Response
+//	@Description.markdown	questionnaire_responses.post
 //	@Tags					Questionnaire
 //	@Accept					json
 //	@Produce				json
@@ -265,7 +265,7 @@ func (h *Handler) CreateQuestions(c *gin.Context) {
 //	@Param					response	body		types.BaseResponse	true	"The response to be created."
 //	@Success				200			{object}	ent.QuestionnaireResponse
 //	@Router					/questionnaires/{id}/responses [post]
-func (h *Handler) CreateResponse(c *gin.Context) {
+func (h *Handler) CreateQuestionnaireResponse(c *gin.Context) {
 	var body types.ResponseWithUserId
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -290,13 +290,13 @@ func (h *Handler) CreateResponse(c *gin.Context) {
 }
 
 //	@Summary				Get Questionnaire Responses
-//	@Description.markdown	questionnaire_responses.post
+//	@Description.markdown	questionnaire_responses.get
 //	@Tags					Questionnaire
 //	@Accept					json
 //	@Produce				json
 //	@Param					id	path		string	true	"The questionnaire's ID."
-//	@Success				200	{object}	ent.QuestionnaireResponse
-//	@Router					/questionnaires/{id}/responses [post]
+//	@Success				200	{object}	[]ent.QuestionnaireResponse
+//	@Router					/questionnaires/{id}/responses [get]
 func (h *Handler) GetQuestionnaireResponses(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {

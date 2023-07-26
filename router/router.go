@@ -87,79 +87,79 @@ func New(db *ent.Client) *gin.Engine {
 		// Health check endpoint for ELB
 		v1.GET("/health_check", handlers.HealthCheck)
 
-		registerGroup := v1.Group("/register")
+		register := v1.Group("/register")
 		{
-			registerGroup.POST("/", h.Register)
+			register.POST("/", h.Register)
 		}
 
-		userGroup := v1.Group("/users")
+		users := v1.Group("/users")
 		{
-			userGroup.GET("/", h.GetUsers)
-			userGroup.POST("/", h.CreateUser)
+			users.GET("/", h.GetUsers)
+			users.POST("/", h.CreateUser)
 
-			idGroup := userGroup.Group("/:id")
+			id := users.Group("/:id")
 			{
-				idGroup.GET("/", h.GetUser)
-				idGroup.PUT("/", h.UpdateUser)
-				idGroup.DELETE("/", h.DeleteUser)
-				idGroup.GET("/notifications", h.GetUserNotifications)
-				idGroup.GET("/mycards", h.GetUserMyCards)
-				idGroup.GET("/prices", h.GetUserPrices)
+				id.GET("/", h.GetUser)
+				id.PUT("/", h.UpdateUser)
+				id.DELETE("/", h.DeleteUser)
+				id.GET("/notifications", h.GetUserNotifications)
+				id.GET("/mycards", h.GetUserMyCards)
+				id.GET("/prices", h.GetUserPrices)
 			}
 		}
 
-		questionnaireGroup := v1.Group("/questionnaires")
+		questionnaires := v1.Group("/questionnaires")
 		{
-			questionnaireGroup.GET("/", h.GetQuestionnaires)
-			questionnaireGroup.POST("/", h.CreateQuestionnaire)
-			questionnaireGroup.GET(
+			questionnaires.GET("/", h.GetQuestionnaires)
+			questionnaires.POST("/", h.CreateQuestionnaire)
+			questionnaires.GET(
 				"/registration",
 				h.GetRegistrationQuestionnaire,
 			)
 
-			idGroup := questionnaireGroup.Group("/:id")
+			id := questionnaires.Group("/:id")
 			{
-				idGroup.GET("/", h.GetQuestionnaire)
-				idGroup.DELETE("/", h.DeleteQuestionnaire)
-				idGroup.POST("/new/question", h.CreateQuestions)
-				idGroup.POST("/new/response", h.CreateResponse)
-				idGroup.GET("/responses", h.GetQuestionnaireResponses)
+				id.GET("/", h.GetQuestionnaire)
+				id.DELETE("/", h.DeleteQuestionnaire)
+				id.POST("/new/question", h.CreateQuestions)
+				id.POST("/new/response", h.CreateQuestionnaireResponse)
+				id.GET("/responses", h.GetQuestionnaireResponses)
 			}
 		}
 
-		responseGroup := v1.Group("/responses")
+		responses := v1.Group("/responses")
 		{
-			responseGroup.GET("/", h.GetResponses)
-			responseGroup.GET("/:id", h.GetResponse)
-			responseGroup.DELETE("/:id", h.DeleteResponse)
+			responses.GET("/", h.GetResponses)
+			responses.GET("/:id", h.GetResponse)
+			responses.DELETE("/:id", h.DeleteResponse)
 		}
 
-		questionGroup := v1.Group("/questions")
+		questions := v1.Group("/questions")
 		{
-			questionGroup.GET("/", h.GetQuestions)
-			questionGroup.GET("/:id", h.GetQuestion)
-			questionGroup.DELETE("/:id", h.DeleteQuestion)
+			questions.GET("/", h.GetQuestions)
+			questions.GET("/:id", h.GetQuestion)
+			questions.DELETE("/:id", h.DeleteQuestion)
 		}
 
-		notificationGroup := v1.Group("/notifications")
+		notifications := v1.Group("/notifications")
 		{
-			notificationGroup.GET("/", h.GetNotifications)
-			notificationGroup.GET("/:id", h.GetNotification)
-			notificationGroup.DELETE("/:id", h.DeleteNotification)
+			notifications.GET("/", h.GetNotifications)
+			notifications.GET("/:id", h.GetNotification)
+			notifications.DELETE("/:id", h.DeleteNotification)
 		}
 
-		myCardGroup := v1.Group("/mycards")
+		mycards := v1.Group("/mycards")
 		{
-			myCardGroup.GET("/", h.GetMyCards)
-			myCardGroup.GET("/:id", h.GetMyCard)
-			myCardGroup.DELETE("/:id", h.DeleteMyCard)
+			mycards.GET("/", h.GetMyCards)
+			mycards.GET("/:id", h.GetMyCard)
+			mycards.DELETE("/:id", h.DeleteMyCard)
 		}
 
-		priceGroup := v1.Group("/prices")
+		prices := v1.Group("/prices")
 		{
-			priceGroup.GET("/", h.GetPrices)
-			priceGroup.GET("/:id", h.GetPrice)
-			priceGroup.DELETE("/:id", h.DeletePrice)
+			prices.GET("/", h.GetPrices)
+			prices.GET("/:id", h.GetPrice)
+			prices.DELETE("/:id", h.DeletePrice)
 		}
 	}
 
