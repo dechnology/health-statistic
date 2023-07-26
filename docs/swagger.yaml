@@ -209,12 +209,6 @@ definitions:
           the same questionnaire as the response.
         type: string
     type: object
-  types.BaseChoice:
-    properties:
-      body:
-        example: 大部分時候開心
-        type: string
-    type: object
   types.BaseMyCard:
     properties:
       card_number:
@@ -236,8 +230,11 @@ definitions:
         example: 你這週的心情如何？
         type: string
       choices:
+        example:
+        - '[是'
+        - 否]
         items:
-          $ref: '#/definitions/types.BaseChoice'
+          type: string
         type: array
       type:
         enum:

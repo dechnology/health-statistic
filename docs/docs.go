@@ -1268,15 +1268,6 @@ const docTemplate = `{
                 }
             }
         },
-        "types.BaseChoice": {
-            "type": "object",
-            "properties": {
-                "body": {
-                    "type": "string",
-                    "example": "大部分時候開心"
-                }
-            }
-        },
         "types.BaseMyCard": {
             "type": "object",
             "properties": {
@@ -1310,8 +1301,12 @@ const docTemplate = `{
                 "choices": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/types.BaseChoice"
-                    }
+                        "type": "string"
+                    },
+                    "example": [
+                        "[是",
+                        "否]"
+                    ]
                 },
                 "type": {
                     "type": "string",

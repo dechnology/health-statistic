@@ -5,15 +5,11 @@ import (
 	"github.com/google/uuid"
 )
 
-type BaseChoice struct {
-	Body string `json:"body" example:"大部分時候開心"`
-}
-
 type BaseQuestion struct {
 	// The question body
-	Body    string        `json:"body" example:"你這週的心情如何？"`
-	Type    string        `json:"type" enums:"short_answer,single_choice,multiple_choice" example:"single_choice"`
-	Choices *[]BaseChoice `json:"choices"`
+	Body    string   `json:"body" example:"你這週的心情如何？"`
+	Type    string   `json:"type" enums:"short_answer,single_choice,multiple_choice" example:"single_choice"`
+	Choices []string `json:"choices" example:"[是,否]"`
 }
 
 type BaseAnswer struct {

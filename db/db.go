@@ -82,9 +82,9 @@ func Migrate(db *ent.Client) error {
 			return fmt.Errorf("failed to create question: %v", err)
 		}
 
-		for i, choiceData := range *questionData.Choices {
+		for i, choice := range questionData.Choices {
 			_, err := db.Choice.Create().
-				SetBody(choiceData.Body).
+				SetBody(choice).
 				SetQuesion(questionNode).
 				SetOrder(i).
 				Save(context.Background())
