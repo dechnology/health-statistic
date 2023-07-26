@@ -148,7 +148,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"short_answer", "single_choice", "multiple_choice"}},
 		{Name: "body", Type: field.TypeString, Size: 2147483647},
-		{Name: "order", Type: field.TypeInt, Unique: true},
+		{Name: "order", Type: field.TypeInt},
 		{Name: "questionnaire_questions", Type: field.TypeUUID},
 	}
 	// QuestionsTable holds the schema information for the "questions" table.

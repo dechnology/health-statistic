@@ -26,8 +26,7 @@ func (Question) Fields() []ent.Field {
 		field.Text("body").
 			NotEmpty(),
 		field.Int("order").
-			NonNegative().
-			Unique(),
+			NonNegative(),
 	}
 }
 
