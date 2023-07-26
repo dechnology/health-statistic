@@ -535,22 +535,26 @@ info:
     we need to have them fill in the registration questionnaire. This questionniare
     can be fetch using this endpoint. Note that this questionnaire correspond to question
     16 to 30 since the answers to question 1 to 15 are part of the user data.\n\n---\n\n###
-    User Registration - `/register` [**POST**]\n\nThe user registration needs two
-    things: user data and the questionnaire data. A user can only be register using
-    this endpoint. Note that the ID field needs to be provided and it needs to match
-    the Auth0 ID. This endpoint does 4 things in order: create a new user, respond
-    to the registration questionnaire, assign one MyCard to this user, and send a
-    notification via FCM.\n\n---\n\n### After User Registration\n\n#### Get user data
-    - `/users/{id}` [**GET**]\n\n#### Get user's history notifications - `/users/{id}/notifications`
-    [**GET**]\n\n#### Get user's prices - `/users/{id}/prices` [**GET**]\nGet all
-    prices the user has won. Practically, a user may only have 1 or no prices. But
-    for the sake of scalibility, we allow multiple prices to be owned by an user.\n\n####
-    Get user's MyCards - `/users/{id}/mycards` [**GET**]\nNote that the ID of this
-    data is the card number. Currently, all users will have only one MyCard assigned
-    to them. However, for the sake of scalibility, multiple MyCards can be assigned
-    to an user.\n\n#### Get all prices - `/prices` [**GET**]\nGet all prices from
-    the database, this is merely for demonstration purposes. The prices will be assigned
-    randomly after the event is finished."
+    User Registration - `/register` [**POST**]\n\nWhile the initial questionnaire
+    may have 30 questions, some answers are part of the user data like \"birth_year\",
+    \"gender\", and so on. Therefore, we will use some of the data as inputs to create
+    the user while other questions are combined and treated like a questionnaire called
+    \"registration questionnaire\".\n\nHence, the user registration needs two things:
+    user data and the response to the registration questionnaire. A user can only
+    be register using this endpoint. Note that the ID field needs to be provided and
+    it needs to match the Auth0 ID. This endpoint does 4 things in order: create a
+    new user, respond to the registration questionnaire, assign one MyCard to this
+    user, and send a notification via FCM.\n\n---\n\n### After User Registration\n\n####
+    Get user data - `/users/{id}` [**GET**]\n\n#### Get user's history notifications
+    - `/users/{id}/notifications` [**GET**]\n\n#### Get user's prices - `/users/{id}/prices`
+    [**GET**]\nGet all prices the user has won. Practically, a user may only have
+    1 or no prices. But for the sake of scalibility, we allow multiple prices to be
+    owned by an user.\n\n#### Get user's MyCards - `/users/{id}/mycards` [**GET**]\nNote
+    that the ID of this data is the card number. Currently, all users will have only
+    one MyCard assigned to them. However, for the sake of scalibility, multiple MyCards
+    can be assigned to an user.\n\n#### Get all prices - `/prices` [**GET**]\nGet
+    all prices from the database, this is merely for demonstration purposes. The prices
+    will be assigned randomly after the event is finished."
   title: Web3 - 健康資料公鏈API開發文件
   version: "1.0"
 paths:

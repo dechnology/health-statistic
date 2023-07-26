@@ -23,7 +23,9 @@ For the sake of scalibility, we make the questionnaire system a general one. Tha
 
 ### User Registration - `/register` [**POST**]
 
-The user registration needs two things: user data and the questionnaire data. A user can only be register using this endpoint. Note that the ID field needs to be provided and it needs to match the Auth0 ID. This endpoint does 4 things in order: create a new user, respond to the registration questionnaire, assign one MyCard to this user, and send a notification via FCM.
+While the initial questionnaire may have 30 questions, some answers are part of the user data like "birth_year", "gender", and so on. Therefore, we will use some of the data as inputs to create the user while other questions are combined and treated like a questionnaire called "registration questionnaire".
+
+Hence, the user registration needs two things: user data and the response to the registration questionnaire. A user can only be register using this endpoint. Note that the ID field needs to be provided and it needs to match the Auth0 ID. This endpoint does 4 things in order: create a new user, respond to the registration questionnaire, assign one MyCard to this user, and send a notification via FCM.
 
 ---
 
