@@ -4,7 +4,7 @@
     ],
     "swagger": "2.0",
     "info": {
-        "description": "This is the API documentation for 「健康資料公鏈」\n\n# Usage\n\n## Flow Diagram\n![flow_diagram](https://cdn.discordapp.com/attachments/874556062815100940/1132920083174408222/App-.drawio.png)\n\n## API Endpoints for Frontend Application\n\nFull descriptions of all endpoints are described below; however, more common endpoints for a client application are described here. For detailed types of params, body, or response, please refer to the full descriptiions below. \n\n### Server Health Check - `/health_check` [**GET**]\n\nThis endpoint checks if the server is alive and the database is connected. It returns a code of 200 if ture.\n\n---\n\n### Get Registration Questionnaire - `/questionnaires/registration` [**GET**]\n\nFor the sake of scalibility, we make the questionnaire system a general one. That is, we can later create more questionnaires in our application. Upon initialization of our database, the registration questionnaire is created and assigned a fixed UUID. Before the user register, we need to have them fill in the registration questionnaire. This questionniare can be fetch using this endpoint. Note that this questionnaire correspond to question 16 to 30 since the answers to question 1 to 15 are part of the user data.\n\n---\n\n### User Registration - `/register` [**POST**]\n\nThe user registration needs two things: user data and the questionnaire data. A user can only be register using this endpoint. Note that the ID field needs to be provided and it needs to match the Auth0 ID. This endpoint does 4 things in order: create a new user, respond to the registration questionnaire, assign one MyCard to this user, and send a notification via FCM.\n\n---\n\n### After User Registration\n\n#### Get user data - `/users/{id}` [**GET**]\n\n#### Get user's history notifications - `/users/{id}/notifications` [**GET**]\n\n#### Get user's prices - `/users/{id}/prices` [**GET**]\n\n#### Get user's MyCards - `/users/{id}/mycards` [**GET**]\nCurrently, all users will have only one MyCard assigned to them. However, for the sake of scalibility, multiple MyCards can be assigned to an user.\n\n#### Get all prices - `/prices` [**GET**]\nGet all prices from the database, this is merely for demonstrattion purposes. The prices will be assigned randomly after the event is finished.",
+        "description": "This is the API documentation for 「健康資料公鏈」\n\n# Usage\n\n## Flow Diagram\n\u003c!-- ![flow_diagram](https://cdn.discordapp.com/attachments/874556062815100940/1132920083174408222/App-.drawio.png) --\u003e\n\n## API Endpoints for Frontend Application\n\nFull descriptions of all endpoints are described below; however, more common endpoints for a client application are described here. For detailed types of params, body, or response, please refer to the full descriptiions below. \n\n### Server Health Check - `/health_check` [**GET**]\n\nThis endpoint checks if the server is alive and the database is connected. It returns a code of 200 if ture.\n\n---\n\n### Get Registration Questionnaire - `/questionnaires/registration` [**GET**]\n\nFor the sake of scalibility, we make the questionnaire system a general one. That is, we can later create more questionnaires in our application. Upon initialization of our database, the registration questionnaire is created and assigned a fixed UUID. Before the user register, we need to have them fill in the registration questionnaire. This questionniare can be fetch using this endpoint. Note that this questionnaire correspond to question 16 to 30 since the answers to question 1 to 15 are part of the user data.\n\n---\n\n### User Registration - `/register` [**POST**]\n\nThe user registration needs two things: user data and the questionnaire data. A user can only be register using this endpoint. Note that the ID field needs to be provided and it needs to match the Auth0 ID. This endpoint does 4 things in order: create a new user, respond to the registration questionnaire, assign one MyCard to this user, and send a notification via FCM.\n\n---\n\n### After User Registration\n\n#### Get user data - `/users/{id}` [**GET**]\n\n#### Get user's history notifications - `/users/{id}/notifications` [**GET**]\n\n#### Get user's prices - `/users/{id}/prices` [**GET**]\nGet all prices the user has won. Practically, a user may only have 1 or no prices. But for the sake of scalibility, we allow multiple prices to be owned by an user.\n\n#### Get user's MyCards - `/users/{id}/mycards` [**GET**]\nNote that the ID of this data is the card number. Currently, all users will have only one MyCard assigned to them. However, for the sake of scalibility, multiple MyCards can be assigned to an user.\n\n#### Get all prices - `/prices` [**GET**]\nGet all prices from the database, this is merely for demonstration purposes. The prices will be assigned randomly after the event is finished.",
         "title": "Web3 - 健康資料公鏈API開發文件",
         "contact": {},
         "version": "1.0"
@@ -369,6 +369,7 @@
         },
         "/questionnaires/registration": {
             "get": {
+                "description": "The questionnaire all users must submit before registering to our database. This endpoint retrieves that registration questionnaire. It has at total 16 questions.",
                 "produces": [
                     "application/json"
                 ],
@@ -605,6 +606,7 @@
         },
         "/register": {
             "post": {
+                "description": "This is the ONLY way to create a new user. The registration questionnaire must be filled and the answers must be sent via this endpoint accordingly.\n\n## Request Body\n\n- `response` *`object`* **Required**\n    The response to the registration questionnaire.\n\n    - `questionnaire_id` *`string`* **Required**\n        The ID of the registration questionnaire. This special questionnaire can be obtained via `questionnaires/registration [GET]` endpoint.\n\n    - `answers` *`array`* **Required**\n        The answers of questions in the registration questionnaire. All questions must be answered.\n\n        - `question_id` *`string`* **Required**\n        The ID of the question in the registration questionnaire.\n\n        - `body` *`string`* **Required**\n        The answer to the question in the registration questionnaire.\n\n- `user` *`object`* **Required**\n    The user to be created. A user must be created with the following 15 pieces of data provided. Note that the ID field also needs to be provided since we want to match the ID in our database with the one in Auth0.\n\n    - `id` *`string`* **Required**\n        The user's Auth0 ID.\n\n    - `birth_year` *`string`* **Required**\n        Part of the registration questionnaire.\n\n    - `height` *`float`* **Required**\n        Part of the registration questionnaire.\n\n    - `weight` *`float`* **Required**\n        Part of the registration questionnaire.\n\n    - `gender` *`string`* **Required**\n        Part of the registration questionnaire.\n\n    - `education_level` *`string`* **Required**\n        Part of the registration questionnaire.\n\n    - `occupation` *`string`* **Required**\n        Part of the registration questionnaire.\n\n    - `marriage` *`string`* **Required**\n        Part of the registration questionnaire.\n\n    - `medical_history` *`string`* **Required**\n        Part of the registration questionnaire.\n\n    - `medication_status` *`string`* **Required**\n        Part of the registration questionnaire.\n\n    - `demented_among_direct_relatives` *`bool`* **Required**\n        Part of the registration questionnaire.\n\n    - `head_injury_experience` *`bool`* **Required**\n        Part of the registration questionnaire.\n\n    - `ear_condition` *`string`* **Required**\n        Part of the registration questionnaire.\n\n    - `eyesight_condition` *`string`* **Required**\n        Part of the registration questionnaire.\n\n    - `smoking_habit` *`string`* **Required**\n        Part of the registration questionnaire.\n\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -735,7 +737,7 @@
                 }
             },
             "post": {
-                "description": "Create a new user.\n\n## Request Body\n\n- `first_name` *`string`* **Required**\n    The body of one of the question in the questionnaire.\n\n- `last_name` *`string`* **Required**\n    The type of the question. For now, we accept all strings but in the future this field might be an enum.",
+                "description": "**This is a debugging endpoint and it is not meant to be consumed by the client side.**",
                 "consumes": [
                     "application/json"
                 ],
@@ -859,6 +861,7 @@
         },
         "/users/{id}/mycards": {
             "get": {
+                "description": "The ID field is the card number you are supposed to enter when redeeming the MyCards.",
                 "produces": [
                     "application/json"
                 ],
@@ -890,7 +893,7 @@
         },
         "/users/{id}/notifications": {
             "get": {
-                "description": "Get all notifications of an user.\n",
+                "description": "Get all history notifications of an user.\n",
                 "produces": [
                     "application/json"
                 ],
@@ -1117,10 +1120,6 @@
                         }
                     ]
                 },
-                "first_name": {
-                    "description": "FirstName holds the value of the \"first_name\" field.",
-                    "type": "string"
-                },
                 "gender": {
                     "description": "Gender holds the value of the \"gender\" field.",
                     "allOf": [
@@ -1139,10 +1138,6 @@
                 },
                 "id": {
                     "description": "ID of the ent.",
-                    "type": "string"
-                },
-                "last_name": {
-                    "description": "LastName holds the value of the \"last_name\" field.",
                     "type": "string"
                 },
                 "marriage": {
@@ -1328,10 +1323,6 @@
                     ],
                     "example": "normal"
                 },
-                "first_name": {
-                    "type": "string",
-                    "example": "中天"
-                },
                 "gender": {
                     "type": "string",
                     "example": "male"
@@ -1346,10 +1337,6 @@
                 },
                 "id": {
                     "type": "string"
-                },
-                "last_name": {
-                    "type": "string",
-                    "example": "大"
                 },
                 "marriage": {
                     "type": "string",
