@@ -27,13 +27,11 @@ const (
 	EdgeAnswer = "answer"
 	// Table holds the table name of the choice in the database.
 	Table = "choices"
-	// QuesionTable is the table that holds the quesion relation/edge.
-	QuesionTable = "choices"
+	// QuesionTable is the table that holds the quesion relation/edge. The primary key declared below.
+	QuesionTable = "question_choices"
 	// QuesionInverseTable is the table name for the Question entity.
 	// It exists in this package in order to avoid circular dependency with the "question" package.
 	QuesionInverseTable = "questions"
-	// QuesionColumn is the table column denoting the quesion relation/edge.
-	QuesionColumn = "question_choices"
 	// AnswerTable is the table that holds the answer relation/edge. The primary key declared below.
 	AnswerTable = "answer_chosen"
 	// AnswerInverseTable is the table name for the Answer entity.
@@ -48,13 +46,10 @@ var Columns = []string{
 	FieldOrder,
 }
 
-// ForeignKeys holds the SQL foreign-keys that are owned by the "choices"
-// table and are not defined as standalone fields in the schema.
-var ForeignKeys = []string{
-	"question_choices",
-}
-
 var (
+	// QuesionPrimaryKey and QuesionColumn2 are the table columns denoting the
+	// primary key for the quesion relation (M2M).
+	QuesionPrimaryKey = []string{"question_id", "choice_id"}
 	// AnswerPrimaryKey and AnswerColumn2 are the table columns denoting the
 	// primary key for the answer relation (M2M).
 	AnswerPrimaryKey = []string{"answer_id", "choice_id"}
@@ -64,11 +59,6 @@ var (
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
-			return true
-		}
-	}
-	for i := range ForeignKeys {
-		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -102,10 +92,17 @@ func ByOrder(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOrder, opts...).ToFunc()
 }
 
-// ByQuesionField orders the results by quesion field.
-func ByQuesionField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByQuesionCount orders the results by quesion count.
+func ByQuesionCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newQuesionStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborsCount(s, newQuesionStep(), opts...)
+	}
+}
+
+// ByQuesion orders the results by quesion terms.
+func ByQuesion(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newQuesionStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -126,7 +123,7 @@ func newQuesionStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(QuesionInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, QuesionTable, QuesionColumn),
+		sqlgraph.Edge(sqlgraph.M2M, true, QuesionTable, QuesionPrimaryKey...),
 	)
 }
 func newAnswerStep() *sqlgraph.Step {

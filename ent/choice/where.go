@@ -178,7 +178,7 @@ func HasQuesion() predicate.Choice {
 	return predicate.Choice(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, QuesionTable, QuesionColumn),
+			sqlgraph.Edge(sqlgraph.M2M, true, QuesionTable, QuesionPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})

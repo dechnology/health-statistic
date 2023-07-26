@@ -45,21 +45,12 @@ var (
 		{Name: "id", Type: field.TypeUUID, Unique: true},
 		{Name: "body", Type: field.TypeString, Size: 2147483647},
 		{Name: "order", Type: field.TypeInt},
-		{Name: "question_choices", Type: field.TypeUUID, Nullable: true},
 	}
 	// ChoicesTable holds the schema information for the "choices" table.
 	ChoicesTable = &schema.Table{
 		Name:       "choices",
 		Columns:    ChoicesColumns,
 		PrimaryKey: []*schema.Column{ChoicesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "choices_questions_choices",
-				Columns:    []*schema.Column{ChoicesColumns[3]},
-				RefColumns: []*schema.Column{QuestionsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
 	}
 	// MyCardsColumns holds the columns for the "my_cards" table.
 	MyCardsColumns = []*schema.Column{
@@ -255,6 +246,31 @@ var (
 			},
 		},
 	}
+	// QuestionChoicesColumns holds the columns for the "question_choices" table.
+	QuestionChoicesColumns = []*schema.Column{
+		{Name: "question_id", Type: field.TypeUUID},
+		{Name: "choice_id", Type: field.TypeUUID},
+	}
+	// QuestionChoicesTable holds the schema information for the "question_choices" table.
+	QuestionChoicesTable = &schema.Table{
+		Name:       "question_choices",
+		Columns:    QuestionChoicesColumns,
+		PrimaryKey: []*schema.Column{QuestionChoicesColumns[0], QuestionChoicesColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "question_choices_question_id",
+				Columns:    []*schema.Column{QuestionChoicesColumns[0]},
+				RefColumns: []*schema.Column{QuestionsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "question_choices_choice_id",
+				Columns:    []*schema.Column{QuestionChoicesColumns[1]},
+				RefColumns: []*schema.Column{ChoicesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AnswersTable,
@@ -267,13 +283,13 @@ var (
 		QuestionnaireResponsesTable,
 		UsersTable,
 		AnswerChosenTable,
+		QuestionChoicesTable,
 	}
 )
 
 func init() {
 	AnswersTable.ForeignKeys[0].RefTable = QuestionsTable
 	AnswersTable.ForeignKeys[1].RefTable = QuestionnaireResponsesTable
-	ChoicesTable.ForeignKeys[0].RefTable = QuestionsTable
 	MyCardsTable.ForeignKeys[0].RefTable = UsersTable
 	NotificationsTable.ForeignKeys[0].RefTable = MyCardsTable
 	NotificationsTable.ForeignKeys[1].RefTable = PricesTable
@@ -284,4 +300,6 @@ func init() {
 	QuestionnaireResponsesTable.ForeignKeys[1].RefTable = UsersTable
 	AnswerChosenTable.ForeignKeys[0].RefTable = AnswersTable
 	AnswerChosenTable.ForeignKeys[1].RefTable = ChoicesTable
+	QuestionChoicesTable.ForeignKeys[0].RefTable = QuestionsTable
+	QuestionChoicesTable.ForeignKeys[1].RefTable = ChoicesTable
 }
