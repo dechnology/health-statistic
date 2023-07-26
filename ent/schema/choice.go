@@ -19,10 +19,9 @@ func (Choice) Fields() []ent.Field {
 			Unique().
 			Default(uuid.New),
 		field.Text("body").
-			Unique(),
+			NotEmpty(),
 		field.Int("order").
-			NonNegative().
-			Unique(),
+			NonNegative(),
 	}
 }
 

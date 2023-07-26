@@ -132,6 +132,11 @@ func (cc *ChoiceCreate) check() error {
 	if _, ok := cc.mutation.Body(); !ok {
 		return &ValidationError{Name: "body", err: errors.New(`ent: missing required field "Choice.body"`)}
 	}
+	if v, ok := cc.mutation.Body(); ok {
+		if err := choice.BodyValidator(v); err != nil {
+			return &ValidationError{Name: "body", err: fmt.Errorf(`ent: validator failed for field "Choice.body": %w`, err)}
+		}
+	}
 	if _, ok := cc.mutation.Order(); !ok {
 		return &ValidationError{Name: "order", err: errors.New(`ent: missing required field "Choice.order"`)}
 	}

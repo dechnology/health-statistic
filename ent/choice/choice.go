@@ -76,6 +76,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// BodyValidator is a validator for the "body" field. It is called by the builders before save.
+	BodyValidator func(string) error
 	// OrderValidator is a validator for the "order" field. It is called by the builders before save.
 	OrderValidator func(int) error
 	// DefaultID holds the default value on creation for the "id" field.

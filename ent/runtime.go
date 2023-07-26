@@ -38,6 +38,10 @@ func init() {
 	answer.DefaultID = answerDescID.Default.(func() uuid.UUID)
 	choiceFields := schema.Choice{}.Fields()
 	_ = choiceFields
+	// choiceDescBody is the schema descriptor for body field.
+	choiceDescBody := choiceFields[1].Descriptor()
+	// choice.BodyValidator is a validator for the "body" field. It is called by the builders before save.
+	choice.BodyValidator = choiceDescBody.Validators[0].(func(string) error)
 	// choiceDescOrder is the schema descriptor for order field.
 	choiceDescOrder := choiceFields[2].Descriptor()
 	// choice.OrderValidator is a validator for the "order" field. It is called by the builders before save.

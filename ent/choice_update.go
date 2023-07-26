@@ -148,6 +148,11 @@ func (cu *ChoiceUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (cu *ChoiceUpdate) check() error {
+	if v, ok := cu.mutation.Body(); ok {
+		if err := choice.BodyValidator(v); err != nil {
+			return &ValidationError{Name: "body", err: fmt.Errorf(`ent: validator failed for field "Choice.body": %w`, err)}
+		}
+	}
 	if v, ok := cu.mutation.Order(); ok {
 		if err := choice.OrderValidator(v); err != nil {
 			return &ValidationError{Name: "order", err: fmt.Errorf(`ent: validator failed for field "Choice.order": %w`, err)}
@@ -398,6 +403,11 @@ func (cuo *ChoiceUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (cuo *ChoiceUpdateOne) check() error {
+	if v, ok := cuo.mutation.Body(); ok {
+		if err := choice.BodyValidator(v); err != nil {
+			return &ValidationError{Name: "body", err: fmt.Errorf(`ent: validator failed for field "Choice.body": %w`, err)}
+		}
+	}
 	if v, ok := cuo.mutation.Order(); ok {
 		if err := choice.OrderValidator(v); err != nil {
 			return &ValidationError{Name: "order", err: fmt.Errorf(`ent: validator failed for field "Choice.order": %w`, err)}

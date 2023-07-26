@@ -43,8 +43,8 @@ var (
 	// ChoicesColumns holds the columns for the "choices" table.
 	ChoicesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
-		{Name: "body", Type: field.TypeString, Unique: true, Size: 2147483647},
-		{Name: "order", Type: field.TypeInt, Unique: true},
+		{Name: "body", Type: field.TypeString, Size: 2147483647},
+		{Name: "order", Type: field.TypeInt},
 		{Name: "question_choices", Type: field.TypeUUID, Nullable: true},
 	}
 	// ChoicesTable holds the schema information for the "choices" table.
