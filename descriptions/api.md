@@ -3,7 +3,7 @@ This is the API documentation for 「健康資料公鏈」
 # Usage
 
 ## Flow Diagram
-<!-- ![flow_diagram](https://cdn.discordapp.com/attachments/874556062815100940/1132920083174408222/App-.drawio.png) -->
+![flow_diagram](https://cdn.discordapp.com/attachments/874556062815100940/1132920083174408222/App-.drawio.png)
 
 ## API Endpoints for Frontend Application
 

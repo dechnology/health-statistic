@@ -9,7 +9,6 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent/user"
 	"github.com/eesoymilk/health-statistic-api/types"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 //	@Summary				Register an User
@@ -20,7 +19,7 @@ import (
 //	@Param					user	body		types.RegisterData	true	"The registration data."
 //	@Success				200		{object}	types.RegisterResponse
 //	@Router					/register [post]
-func (h *RegisterHandler) Register(c *gin.Context) {
+func (h *Handler) Register(c *gin.Context) {
 	var body types.RegisterData
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -32,7 +31,6 @@ func (h *RegisterHandler) Register(c *gin.Context) {
 		log.Fatal(err)
 		os.Exit(1)
 	}
-
 	log.Print(string(out))
 
 	userNode, err := h.DB.User.
@@ -53,7 +51,6 @@ func (h *RegisterHandler) Register(c *gin.Context) {
 		SetEyesightCondition(user.EyesightCondition(body.User.EyesightCondition)).
 		SetSmokingHabit(user.SmokingHabit(body.User.SmokingHabit)).
 		Save(c.Request.Context())
-
 	if err != nil {
 		c.JSON(
 			http.StatusInternalServerError,
@@ -62,41 +59,26 @@ func (h *RegisterHandler) Register(c *gin.Context) {
 		return
 	}
 
-	questionnaire_id, err := uuid.Parse(c.Param(body.Response.QuestionnaireId))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+	raw_questionnaire_id := body.Response.QuestionnaireId
+	if raw_questionnaire_id != "" {
+		c.JSON(
+			http.StatusBadRequest,
+			gin.H{"error": "you should submit the registration questionnaire instead"},
+		)
 	}
 
-	responseNode, err := h.DB.QuestionnaireResponse.
-		Create().
-		SetUser(userNode).
-		SetQuestionnaireID(questionnaire_id).
-		Save(c.Request.Context())
-
+	responseNode, err := h.RespondQuestionnaire(
+		c.Request.Context(),
+		userNode.ID,
+		raw_questionnaire_id,
+		body.Response.Answers,
+	)
 	if err != nil {
 		c.JSON(
-			http.StatusInternalServerError,
+			http.StatusBadRequest,
 			gin.H{"error": err.Error()},
 		)
 		return
-	}
-
-	for _, answer := range body.Response.Answers {
-		_, err := h.DB.Answer.
-			Create().
-			SetBody(answer.Body).
-			SetQuestionID(answer.QuestionId).
-			SetQuestionnaireResponse(responseNode).
-			Save(c.Request.Context())
-
-		if err != nil {
-			c.JSON(
-				http.StatusInternalServerError,
-				gin.H{"error": err.Error()},
-			)
-			return
-		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{

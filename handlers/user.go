@@ -20,7 +20,7 @@ import (
 //	@Produce				json
 //	@Success				200	{object}	[]ent.User
 //	@Router					/users [get]
-func (h *UserHandler) GetUsers(c *gin.Context) {
+func (h *Handler) GetUsers(c *gin.Context) {
 	users, err := h.DB.User.Query().All(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -36,7 +36,7 @@ func (h *UserHandler) GetUsers(c *gin.Context) {
 //	@Param					id	path		string	true	"The user's Auth0 ID"
 //	@Success				200	{object}	ent.User
 //	@Router					/users/{id} [get]
-func (h *UserHandler) GetUser(c *gin.Context) {
+func (h *Handler) GetUser(c *gin.Context) {
 	user, err := h.DB.User.Get(c.Request.Context(), c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -53,7 +53,7 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 //	@Param					user	body		types.BaseUser	true	"The user to be created"
 //	@Success				200		{object}	ent.User
 //	@Router					/users [post]
-func (h *UserHandler) CreateUser(c *gin.Context) {
+func (h *Handler) CreateUser(c *gin.Context) {
 	var body types.BaseUser
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -104,7 +104,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 //	@Param					user	body		types.BaseUser	true	"user to be updated"
 //	@Success				200		{object}	ent.User
 //	@Router					/users/{id} [put]
-func (h *UserHandler) UpdateUser(c *gin.Context) {
+func (h *Handler) UpdateUser(c *gin.Context) {
 	var body types.BaseUser
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -158,7 +158,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 //	@Param					id	path	string	true	"The user's Auth0 ID"
 //	@Success				200
 //	@Router					/users/{id} [delete]
-func (h *UserHandler) DeleteUser(c *gin.Context) {
+func (h *Handler) DeleteUser(c *gin.Context) {
 	if err := h.DB.User.DeleteOneID(c.Param("id")).Exec(c.Request.Context()); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -176,7 +176,7 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 //	@Success				200	{object}	[]ent.Notifications
 //
 //	@Router					/users/{id}/notifications [get]
-func (h *UserHandler) GetUserNotifications(c *gin.Context) {
+func (h *Handler) GetUserNotifications(c *gin.Context) {
 	notifications, err := h.DB.Notification.
 		Query().
 		Where(notification.HasRecipientWith(user.ID(c.Param("id")))).
@@ -200,7 +200,7 @@ func (h *UserHandler) GetUserNotifications(c *gin.Context) {
 //	@Param					id	path		string	true	"The user's Auth0 ID"
 //	@Success				200	{object}	[]ent.MyCard
 //	@Router					/users/{id}/mycards [get]
-func (h *UserHandler) GetUserMyCards(c *gin.Context) {
+func (h *Handler) GetUserMyCards(c *gin.Context) {
 	mycards, err := h.DB.MyCard.
 		Query().
 		Where(
@@ -223,7 +223,7 @@ func (h *UserHandler) GetUserMyCards(c *gin.Context) {
 //	@Param					id	path		string	true	"The user's Auth0 ID"
 //	@Success				200	{object}	[]ent.Price
 //	@Router					/users/{id}/prices [get]
-func (h *UserHandler) GetUserPrices(c *gin.Context) {
+func (h *Handler) GetUserPrices(c *gin.Context) {
 	prices, err := h.DB.Price.
 		Query().
 		Where(

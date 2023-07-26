@@ -14,7 +14,7 @@ import (
 //	@Produce				json
 //	@Success				200	{object}	[]types.NotificationWithRecipient
 //	@Router					/notifications [get]
-func (h *NotificationHandler) GetNotifications(c *gin.Context) {
+func (h *Handler) GetNotifications(c *gin.Context) {
 	notifications, err := h.DB.Notification.
 		Query().
 		WithRecipient().
@@ -35,7 +35,7 @@ func (h *NotificationHandler) GetNotifications(c *gin.Context) {
 //	@Param					id	path		string	true	"The notification's ID"
 //	@Success				200	{object}	types.NotificationWithRecipient
 //	@Router					/notifications/{id} [get]
-func (h *NotificationHandler) GetNotification(c *gin.Context) {
+func (h *Handler) GetNotification(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 
 	if err != nil {
@@ -67,7 +67,7 @@ func (h *NotificationHandler) GetNotification(c *gin.Context) {
 //	@Param					id	path	string	true	"The notification's ID."
 //	@Success				200
 //	@Router					/notifications/{id} [delete]
-func (h *NotificationHandler) DeleteNotification(c *gin.Context) {
+func (h *Handler) DeleteNotification(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 
 	if err != nil {

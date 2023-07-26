@@ -17,7 +17,7 @@ import (
 //	@Produce				json
 //	@Success				200	{object}	[]ent.MyCard
 //	@Router					/mycards [get]
-func (h *MyCardHandler) GetMyCards(c *gin.Context) {
+func (h *Handler) GetMyCards(c *gin.Context) {
 	mycards, err := h.DB.MyCard.
 		Query().
 		All(c.Request.Context())
@@ -37,7 +37,7 @@ func (h *MyCardHandler) GetMyCards(c *gin.Context) {
 //	@Param					id	path		string	true	"The mycard's ID"
 //	@Success				200	{object}	ent.MyCard
 //	@Router					/mycards/{id} [get]
-func (h *MyCardHandler) GetMyCard(c *gin.Context) {
+func (h *Handler) GetMyCard(c *gin.Context) {
 	id := c.Param("id")
 
 	mycards, err := h.DB.MyCard.
@@ -64,7 +64,7 @@ func (h *MyCardHandler) GetMyCard(c *gin.Context) {
 //	@Param					mycard	body		types.BaseMyCard	true	"The mycard to be created"
 //	@Success				200		{object}	ent.MyCard
 //	@Router					/mycards [post]
-func (h *MyCardHandler) CreateMyCard(c *gin.Context) {
+func (h *Handler) CreateMyCard(c *gin.Context) {
 	var body types.BaseMyCard
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -100,7 +100,7 @@ func (h *MyCardHandler) CreateMyCard(c *gin.Context) {
 //	@Param					id	path	string	true	"The mycard's ID."
 //	@Success				200
 //	@Router					/mycards/{id} [delete]
-func (h *MyCardHandler) DeleteMyCard(c *gin.Context) {
+func (h *Handler) DeleteMyCard(c *gin.Context) {
 	id := c.Param("id")
 
 	if err := h.DB.MyCard.DeleteOneID(id).Exec(c.Request.Context()); err != nil {

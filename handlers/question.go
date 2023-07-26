@@ -14,7 +14,7 @@ import (
 //	@Produce				json
 //	@Success				200	{object}	[]types.QuestionWithQuestionnaire
 //	@Router					/questions [get]
-func (h *QuestionHandler) GetQuestions(c *gin.Context) {
+func (h *Handler) GetQuestions(c *gin.Context) {
 	questions, err := h.DB.Question.
 		Query().
 		WithQuestionnaire().
@@ -38,7 +38,7 @@ func (h *QuestionHandler) GetQuestions(c *gin.Context) {
 //	@Param					id	path		string	true	"The question's ID"
 //	@Success				200	{object}	types.QuestionWithQuestionnaire
 //	@Router					/questions/{id} [get]
-func (h *QuestionHandler) GetQuestion(c *gin.Context) {
+func (h *Handler) GetQuestion(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 
 	if err != nil {
@@ -67,7 +67,7 @@ func (h *QuestionHandler) GetQuestion(c *gin.Context) {
 //	@Param					id	path	string	true	"The question's ID."
 //	@Success				200
 //	@Router					/questions/{id} [delete]
-func (h *QuestionHandler) DeleteQuestion(c *gin.Context) {
+func (h *Handler) DeleteQuestion(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 
 	if err != nil {

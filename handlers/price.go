@@ -18,7 +18,7 @@ import (
 //	@Produce				json
 //	@Success				200	{object}	[]ent.Price
 //	@Router					/prices [get]
-func (h *PriceHandler) GetPrices(c *gin.Context) {
+func (h *Handler) GetPrices(c *gin.Context) {
 	prices, err := h.DB.Price.
 		Query().
 		All(c.Request.Context())
@@ -38,7 +38,7 @@ func (h *PriceHandler) GetPrices(c *gin.Context) {
 //	@Param					id	path		string	true	"The price's ID"
 //	@Success				200	{object}	ent.Price
 //	@Router					/prices/{id} [get]
-func (h *PriceHandler) GetPrice(c *gin.Context) {
+func (h *Handler) GetPrice(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 
 	if err != nil {
@@ -70,7 +70,7 @@ func (h *PriceHandler) GetPrice(c *gin.Context) {
 //	@Param					price	body		types.BasePrice	true	"The price to be created"
 //	@Success				200		{object}	ent.Price
 //	@Router					/prices [post]
-func (h *PriceHandler) CreatePrice(c *gin.Context) {
+func (h *Handler) CreatePrice(c *gin.Context) {
 	var body types.BasePrice
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -106,7 +106,7 @@ func (h *PriceHandler) CreatePrice(c *gin.Context) {
 //	@Param					id	path	string	true	"The price's ID."
 //	@Success				200
 //	@Router					/prices/{id} [delete]
-func (h *PriceHandler) DeletePrice(c *gin.Context) {
+func (h *Handler) DeletePrice(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 
 	if err != nil {

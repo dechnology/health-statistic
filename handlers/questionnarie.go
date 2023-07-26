@@ -19,7 +19,7 @@ import (
 //	@Produce				json
 //	@Success				200	{object}	[]types.QuestionnaireDetails
 //	@Router					/questionnaires [get]
-func (h *QuestionnaireHandler) GetQuestionnaires(c *gin.Context) {
+func (h *Handler) GetQuestionnaires(c *gin.Context) {
 	questionnaires, err := h.DB.Questionnaire.
 		Query().
 		WithQuestions().
@@ -42,7 +42,7 @@ func (h *QuestionnaireHandler) GetQuestionnaires(c *gin.Context) {
 //	@Produce				json
 //	@Success				200	{object}	types.QuestionnaireWithQuestions
 //	@Router					/questionnaires/registration [get]
-func (h *QuestionnaireHandler) GetRegistrationQuestionnaire(c *gin.Context) {
+func (h *Handler) GetRegistrationQuestionnaire(c *gin.Context) {
 	id, err := uuid.Parse("88888888-8888-4888-8888-888888888888")
 
 	if err != nil {
@@ -77,7 +77,7 @@ func (h *QuestionnaireHandler) GetRegistrationQuestionnaire(c *gin.Context) {
 //	@Param					id	path		string	true	"The questionnaire's ID"
 //	@Success				200	{object}	types.QuestionnaireDetails
 //	@Router					/questionnaires/{id} [get]
-func (h *QuestionnaireHandler) GetQuestionnaire(c *gin.Context) {
+func (h *Handler) GetQuestionnaire(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 
 	if err != nil {
@@ -110,7 +110,7 @@ func (h *QuestionnaireHandler) GetQuestionnaire(c *gin.Context) {
 //	@Param					questionnaire	body		types.BaseQuestionnaire	true	"The questionnaire to be created."
 //	@Success				200				{object}	ent.Questionnaire
 //	@Router					/questionnaires [post]
-func (h *QuestionnaireHandler) CreateQuestionnaire(c *gin.Context) {
+func (h *Handler) CreateQuestionnaire(c *gin.Context) {
 	var questionnaireBody types.BaseQuestionnaire
 	if err := c.ShouldBindJSON(&questionnaireBody); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -159,7 +159,7 @@ func (h *QuestionnaireHandler) CreateQuestionnaire(c *gin.Context) {
 //	@Param					id	path	string	true	"The questionnaire's ID."
 //	@Success				200
 //	@Router					/questionnaires/{id} [delete]
-func (h *QuestionnaireHandler) DeleteQuestionnaire(c *gin.Context) {
+func (h *Handler) DeleteQuestionnaire(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 
 	if err != nil {
@@ -184,7 +184,7 @@ func (h *QuestionnaireHandler) DeleteQuestionnaire(c *gin.Context) {
 //	@Success				200			{object}	ent.Question
 //	@Failure				400			{object}	ent.Question
 //	@Router					/questionnaires/{id}/new/question [post]
-func (h *QuestionnaireHandler) CreateQuestion(c *gin.Context) {
+func (h *Handler) CreateQuestion(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(
@@ -244,7 +244,7 @@ func (h *QuestionnaireHandler) CreateQuestion(c *gin.Context) {
 //	@Param					response	body		types.BaseResponse	true	"The response to be created."
 //	@Success				200			{object}	ent.QuestionnaireResponse
 //	@Router					/questionnaires/{id}/new/response [post]
-func (h *QuestionnaireHandler) CreateResponse(c *gin.Context) {
+func (h *Handler) CreateResponse(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
