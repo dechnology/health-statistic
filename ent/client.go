@@ -20,6 +20,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/eesoymilk/health-statistic-api/ent/answer"
+	"github.com/eesoymilk/health-statistic-api/ent/choice"
 	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/price"
@@ -36,6 +37,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// Answer is the client for interacting with the Answer builders.
 	Answer *AnswerClient
+	// Choice is the client for interacting with the Choice builders.
+	Choice *ChoiceClient
 	// MyCard is the client for interacting with the MyCard builders.
 	MyCard *MyCardClient
 	// Notification is the client for interacting with the Notification builders.
@@ -64,6 +67,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Answer = NewAnswerClient(c.config)
+	c.Choice = NewChoiceClient(c.config)
 	c.MyCard = NewMyCardClient(c.config)
 	c.Notification = NewNotificationClient(c.config)
 	c.Price = NewPriceClient(c.config)
@@ -154,6 +158,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:                   ctx,
 		config:                cfg,
 		Answer:                NewAnswerClient(cfg),
+		Choice:                NewChoiceClient(cfg),
 		MyCard:                NewMyCardClient(cfg),
 		Notification:          NewNotificationClient(cfg),
 		Price:                 NewPriceClient(cfg),
@@ -181,6 +186,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:                   ctx,
 		config:                cfg,
 		Answer:                NewAnswerClient(cfg),
+		Choice:                NewChoiceClient(cfg),
 		MyCard:                NewMyCardClient(cfg),
 		Notification:          NewNotificationClient(cfg),
 		Price:                 NewPriceClient(cfg),
@@ -217,8 +223,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Answer, c.MyCard, c.Notification, c.Price, c.Question, c.Questionnaire,
-		c.QuestionnaireResponse, c.User,
+		c.Answer, c.Choice, c.MyCard, c.Notification, c.Price, c.Question,
+		c.Questionnaire, c.QuestionnaireResponse, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -228,8 +234,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Answer, c.MyCard, c.Notification, c.Price, c.Question, c.Questionnaire,
-		c.QuestionnaireResponse, c.User,
+		c.Answer, c.Choice, c.MyCard, c.Notification, c.Price, c.Question,
+		c.Questionnaire, c.QuestionnaireResponse, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -240,6 +246,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *AnswerMutation:
 		return c.Answer.mutate(ctx, m)
+	case *ChoiceMutation:
+		return c.Choice.mutate(ctx, m)
 	case *MyCardMutation:
 		return c.MyCard.mutate(ctx, m)
 	case *NotificationMutation:
@@ -352,6 +360,22 @@ func (c *AnswerClient) GetX(ctx context.Context, id uuid.UUID) *Answer {
 	return obj
 }
 
+// QueryChosen queries the chosen edge of a Answer.
+func (c *AnswerClient) QueryChosen(a *Answer) *ChoiceQuery {
+	query := (&ChoiceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(answer.Table, answer.FieldID, id),
+			sqlgraph.To(choice.Table, choice.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, answer.ChosenTable, answer.ChosenPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryQuestion queries the question edge of a Answer.
 func (c *AnswerClient) QueryQuestion(a *Answer) *QuestionQuery {
 	query := (&QuestionClient{config: c.config}).Query()
@@ -406,6 +430,156 @@ func (c *AnswerClient) mutate(ctx context.Context, m *AnswerMutation) (Value, er
 		return (&AnswerDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Answer mutation op: %q", m.Op())
+	}
+}
+
+// ChoiceClient is a client for the Choice schema.
+type ChoiceClient struct {
+	config
+}
+
+// NewChoiceClient returns a client for the Choice from the given config.
+func NewChoiceClient(c config) *ChoiceClient {
+	return &ChoiceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `choice.Hooks(f(g(h())))`.
+func (c *ChoiceClient) Use(hooks ...Hook) {
+	c.hooks.Choice = append(c.hooks.Choice, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `choice.Intercept(f(g(h())))`.
+func (c *ChoiceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Choice = append(c.inters.Choice, interceptors...)
+}
+
+// Create returns a builder for creating a Choice entity.
+func (c *ChoiceClient) Create() *ChoiceCreate {
+	mutation := newChoiceMutation(c.config, OpCreate)
+	return &ChoiceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Choice entities.
+func (c *ChoiceClient) CreateBulk(builders ...*ChoiceCreate) *ChoiceCreateBulk {
+	return &ChoiceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Choice.
+func (c *ChoiceClient) Update() *ChoiceUpdate {
+	mutation := newChoiceMutation(c.config, OpUpdate)
+	return &ChoiceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ChoiceClient) UpdateOne(ch *Choice) *ChoiceUpdateOne {
+	mutation := newChoiceMutation(c.config, OpUpdateOne, withChoice(ch))
+	return &ChoiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ChoiceClient) UpdateOneID(id uuid.UUID) *ChoiceUpdateOne {
+	mutation := newChoiceMutation(c.config, OpUpdateOne, withChoiceID(id))
+	return &ChoiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Choice.
+func (c *ChoiceClient) Delete() *ChoiceDelete {
+	mutation := newChoiceMutation(c.config, OpDelete)
+	return &ChoiceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ChoiceClient) DeleteOne(ch *Choice) *ChoiceDeleteOne {
+	return c.DeleteOneID(ch.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ChoiceClient) DeleteOneID(id uuid.UUID) *ChoiceDeleteOne {
+	builder := c.Delete().Where(choice.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ChoiceDeleteOne{builder}
+}
+
+// Query returns a query builder for Choice.
+func (c *ChoiceClient) Query() *ChoiceQuery {
+	return &ChoiceQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeChoice},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Choice entity by its id.
+func (c *ChoiceClient) Get(ctx context.Context, id uuid.UUID) (*Choice, error) {
+	return c.Query().Where(choice.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ChoiceClient) GetX(ctx context.Context, id uuid.UUID) *Choice {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryQuesion queries the quesion edge of a Choice.
+func (c *ChoiceClient) QueryQuesion(ch *Choice) *QuestionQuery {
+	query := (&QuestionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ch.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(choice.Table, choice.FieldID, id),
+			sqlgraph.To(question.Table, question.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, choice.QuesionTable, choice.QuesionColumn),
+		)
+		fromV = sqlgraph.Neighbors(ch.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAnswer queries the answer edge of a Choice.
+func (c *ChoiceClient) QueryAnswer(ch *Choice) *AnswerQuery {
+	query := (&AnswerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ch.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(choice.Table, choice.FieldID, id),
+			sqlgraph.To(answer.Table, answer.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, choice.AnswerTable, choice.AnswerPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(ch.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ChoiceClient) Hooks() []Hook {
+	return c.hooks.Choice
+}
+
+// Interceptors returns the client interceptors.
+func (c *ChoiceClient) Interceptors() []Interceptor {
+	return c.inters.Choice
+}
+
+func (c *ChoiceClient) mutate(ctx context.Context, m *ChoiceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ChoiceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ChoiceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ChoiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ChoiceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Choice mutation op: %q", m.Op())
 	}
 }
 
@@ -984,6 +1158,22 @@ func (c *QuestionClient) QueryQuestionnaire(q *Question) *QuestionnaireQuery {
 	return query
 }
 
+// QueryChoices queries the choices edge of a Question.
+func (c *QuestionClient) QueryChoices(q *Question) *ChoiceQuery {
+	query := (&ChoiceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := q.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(question.Table, question.FieldID, id),
+			sqlgraph.To(choice.Table, choice.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, question.ChoicesTable, question.ChoicesColumn),
+		)
+		fromV = sqlgraph.Neighbors(q.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryAnswers queries the answers edge of a Question.
 func (c *QuestionClient) QueryAnswers(q *Question) *AnswerQuery {
 	query := (&AnswerClient{config: c.config}).Query()
@@ -1526,11 +1716,11 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Answer, MyCard, Notification, Price, Question, Questionnaire,
+		Answer, Choice, MyCard, Notification, Price, Question, Questionnaire,
 		QuestionnaireResponse, User []ent.Hook
 	}
 	inters struct {
-		Answer, MyCard, Notification, Price, Question, Questionnaire,
+		Answer, Choice, MyCard, Notification, Price, Question, Questionnaire,
 		QuestionnaireResponse, User []ent.Interceptor
 	}
 )

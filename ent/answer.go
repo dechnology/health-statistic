@@ -39,19 +39,30 @@ type Answer struct {
 
 // AnswerEdges holds the relations/edges for other nodes in the graph.
 type AnswerEdges struct {
+	// Chosen holds the value of the chosen edge.
+	Chosen []*Choice `json:"chosen,omitempty"`
 	// Question holds the value of the question edge.
 	Question *Question `json:"question,omitempty"`
 	// QuestionnaireResponse holds the value of the questionnaire_response edge.
 	QuestionnaireResponse *QuestionnaireResponse `json:"questionnaire_response,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
+}
+
+// ChosenOrErr returns the Chosen value or an error if the edge
+// was not loaded in eager-loading.
+func (e AnswerEdges) ChosenOrErr() ([]*Choice, error) {
+	if e.loadedTypes[0] {
+		return e.Chosen, nil
+	}
+	return nil, &NotLoadedError{edge: "chosen"}
 }
 
 // QuestionOrErr returns the Question value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e AnswerEdges) QuestionOrErr() (*Question, error) {
-	if e.loadedTypes[0] {
+	if e.loadedTypes[1] {
 		if e.Question == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: question.Label}
@@ -64,7 +75,7 @@ func (e AnswerEdges) QuestionOrErr() (*Question, error) {
 // QuestionnaireResponseOrErr returns the QuestionnaireResponse value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e AnswerEdges) QuestionnaireResponseOrErr() (*QuestionnaireResponse, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		if e.QuestionnaireResponse == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: questionnaireresponse.Label}
@@ -147,6 +158,11 @@ func (a *Answer) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (a *Answer) Value(name string) (ent.Value, error) {
 	return a.selectValues.Get(name)
+}
+
+// QueryChosen queries the "chosen" edge of the Answer entity.
+func (a *Answer) QueryChosen() *ChoiceQuery {
+	return NewAnswerClient(a.config).QueryChosen(a)
 }
 
 // QueryQuestion queries the "question" edge of the Answer entity.

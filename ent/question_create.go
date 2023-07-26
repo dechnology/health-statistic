@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/eesoymilk/health-statistic-api/ent/answer"
+	"github.com/eesoymilk/health-statistic-api/ent/choice"
 	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaire"
 	"github.com/google/uuid"
@@ -24,6 +25,12 @@ type QuestionCreate struct {
 	config
 	mutation *QuestionMutation
 	hooks    []Hook
+}
+
+// SetType sets the "type" field.
+func (qc *QuestionCreate) SetType(q question.Type) *QuestionCreate {
+	qc.mutation.SetType(q)
+	return qc
 }
 
 // SetBody sets the "body" field.
@@ -58,17 +65,24 @@ func (qc *QuestionCreate) SetQuestionnaireID(id uuid.UUID) *QuestionCreate {
 	return qc
 }
 
-// SetNillableQuestionnaireID sets the "questionnaire" edge to the Questionnaire entity by ID if the given value is not nil.
-func (qc *QuestionCreate) SetNillableQuestionnaireID(id *uuid.UUID) *QuestionCreate {
-	if id != nil {
-		qc = qc.SetQuestionnaireID(*id)
-	}
-	return qc
-}
-
 // SetQuestionnaire sets the "questionnaire" edge to the Questionnaire entity.
 func (qc *QuestionCreate) SetQuestionnaire(q *Questionnaire) *QuestionCreate {
 	return qc.SetQuestionnaireID(q.ID)
+}
+
+// AddChoiceIDs adds the "choices" edge to the Choice entity by IDs.
+func (qc *QuestionCreate) AddChoiceIDs(ids ...uuid.UUID) *QuestionCreate {
+	qc.mutation.AddChoiceIDs(ids...)
+	return qc
+}
+
+// AddChoices adds the "choices" edges to the Choice entity.
+func (qc *QuestionCreate) AddChoices(c ...*Choice) *QuestionCreate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return qc.AddChoiceIDs(ids...)
 }
 
 // AddAnswerIDs adds the "answers" edge to the Answer entity by IDs.
@@ -129,6 +143,14 @@ func (qc *QuestionCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (qc *QuestionCreate) check() error {
+	if _, ok := qc.mutation.GetType(); !ok {
+		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "Question.type"`)}
+	}
+	if v, ok := qc.mutation.GetType(); ok {
+		if err := question.TypeValidator(v); err != nil {
+			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Question.type": %w`, err)}
+		}
+	}
 	if _, ok := qc.mutation.Body(); !ok {
 		return &ValidationError{Name: "body", err: errors.New(`ent: missing required field "Question.body"`)}
 	}
@@ -144,6 +166,9 @@ func (qc *QuestionCreate) check() error {
 		if err := question.OrderValidator(v); err != nil {
 			return &ValidationError{Name: "order", err: fmt.Errorf(`ent: validator failed for field "Question.order": %w`, err)}
 		}
+	}
+	if _, ok := qc.mutation.QuestionnaireID(); !ok {
+		return &ValidationError{Name: "questionnaire", err: errors.New(`ent: missing required edge "Question.questionnaire"`)}
 	}
 	return nil
 }
@@ -180,6 +205,10 @@ func (qc *QuestionCreate) createSpec() (*Question, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
+	if value, ok := qc.mutation.GetType(); ok {
+		_spec.SetField(question.FieldType, field.TypeEnum, value)
+		_node.Type = value
+	}
 	if value, ok := qc.mutation.Body(); ok {
 		_spec.SetField(question.FieldBody, field.TypeString, value)
 		_node.Body = value
@@ -203,6 +232,22 @@ func (qc *QuestionCreate) createSpec() (*Question, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.questionnaire_questions = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := qc.mutation.ChoicesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   question.ChoicesTable,
+			Columns: []string{question.ChoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(choice.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := qc.mutation.AnswersIDs(); len(nodes) > 0 {

@@ -34,7 +34,7 @@ func (h *Handler) RespondQuestionnaire(
 	for _, answer := range answers {
 		_, err := h.DB.Answer.
 			Create().
-			SetBody(answer.Body).
+			SetBody(*answer.Body).
 			SetQuestionID(answer.QuestionId).
 			SetQuestionnaireResponse(responseNode).
 			Save(ctx)

@@ -1,5 +1,17 @@
 basePath: /api/v1
 definitions:
+  ent.Choice:
+    properties:
+      body:
+        description: Body holds the value of the "body" field.
+        type: string
+      id:
+        description: ID of the ent.
+        type: string
+      order:
+        description: Order holds the value of the "order" field.
+        type: integer
+    type: object
   ent.MyCard:
     properties:
       card_password:
@@ -63,6 +75,10 @@ definitions:
       order:
         description: Order holds the value of the "order" field.
         type: integer
+      type:
+        allOf:
+        - $ref: '#/definitions/question.Type'
+        description: Type holds the value of the "type" field.
     type: object
   ent.Questionnaire:
     properties:
@@ -167,16 +183,36 @@ definitions:
     - TypeNormal
     - TypeMycard
     - TypePrice
+  question.Type:
+    enum:
+    - short_answer
+    - single_choice
+    - multiple_choice
+    type: string
+    x-enum-varnames:
+    - TypeShortAnswer
+    - TypeSingleChoice
+    - TypeMultipleChoice
   types.BaseAnswer:
     properties:
       body:
         description: The answer body.
         example: 我這週心情還不錯！
         type: string
+      choices:
+        items:
+          $ref: '#/definitions/ent.Choice'
+        type: array
       question_id:
         description: |-
           The question this answer relates to, the question also needs to be in
           the same questionnaire as the response.
+        type: string
+    type: object
+  types.BaseChoice:
+    properties:
+      body:
+        example: 大部分時候開心
         type: string
     type: object
   types.BaseMyCard:
@@ -198,6 +234,17 @@ definitions:
       body:
         description: The question body
         example: 你這週的心情如何？
+        type: string
+      choices:
+        items:
+          $ref: '#/definitions/types.BaseChoice'
+        type: array
+      type:
+        enum:
+        - short_answer
+        - single_choice
+        - multiple_choice
+        example: single_choice
         type: string
     type: object
   types.BaseQuestionnaire:
@@ -336,6 +383,10 @@ definitions:
         type: integer
       questionnaire:
         $ref: '#/definitions/ent.Questionnaire'
+      type:
+        allOf:
+        - $ref: '#/definitions/question.Type'
+        description: Type holds the value of the "type" field.
     type: object
   types.QuestionnaireDetails:
     properties:

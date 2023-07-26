@@ -15,6 +15,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/eesoymilk/health-statistic-api/ent/answer"
+	"github.com/eesoymilk/health-statistic-api/ent/choice"
 	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
 	"github.com/google/uuid"
@@ -61,17 +62,24 @@ func (ac *AnswerCreate) SetNillableID(u *uuid.UUID) *AnswerCreate {
 	return ac
 }
 
-// SetQuestionID sets the "question" edge to the Question entity by ID.
-func (ac *AnswerCreate) SetQuestionID(id uuid.UUID) *AnswerCreate {
-	ac.mutation.SetQuestionID(id)
+// AddChosenIDs adds the "chosen" edge to the Choice entity by IDs.
+func (ac *AnswerCreate) AddChosenIDs(ids ...uuid.UUID) *AnswerCreate {
+	ac.mutation.AddChosenIDs(ids...)
 	return ac
 }
 
-// SetNillableQuestionID sets the "question" edge to the Question entity by ID if the given value is not nil.
-func (ac *AnswerCreate) SetNillableQuestionID(id *uuid.UUID) *AnswerCreate {
-	if id != nil {
-		ac = ac.SetQuestionID(*id)
+// AddChosen adds the "chosen" edges to the Choice entity.
+func (ac *AnswerCreate) AddChosen(c ...*Choice) *AnswerCreate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
 	}
+	return ac.AddChosenIDs(ids...)
+}
+
+// SetQuestionID sets the "question" edge to the Question entity by ID.
+func (ac *AnswerCreate) SetQuestionID(id uuid.UUID) *AnswerCreate {
+	ac.mutation.SetQuestionID(id)
 	return ac
 }
 
@@ -83,14 +91,6 @@ func (ac *AnswerCreate) SetQuestion(q *Question) *AnswerCreate {
 // SetQuestionnaireResponseID sets the "questionnaire_response" edge to the QuestionnaireResponse entity by ID.
 func (ac *AnswerCreate) SetQuestionnaireResponseID(id uuid.UUID) *AnswerCreate {
 	ac.mutation.SetQuestionnaireResponseID(id)
-	return ac
-}
-
-// SetNillableQuestionnaireResponseID sets the "questionnaire_response" edge to the QuestionnaireResponse entity by ID if the given value is not nil.
-func (ac *AnswerCreate) SetNillableQuestionnaireResponseID(id *uuid.UUID) *AnswerCreate {
-	if id != nil {
-		ac = ac.SetQuestionnaireResponseID(*id)
-	}
 	return ac
 }
 
@@ -152,6 +152,12 @@ func (ac *AnswerCreate) check() error {
 	if _, ok := ac.mutation.Body(); !ok {
 		return &ValidationError{Name: "body", err: errors.New(`ent: missing required field "Answer.body"`)}
 	}
+	if _, ok := ac.mutation.QuestionID(); !ok {
+		return &ValidationError{Name: "question", err: errors.New(`ent: missing required edge "Answer.question"`)}
+	}
+	if _, ok := ac.mutation.QuestionnaireResponseID(); !ok {
+		return &ValidationError{Name: "questionnaire_response", err: errors.New(`ent: missing required edge "Answer.questionnaire_response"`)}
+	}
 	return nil
 }
 
@@ -194,6 +200,22 @@ func (ac *AnswerCreate) createSpec() (*Answer, *sqlgraph.CreateSpec) {
 	if value, ok := ac.mutation.Body(); ok {
 		_spec.SetField(answer.FieldBody, field.TypeString, value)
 		_node.Body = value
+	}
+	if nodes := ac.mutation.ChosenIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   answer.ChosenTable,
+			Columns: answer.ChosenPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(choice.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := ac.mutation.QuestionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

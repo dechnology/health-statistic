@@ -5,17 +5,24 @@ import (
 	"github.com/google/uuid"
 )
 
+type BaseChoice struct {
+	Body string `json:"body" example:"大部分時候開心"`
+}
+
 type BaseQuestion struct {
 	// The question body
-	Body string `json:"body" example:"你這週的心情如何？"`
+	Body    string        `json:"body" example:"你這週的心情如何？"`
+	Type    string        `json:"type" enums:"short_answer,single_choice,multiple_choice" example:"single_choice"`
+	Choices *[]BaseChoice `json:"choices"`
 }
 
 type BaseAnswer struct {
-	// The answer body.
-	Body string `json:"body" example:"我這週心情還不錯！"`
 	// The question this answer relates to, the question also needs to be in
 	// the same questionnaire as the response.
 	QuestionId uuid.UUID `json:"question_id"`
+	// The answer body.
+	Body    *string       `json:"body" example:"我這週心情還不錯！"`
+	Choices *[]ent.Choice `json:"choices"`
 }
 
 //	@Description	BaseQuestionnaire

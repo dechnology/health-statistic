@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -15,6 +16,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/eesoymilk/health-statistic-api/ent/answer"
+	"github.com/eesoymilk/health-statistic-api/ent/choice"
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
 	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
@@ -28,6 +30,7 @@ type AnswerQuery struct {
 	order                     []answer.OrderOption
 	inters                    []Interceptor
 	predicates                []predicate.Answer
+	withChosen                *ChoiceQuery
 	withQuestion              *QuestionQuery
 	withQuestionnaireResponse *QuestionnaireResponseQuery
 	withFKs                   bool
@@ -65,6 +68,28 @@ func (aq *AnswerQuery) Unique(unique bool) *AnswerQuery {
 func (aq *AnswerQuery) Order(o ...answer.OrderOption) *AnswerQuery {
 	aq.order = append(aq.order, o...)
 	return aq
+}
+
+// QueryChosen chains the current query on the "chosen" edge.
+func (aq *AnswerQuery) QueryChosen() *ChoiceQuery {
+	query := (&ChoiceClient{config: aq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(answer.Table, answer.FieldID, selector),
+			sqlgraph.To(choice.Table, choice.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, answer.ChosenTable, answer.ChosenPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // QueryQuestion chains the current query on the "question" edge.
@@ -303,12 +328,24 @@ func (aq *AnswerQuery) Clone() *AnswerQuery {
 		order:                     append([]answer.OrderOption{}, aq.order...),
 		inters:                    append([]Interceptor{}, aq.inters...),
 		predicates:                append([]predicate.Answer{}, aq.predicates...),
+		withChosen:                aq.withChosen.Clone(),
 		withQuestion:              aq.withQuestion.Clone(),
 		withQuestionnaireResponse: aq.withQuestionnaireResponse.Clone(),
 		// clone intermediate query.
 		sql:  aq.sql.Clone(),
 		path: aq.path,
 	}
+}
+
+// WithChosen tells the query-builder to eager-load the nodes that are connected to
+// the "chosen" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AnswerQuery) WithChosen(opts ...func(*ChoiceQuery)) *AnswerQuery {
+	query := (&ChoiceClient{config: aq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	aq.withChosen = query
+	return aq
 }
 
 // WithQuestion tells the query-builder to eager-load the nodes that are connected to
@@ -412,7 +449,8 @@ func (aq *AnswerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Answe
 		nodes       = []*Answer{}
 		withFKs     = aq.withFKs
 		_spec       = aq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
+			aq.withChosen != nil,
 			aq.withQuestion != nil,
 			aq.withQuestionnaireResponse != nil,
 		}
@@ -441,6 +479,13 @@ func (aq *AnswerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Answe
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := aq.withChosen; query != nil {
+		if err := aq.loadChosen(ctx, query, nodes,
+			func(n *Answer) { n.Edges.Chosen = []*Choice{} },
+			func(n *Answer, e *Choice) { n.Edges.Chosen = append(n.Edges.Chosen, e) }); err != nil {
+			return nil, err
+		}
+	}
 	if query := aq.withQuestion; query != nil {
 		if err := aq.loadQuestion(ctx, query, nodes, nil,
 			func(n *Answer, e *Question) { n.Edges.Question = e }); err != nil {
@@ -456,6 +501,67 @@ func (aq *AnswerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Answe
 	return nodes, nil
 }
 
+func (aq *AnswerQuery) loadChosen(ctx context.Context, query *ChoiceQuery, nodes []*Answer, init func(*Answer), assign func(*Answer, *Choice)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[uuid.UUID]*Answer)
+	nids := make(map[uuid.UUID]map[*Answer]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(answer.ChosenTable)
+		s.Join(joinT).On(s.C(choice.FieldID), joinT.C(answer.ChosenPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(answer.ChosenPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(answer.ChosenPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(uuid.UUID)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := *values[0].(*uuid.UUID)
+				inValue := *values[1].(*uuid.UUID)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Answer]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*Choice](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "chosen" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
 func (aq *AnswerQuery) loadQuestion(ctx context.Context, query *QuestionQuery, nodes []*Answer, init func(*Answer), assign func(*Answer, *Question)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*Answer)

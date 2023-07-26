@@ -271,7 +271,7 @@ func (h *Handler) CreateResponse(c *gin.Context) {
 	for _, answer := range responseBody.Answers {
 		_, err := h.DB.Answer.
 			Create().
-			SetBody(answer.Body).
+			SetBody(*answer.Body).
 			SetQuestionID(answer.QuestionId).
 			SetQuestionnaireResponse(responseNode).
 			Save(c.Request.Context())

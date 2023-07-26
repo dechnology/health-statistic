@@ -23,6 +23,8 @@ type Question struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
+	// Type holds the value of the "type" field.
+	Type question.Type `json:"type,omitempty"`
 	// Body holds the value of the "body" field.
 	Body string `json:"body,omitempty"`
 	// Order holds the value of the "order" field.
@@ -38,11 +40,13 @@ type Question struct {
 type QuestionEdges struct {
 	// Questionnaire holds the value of the questionnaire edge.
 	Questionnaire *Questionnaire `json:"questionnaire,omitempty"`
+	// Choices holds the value of the choices edge.
+	Choices []*Choice `json:"choices,omitempty"`
 	// Answers holds the value of the answers edge.
 	Answers []*Answer `json:"answers,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // QuestionnaireOrErr returns the Questionnaire value or an error if the edge
@@ -58,10 +62,19 @@ func (e QuestionEdges) QuestionnaireOrErr() (*Questionnaire, error) {
 	return nil, &NotLoadedError{edge: "questionnaire"}
 }
 
+// ChoicesOrErr returns the Choices value or an error if the edge
+// was not loaded in eager-loading.
+func (e QuestionEdges) ChoicesOrErr() ([]*Choice, error) {
+	if e.loadedTypes[1] {
+		return e.Choices, nil
+	}
+	return nil, &NotLoadedError{edge: "choices"}
+}
+
 // AnswersOrErr returns the Answers value or an error if the edge
 // was not loaded in eager-loading.
 func (e QuestionEdges) AnswersOrErr() ([]*Answer, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		return e.Answers, nil
 	}
 	return nil, &NotLoadedError{edge: "answers"}
@@ -74,7 +87,7 @@ func (*Question) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case question.FieldOrder:
 			values[i] = new(sql.NullInt64)
-		case question.FieldBody:
+		case question.FieldType, question.FieldBody:
 			values[i] = new(sql.NullString)
 		case question.FieldID:
 			values[i] = new(uuid.UUID)
@@ -100,6 +113,12 @@ func (q *Question) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				q.ID = *value
+			}
+		case question.FieldType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field type", values[i])
+			} else if value.Valid {
+				q.Type = question.Type(value.String)
 			}
 		case question.FieldBody:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -138,6 +157,11 @@ func (q *Question) QueryQuestionnaire() *QuestionnaireQuery {
 	return NewQuestionClient(q.config).QueryQuestionnaire(q)
 }
 
+// QueryChoices queries the "choices" edge of the Question entity.
+func (q *Question) QueryChoices() *ChoiceQuery {
+	return NewQuestionClient(q.config).QueryChoices(q)
+}
+
 // QueryAnswers queries the "answers" edge of the Question entity.
 func (q *Question) QueryAnswers() *AnswerQuery {
 	return NewQuestionClient(q.config).QueryAnswers(q)
@@ -166,6 +190,9 @@ func (q *Question) String() string {
 	var builder strings.Builder
 	builder.WriteString("Question(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", q.ID))
+	builder.WriteString("type=")
+	builder.WriteString(fmt.Sprintf("%v", q.Type))
+	builder.WriteString(", ")
 	builder.WriteString("body=")
 	builder.WriteString(q.Body)
 	builder.WriteString(", ")

@@ -72,7 +72,7 @@ func Migrate(db *ent.Client) error {
 	}
 
 	for i, questionData := range questionnaireData.Questions {
-		_, err := db.Question.Create().
+		questionNode, err := db.Question.Create().
 			SetBody(questionData.Body).
 			SetOrder(i).
 			SetQuestionnaire(questionnaireNode).
@@ -81,10 +81,18 @@ func Migrate(db *ent.Client) error {
 		if err != nil {
 			return fmt.Errorf("failed to create question: %v", err)
 		}
-	}
 
-	if err != nil {
-		return fmt.Errorf("failed to parse JSON: %v", err)
+		for i, choiceData := range *questionData.Choices {
+			_, err := db.Choice.Create().
+				SetBody(choiceData.Body).
+				SetQuesion(questionNode).
+				SetOrder(i).
+				Save(context.Background())
+
+			if err != nil {
+				return fmt.Errorf("failed to create choice: %v", err)
+			}
+		}
 	}
 
 	return nil

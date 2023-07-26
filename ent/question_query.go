@@ -16,6 +16,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/eesoymilk/health-statistic-api/ent/answer"
+	"github.com/eesoymilk/health-statistic-api/ent/choice"
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
 	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaire"
@@ -30,6 +31,7 @@ type QuestionQuery struct {
 	inters            []Interceptor
 	predicates        []predicate.Question
 	withQuestionnaire *QuestionnaireQuery
+	withChoices       *ChoiceQuery
 	withAnswers       *AnswerQuery
 	withFKs           bool
 	// intermediate query (i.e. traversal path).
@@ -83,6 +85,28 @@ func (qq *QuestionQuery) QueryQuestionnaire() *QuestionnaireQuery {
 			sqlgraph.From(question.Table, question.FieldID, selector),
 			sqlgraph.To(questionnaire.Table, questionnaire.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, question.QuestionnaireTable, question.QuestionnaireColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(qq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryChoices chains the current query on the "choices" edge.
+func (qq *QuestionQuery) QueryChoices() *ChoiceQuery {
+	query := (&ChoiceClient{config: qq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := qq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := qq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(question.Table, question.FieldID, selector),
+			sqlgraph.To(choice.Table, choice.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, question.ChoicesTable, question.ChoicesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(qq.driver.Dialect(), step)
 		return fromU, nil
@@ -305,6 +329,7 @@ func (qq *QuestionQuery) Clone() *QuestionQuery {
 		inters:            append([]Interceptor{}, qq.inters...),
 		predicates:        append([]predicate.Question{}, qq.predicates...),
 		withQuestionnaire: qq.withQuestionnaire.Clone(),
+		withChoices:       qq.withChoices.Clone(),
 		withAnswers:       qq.withAnswers.Clone(),
 		// clone intermediate query.
 		sql:  qq.sql.Clone(),
@@ -320,6 +345,17 @@ func (qq *QuestionQuery) WithQuestionnaire(opts ...func(*QuestionnaireQuery)) *Q
 		opt(query)
 	}
 	qq.withQuestionnaire = query
+	return qq
+}
+
+// WithChoices tells the query-builder to eager-load the nodes that are connected to
+// the "choices" edge. The optional arguments are used to configure the query builder of the edge.
+func (qq *QuestionQuery) WithChoices(opts ...func(*ChoiceQuery)) *QuestionQuery {
+	query := (&ChoiceClient{config: qq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	qq.withChoices = query
 	return qq
 }
 
@@ -340,12 +376,12 @@ func (qq *QuestionQuery) WithAnswers(opts ...func(*AnswerQuery)) *QuestionQuery 
 // Example:
 //
 //	var v []struct {
-//		Body string `json:"body,omitempty"`
+//		Type question.Type `json:"type,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Question.Query().
-//		GroupBy(question.FieldBody).
+//		GroupBy(question.FieldType).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (qq *QuestionQuery) GroupBy(field string, fields ...string) *QuestionGroupBy {
@@ -363,11 +399,11 @@ func (qq *QuestionQuery) GroupBy(field string, fields ...string) *QuestionGroupB
 // Example:
 //
 //	var v []struct {
-//		Body string `json:"body,omitempty"`
+//		Type question.Type `json:"type,omitempty"`
 //	}
 //
 //	client.Question.Query().
-//		Select(question.FieldBody).
+//		Select(question.FieldType).
 //		Scan(ctx, &v)
 func (qq *QuestionQuery) Select(fields ...string) *QuestionSelect {
 	qq.ctx.Fields = append(qq.ctx.Fields, fields...)
@@ -413,8 +449,9 @@ func (qq *QuestionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Que
 		nodes       = []*Question{}
 		withFKs     = qq.withFKs
 		_spec       = qq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			qq.withQuestionnaire != nil,
+			qq.withChoices != nil,
 			qq.withAnswers != nil,
 		}
 	)
@@ -445,6 +482,13 @@ func (qq *QuestionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Que
 	if query := qq.withQuestionnaire; query != nil {
 		if err := qq.loadQuestionnaire(ctx, query, nodes, nil,
 			func(n *Question, e *Questionnaire) { n.Edges.Questionnaire = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := qq.withChoices; query != nil {
+		if err := qq.loadChoices(ctx, query, nodes,
+			func(n *Question) { n.Edges.Choices = []*Choice{} },
+			func(n *Question, e *Choice) { n.Edges.Choices = append(n.Edges.Choices, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -487,6 +531,37 @@ func (qq *QuestionQuery) loadQuestionnaire(ctx context.Context, query *Questionn
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (qq *QuestionQuery) loadChoices(ctx context.Context, query *ChoiceQuery, nodes []*Question, init func(*Question), assign func(*Question, *Choice)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Question)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Choice(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(question.ChoicesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.question_choices
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "question_choices" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "question_choices" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

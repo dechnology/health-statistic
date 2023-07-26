@@ -15,6 +15,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/eesoymilk/health-statistic-api/ent/answer"
+	"github.com/eesoymilk/health-statistic-api/ent/choice"
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
 	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaire"
@@ -31,6 +32,12 @@ type QuestionUpdate struct {
 // Where appends a list predicates to the QuestionUpdate builder.
 func (qu *QuestionUpdate) Where(ps ...predicate.Question) *QuestionUpdate {
 	qu.mutation.Where(ps...)
+	return qu
+}
+
+// SetType sets the "type" field.
+func (qu *QuestionUpdate) SetType(q question.Type) *QuestionUpdate {
+	qu.mutation.SetType(q)
 	return qu
 }
 
@@ -59,17 +66,24 @@ func (qu *QuestionUpdate) SetQuestionnaireID(id uuid.UUID) *QuestionUpdate {
 	return qu
 }
 
-// SetNillableQuestionnaireID sets the "questionnaire" edge to the Questionnaire entity by ID if the given value is not nil.
-func (qu *QuestionUpdate) SetNillableQuestionnaireID(id *uuid.UUID) *QuestionUpdate {
-	if id != nil {
-		qu = qu.SetQuestionnaireID(*id)
-	}
-	return qu
-}
-
 // SetQuestionnaire sets the "questionnaire" edge to the Questionnaire entity.
 func (qu *QuestionUpdate) SetQuestionnaire(q *Questionnaire) *QuestionUpdate {
 	return qu.SetQuestionnaireID(q.ID)
+}
+
+// AddChoiceIDs adds the "choices" edge to the Choice entity by IDs.
+func (qu *QuestionUpdate) AddChoiceIDs(ids ...uuid.UUID) *QuestionUpdate {
+	qu.mutation.AddChoiceIDs(ids...)
+	return qu
+}
+
+// AddChoices adds the "choices" edges to the Choice entity.
+func (qu *QuestionUpdate) AddChoices(c ...*Choice) *QuestionUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return qu.AddChoiceIDs(ids...)
 }
 
 // AddAnswerIDs adds the "answers" edge to the Answer entity by IDs.
@@ -96,6 +110,27 @@ func (qu *QuestionUpdate) Mutation() *QuestionMutation {
 func (qu *QuestionUpdate) ClearQuestionnaire() *QuestionUpdate {
 	qu.mutation.ClearQuestionnaire()
 	return qu
+}
+
+// ClearChoices clears all "choices" edges to the Choice entity.
+func (qu *QuestionUpdate) ClearChoices() *QuestionUpdate {
+	qu.mutation.ClearChoices()
+	return qu
+}
+
+// RemoveChoiceIDs removes the "choices" edge to Choice entities by IDs.
+func (qu *QuestionUpdate) RemoveChoiceIDs(ids ...uuid.UUID) *QuestionUpdate {
+	qu.mutation.RemoveChoiceIDs(ids...)
+	return qu
+}
+
+// RemoveChoices removes "choices" edges to Choice entities.
+func (qu *QuestionUpdate) RemoveChoices(c ...*Choice) *QuestionUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return qu.RemoveChoiceIDs(ids...)
 }
 
 // ClearAnswers clears all "answers" edges to the Answer entity.
@@ -148,6 +183,11 @@ func (qu *QuestionUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (qu *QuestionUpdate) check() error {
+	if v, ok := qu.mutation.GetType(); ok {
+		if err := question.TypeValidator(v); err != nil {
+			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Question.type": %w`, err)}
+		}
+	}
 	if v, ok := qu.mutation.Body(); ok {
 		if err := question.BodyValidator(v); err != nil {
 			return &ValidationError{Name: "body", err: fmt.Errorf(`ent: validator failed for field "Question.body": %w`, err)}
@@ -157,6 +197,9 @@ func (qu *QuestionUpdate) check() error {
 		if err := question.OrderValidator(v); err != nil {
 			return &ValidationError{Name: "order", err: fmt.Errorf(`ent: validator failed for field "Question.order": %w`, err)}
 		}
+	}
+	if _, ok := qu.mutation.QuestionnaireID(); qu.mutation.QuestionnaireCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Question.questionnaire"`)
 	}
 	return nil
 }
@@ -172,6 +215,9 @@ func (qu *QuestionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := qu.mutation.GetType(); ok {
+		_spec.SetField(question.FieldType, field.TypeEnum, value)
 	}
 	if value, ok := qu.mutation.Body(); ok {
 		_spec.SetField(question.FieldBody, field.TypeString, value)
@@ -204,6 +250,51 @@ func (qu *QuestionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(questionnaire.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if qu.mutation.ChoicesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   question.ChoicesTable,
+			Columns: []string{question.ChoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(choice.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := qu.mutation.RemovedChoicesIDs(); len(nodes) > 0 && !qu.mutation.ChoicesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   question.ChoicesTable,
+			Columns: []string{question.ChoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(choice.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := qu.mutation.ChoicesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   question.ChoicesTable,
+			Columns: []string{question.ChoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(choice.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -276,6 +367,12 @@ type QuestionUpdateOne struct {
 	mutation *QuestionMutation
 }
 
+// SetType sets the "type" field.
+func (quo *QuestionUpdateOne) SetType(q question.Type) *QuestionUpdateOne {
+	quo.mutation.SetType(q)
+	return quo
+}
+
 // SetBody sets the "body" field.
 func (quo *QuestionUpdateOne) SetBody(s string) *QuestionUpdateOne {
 	quo.mutation.SetBody(s)
@@ -301,17 +398,24 @@ func (quo *QuestionUpdateOne) SetQuestionnaireID(id uuid.UUID) *QuestionUpdateOn
 	return quo
 }
 
-// SetNillableQuestionnaireID sets the "questionnaire" edge to the Questionnaire entity by ID if the given value is not nil.
-func (quo *QuestionUpdateOne) SetNillableQuestionnaireID(id *uuid.UUID) *QuestionUpdateOne {
-	if id != nil {
-		quo = quo.SetQuestionnaireID(*id)
-	}
-	return quo
-}
-
 // SetQuestionnaire sets the "questionnaire" edge to the Questionnaire entity.
 func (quo *QuestionUpdateOne) SetQuestionnaire(q *Questionnaire) *QuestionUpdateOne {
 	return quo.SetQuestionnaireID(q.ID)
+}
+
+// AddChoiceIDs adds the "choices" edge to the Choice entity by IDs.
+func (quo *QuestionUpdateOne) AddChoiceIDs(ids ...uuid.UUID) *QuestionUpdateOne {
+	quo.mutation.AddChoiceIDs(ids...)
+	return quo
+}
+
+// AddChoices adds the "choices" edges to the Choice entity.
+func (quo *QuestionUpdateOne) AddChoices(c ...*Choice) *QuestionUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return quo.AddChoiceIDs(ids...)
 }
 
 // AddAnswerIDs adds the "answers" edge to the Answer entity by IDs.
@@ -338,6 +442,27 @@ func (quo *QuestionUpdateOne) Mutation() *QuestionMutation {
 func (quo *QuestionUpdateOne) ClearQuestionnaire() *QuestionUpdateOne {
 	quo.mutation.ClearQuestionnaire()
 	return quo
+}
+
+// ClearChoices clears all "choices" edges to the Choice entity.
+func (quo *QuestionUpdateOne) ClearChoices() *QuestionUpdateOne {
+	quo.mutation.ClearChoices()
+	return quo
+}
+
+// RemoveChoiceIDs removes the "choices" edge to Choice entities by IDs.
+func (quo *QuestionUpdateOne) RemoveChoiceIDs(ids ...uuid.UUID) *QuestionUpdateOne {
+	quo.mutation.RemoveChoiceIDs(ids...)
+	return quo
+}
+
+// RemoveChoices removes "choices" edges to Choice entities.
+func (quo *QuestionUpdateOne) RemoveChoices(c ...*Choice) *QuestionUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return quo.RemoveChoiceIDs(ids...)
 }
 
 // ClearAnswers clears all "answers" edges to the Answer entity.
@@ -403,6 +528,11 @@ func (quo *QuestionUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (quo *QuestionUpdateOne) check() error {
+	if v, ok := quo.mutation.GetType(); ok {
+		if err := question.TypeValidator(v); err != nil {
+			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Question.type": %w`, err)}
+		}
+	}
 	if v, ok := quo.mutation.Body(); ok {
 		if err := question.BodyValidator(v); err != nil {
 			return &ValidationError{Name: "body", err: fmt.Errorf(`ent: validator failed for field "Question.body": %w`, err)}
@@ -412,6 +542,9 @@ func (quo *QuestionUpdateOne) check() error {
 		if err := question.OrderValidator(v); err != nil {
 			return &ValidationError{Name: "order", err: fmt.Errorf(`ent: validator failed for field "Question.order": %w`, err)}
 		}
+	}
+	if _, ok := quo.mutation.QuestionnaireID(); quo.mutation.QuestionnaireCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Question.questionnaire"`)
 	}
 	return nil
 }
@@ -445,6 +578,9 @@ func (quo *QuestionUpdateOne) sqlSave(ctx context.Context) (_node *Question, err
 			}
 		}
 	}
+	if value, ok := quo.mutation.GetType(); ok {
+		_spec.SetField(question.FieldType, field.TypeEnum, value)
+	}
 	if value, ok := quo.mutation.Body(); ok {
 		_spec.SetField(question.FieldBody, field.TypeString, value)
 	}
@@ -476,6 +612,51 @@ func (quo *QuestionUpdateOne) sqlSave(ctx context.Context) (_node *Question, err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(questionnaire.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if quo.mutation.ChoicesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   question.ChoicesTable,
+			Columns: []string{question.ChoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(choice.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := quo.mutation.RemovedChoicesIDs(); len(nodes) > 0 && !quo.mutation.ChoicesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   question.ChoicesTable,
+			Columns: []string{question.ChoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(choice.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := quo.mutation.ChoicesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   question.ChoicesTable,
+			Columns: []string{question.ChoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(choice.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

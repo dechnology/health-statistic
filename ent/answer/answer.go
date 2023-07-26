@@ -23,12 +23,19 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldBody holds the string denoting the body field in the database.
 	FieldBody = "body"
+	// EdgeChosen holds the string denoting the chosen edge name in mutations.
+	EdgeChosen = "chosen"
 	// EdgeQuestion holds the string denoting the question edge name in mutations.
 	EdgeQuestion = "question"
 	// EdgeQuestionnaireResponse holds the string denoting the questionnaire_response edge name in mutations.
 	EdgeQuestionnaireResponse = "questionnaire_response"
 	// Table holds the table name of the answer in the database.
 	Table = "answers"
+	// ChosenTable is the table that holds the chosen relation/edge. The primary key declared below.
+	ChosenTable = "answer_chosen"
+	// ChosenInverseTable is the table name for the Choice entity.
+	// It exists in this package in order to avoid circular dependency with the "choice" package.
+	ChosenInverseTable = "choices"
 	// QuestionTable is the table that holds the question relation/edge.
 	QuestionTable = "answers"
 	// QuestionInverseTable is the table name for the Question entity.
@@ -58,6 +65,12 @@ var ForeignKeys = []string{
 	"question_answers",
 	"questionnaire_response_answers",
 }
+
+var (
+	// ChosenPrimaryKey and ChosenColumn2 are the table columns denoting the
+	// primary key for the chosen relation (M2M).
+	ChosenPrimaryKey = []string{"answer_id", "choice_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -99,6 +112,20 @@ func ByBody(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldBody, opts...).ToFunc()
 }
 
+// ByChosenCount orders the results by chosen count.
+func ByChosenCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newChosenStep(), opts...)
+	}
+}
+
+// ByChosen orders the results by chosen terms.
+func ByChosen(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newChosenStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByQuestionField orders the results by question field.
 func ByQuestionField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -111,6 +138,13 @@ func ByQuestionnaireResponseField(field string, opts ...sql.OrderTermOption) Ord
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newQuestionnaireResponseStep(), sql.OrderByField(field, opts...))
 	}
+}
+func newChosenStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ChosenInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, ChosenTable, ChosenPrimaryKey...),
+	)
 }
 func newQuestionStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(

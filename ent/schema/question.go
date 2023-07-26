@@ -17,6 +17,12 @@ func (Question) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).
 			Default(uuid.New),
+		field.Enum("type").
+			Values(
+				"short_answer",
+				"single_choice",
+				"multiple_choice",
+			),
 		field.Text("body").
 			NotEmpty(),
 		field.Int("order").
@@ -30,7 +36,9 @@ func (Question) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("questionnaire", Questionnaire.Type).
 			Ref("questions").
+			Required().
 			Unique(),
+		edge.To("choices", Choice.Type),
 		edge.To("answers", Answer.Type),
 	}
 }

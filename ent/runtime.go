@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/eesoymilk/health-statistic-api/ent/answer"
+	"github.com/eesoymilk/health-statistic-api/ent/choice"
 	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/price"
@@ -35,6 +36,16 @@ func init() {
 	answerDescID := answerFields[0].Descriptor()
 	// answer.DefaultID holds the default value on creation for the id field.
 	answer.DefaultID = answerDescID.Default.(func() uuid.UUID)
+	choiceFields := schema.Choice{}.Fields()
+	_ = choiceFields
+	// choiceDescOrder is the schema descriptor for order field.
+	choiceDescOrder := choiceFields[2].Descriptor()
+	// choice.OrderValidator is a validator for the "order" field. It is called by the builders before save.
+	choice.OrderValidator = choiceDescOrder.Validators[0].(func(int) error)
+	// choiceDescID is the schema descriptor for id field.
+	choiceDescID := choiceFields[0].Descriptor()
+	// choice.DefaultID holds the default value on creation for the id field.
+	choice.DefaultID = choiceDescID.Default.(func() uuid.UUID)
 	mycardFields := schema.MyCard{}.Fields()
 	_ = mycardFields
 	// mycardDescCardPassword is the schema descriptor for card_password field.
@@ -104,11 +115,11 @@ func init() {
 	questionFields := schema.Question{}.Fields()
 	_ = questionFields
 	// questionDescBody is the schema descriptor for body field.
-	questionDescBody := questionFields[1].Descriptor()
+	questionDescBody := questionFields[2].Descriptor()
 	// question.BodyValidator is a validator for the "body" field. It is called by the builders before save.
 	question.BodyValidator = questionDescBody.Validators[0].(func(string) error)
 	// questionDescOrder is the schema descriptor for order field.
-	questionDescOrder := questionFields[2].Descriptor()
+	questionDescOrder := questionFields[3].Descriptor()
 	// question.OrderValidator is a validator for the "order" field. It is called by the builders before save.
 	question.OrderValidator = questionDescOrder.Validators[0].(func(int) error)
 	// questionDescID is the schema descriptor for id field.

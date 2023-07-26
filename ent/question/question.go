@@ -7,6 +7,8 @@
 package question
 
 import (
+	"fmt"
+
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
@@ -17,12 +19,16 @@ const (
 	Label = "question"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldType holds the string denoting the type field in the database.
+	FieldType = "type"
 	// FieldBody holds the string denoting the body field in the database.
 	FieldBody = "body"
 	// FieldOrder holds the string denoting the order field in the database.
 	FieldOrder = "order"
 	// EdgeQuestionnaire holds the string denoting the questionnaire edge name in mutations.
 	EdgeQuestionnaire = "questionnaire"
+	// EdgeChoices holds the string denoting the choices edge name in mutations.
+	EdgeChoices = "choices"
 	// EdgeAnswers holds the string denoting the answers edge name in mutations.
 	EdgeAnswers = "answers"
 	// Table holds the table name of the question in the database.
@@ -34,6 +40,13 @@ const (
 	QuestionnaireInverseTable = "questionnaires"
 	// QuestionnaireColumn is the table column denoting the questionnaire relation/edge.
 	QuestionnaireColumn = "questionnaire_questions"
+	// ChoicesTable is the table that holds the choices relation/edge.
+	ChoicesTable = "choices"
+	// ChoicesInverseTable is the table name for the Choice entity.
+	// It exists in this package in order to avoid circular dependency with the "choice" package.
+	ChoicesInverseTable = "choices"
+	// ChoicesColumn is the table column denoting the choices relation/edge.
+	ChoicesColumn = "question_choices"
 	// AnswersTable is the table that holds the answers relation/edge.
 	AnswersTable = "answers"
 	// AnswersInverseTable is the table name for the Answer entity.
@@ -46,6 +59,7 @@ const (
 // Columns holds all SQL columns for question fields.
 var Columns = []string{
 	FieldID,
+	FieldType,
 	FieldBody,
 	FieldOrder,
 }
@@ -80,12 +94,41 @@ var (
 	DefaultID func() uuid.UUID
 )
 
+// Type defines the type for the "type" enum field.
+type Type string
+
+// Type values.
+const (
+	TypeShortAnswer    Type = "short_answer"
+	TypeSingleChoice   Type = "single_choice"
+	TypeMultipleChoice Type = "multiple_choice"
+)
+
+func (_type Type) String() string {
+	return string(_type)
+}
+
+// TypeValidator is a validator for the "type" field enum values. It is called by the builders before save.
+func TypeValidator(_type Type) error {
+	switch _type {
+	case TypeShortAnswer, TypeSingleChoice, TypeMultipleChoice:
+		return nil
+	default:
+		return fmt.Errorf("question: invalid enum value for type field: %q", _type)
+	}
+}
+
 // OrderOption defines the ordering options for the Question queries.
 type OrderOption func(*sql.Selector)
 
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByType orders the results by the type field.
+func ByType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldType, opts...).ToFunc()
 }
 
 // ByBody orders the results by the body field.
@@ -102,6 +145,20 @@ func ByOrder(opts ...sql.OrderTermOption) OrderOption {
 func ByQuestionnaireField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newQuestionnaireStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByChoicesCount orders the results by choices count.
+func ByChoicesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newChoicesStep(), opts...)
+	}
+}
+
+// ByChoices orders the results by choices terms.
+func ByChoices(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newChoicesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -123,6 +180,13 @@ func newQuestionnaireStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(QuestionnaireInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, QuestionnaireTable, QuestionnaireColumn),
+	)
+}
+func newChoicesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ChoicesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ChoicesTable, ChoicesColumn),
 	)
 }
 func newAnswersStep() *sqlgraph.Step {

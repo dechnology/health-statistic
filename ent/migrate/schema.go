@@ -14,11 +14,11 @@ import (
 var (
 	// AnswersColumns holds the columns for the "answers" table.
 	AnswersColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID},
+		{Name: "id", Type: field.TypeUUID, Unique: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "body", Type: field.TypeString, Size: 2147483647},
-		{Name: "question_answers", Type: field.TypeUUID, Nullable: true},
-		{Name: "questionnaire_response_answers", Type: field.TypeUUID, Nullable: true},
+		{Name: "question_answers", Type: field.TypeUUID},
+		{Name: "questionnaire_response_answers", Type: field.TypeUUID},
 	}
 	// AnswersTable holds the schema information for the "answers" table.
 	AnswersTable = &schema.Table{
@@ -30,12 +30,33 @@ var (
 				Symbol:     "answers_questions_answers",
 				Columns:    []*schema.Column{AnswersColumns[3]},
 				RefColumns: []*schema.Column{QuestionsColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "answers_questionnaire_responses_answers",
 				Columns:    []*schema.Column{AnswersColumns[4]},
 				RefColumns: []*schema.Column{QuestionnaireResponsesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
+	// ChoicesColumns holds the columns for the "choices" table.
+	ChoicesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "body", Type: field.TypeString, Unique: true, Size: 2147483647},
+		{Name: "order", Type: field.TypeInt, Unique: true},
+		{Name: "question_choices", Type: field.TypeUUID, Nullable: true},
+	}
+	// ChoicesTable holds the schema information for the "choices" table.
+	ChoicesTable = &schema.Table{
+		Name:       "choices",
+		Columns:    ChoicesColumns,
+		PrimaryKey: []*schema.Column{ChoicesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "choices_questions_choices",
+				Columns:    []*schema.Column{ChoicesColumns[3]},
+				RefColumns: []*schema.Column{QuestionsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -125,9 +146,10 @@ var (
 	// QuestionsColumns holds the columns for the "questions" table.
 	QuestionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"short_answer", "single_choice", "multiple_choice"}},
 		{Name: "body", Type: field.TypeString, Size: 2147483647},
 		{Name: "order", Type: field.TypeInt, Unique: true},
-		{Name: "questionnaire_questions", Type: field.TypeUUID, Nullable: true},
+		{Name: "questionnaire_questions", Type: field.TypeUUID},
 	}
 	// QuestionsTable holds the schema information for the "questions" table.
 	QuestionsTable = &schema.Table{
@@ -137,9 +159,9 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "questions_questionnaires_questions",
-				Columns:    []*schema.Column{QuestionsColumns[3]},
+				Columns:    []*schema.Column{QuestionsColumns[4]},
 				RefColumns: []*schema.Column{QuestionnairesColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.NoAction,
 			},
 		},
 	}
@@ -208,9 +230,35 @@ var (
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
+	// AnswerChosenColumns holds the columns for the "answer_chosen" table.
+	AnswerChosenColumns = []*schema.Column{
+		{Name: "answer_id", Type: field.TypeUUID},
+		{Name: "choice_id", Type: field.TypeUUID},
+	}
+	// AnswerChosenTable holds the schema information for the "answer_chosen" table.
+	AnswerChosenTable = &schema.Table{
+		Name:       "answer_chosen",
+		Columns:    AnswerChosenColumns,
+		PrimaryKey: []*schema.Column{AnswerChosenColumns[0], AnswerChosenColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "answer_chosen_answer_id",
+				Columns:    []*schema.Column{AnswerChosenColumns[0]},
+				RefColumns: []*schema.Column{AnswersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "answer_chosen_choice_id",
+				Columns:    []*schema.Column{AnswerChosenColumns[1]},
+				RefColumns: []*schema.Column{ChoicesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AnswersTable,
+		ChoicesTable,
 		MyCardsTable,
 		NotificationsTable,
 		PricesTable,
@@ -218,12 +266,14 @@ var (
 		QuestionnairesTable,
 		QuestionnaireResponsesTable,
 		UsersTable,
+		AnswerChosenTable,
 	}
 )
 
 func init() {
 	AnswersTable.ForeignKeys[0].RefTable = QuestionsTable
 	AnswersTable.ForeignKeys[1].RefTable = QuestionnaireResponsesTable
+	ChoicesTable.ForeignKeys[0].RefTable = QuestionsTable
 	MyCardsTable.ForeignKeys[0].RefTable = UsersTable
 	NotificationsTable.ForeignKeys[0].RefTable = MyCardsTable
 	NotificationsTable.ForeignKeys[1].RefTable = PricesTable
@@ -232,4 +282,6 @@ func init() {
 	QuestionsTable.ForeignKeys[0].RefTable = QuestionnairesTable
 	QuestionnaireResponsesTable.ForeignKeys[0].RefTable = QuestionnairesTable
 	QuestionnaireResponsesTable.ForeignKeys[1].RefTable = UsersTable
+	AnswerChosenTable.ForeignKeys[0].RefTable = AnswersTable
+	AnswerChosenTable.ForeignKeys[1].RefTable = ChoicesTable
 }

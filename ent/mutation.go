@@ -16,6 +16,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/eesoymilk/health-statistic-api/ent/answer"
+	"github.com/eesoymilk/health-statistic-api/ent/choice"
 	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
@@ -37,6 +38,7 @@ const (
 
 	// Node types.
 	TypeAnswer                = "Answer"
+	TypeChoice                = "Choice"
 	TypeMyCard                = "MyCard"
 	TypeNotification          = "Notification"
 	TypePrice                 = "Price"
@@ -55,6 +57,9 @@ type AnswerMutation struct {
 	created_at                    *time.Time
 	body                          *string
 	clearedFields                 map[string]struct{}
+	chosen                        map[uuid.UUID]struct{}
+	removedchosen                 map[uuid.UUID]struct{}
+	clearedchosen                 bool
 	question                      *uuid.UUID
 	clearedquestion               bool
 	questionnaire_response        *uuid.UUID
@@ -238,6 +243,60 @@ func (m *AnswerMutation) OldBody(ctx context.Context) (v string, err error) {
 // ResetBody resets all changes to the "body" field.
 func (m *AnswerMutation) ResetBody() {
 	m.body = nil
+}
+
+// AddChosenIDs adds the "chosen" edge to the Choice entity by ids.
+func (m *AnswerMutation) AddChosenIDs(ids ...uuid.UUID) {
+	if m.chosen == nil {
+		m.chosen = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.chosen[ids[i]] = struct{}{}
+	}
+}
+
+// ClearChosen clears the "chosen" edge to the Choice entity.
+func (m *AnswerMutation) ClearChosen() {
+	m.clearedchosen = true
+}
+
+// ChosenCleared reports if the "chosen" edge to the Choice entity was cleared.
+func (m *AnswerMutation) ChosenCleared() bool {
+	return m.clearedchosen
+}
+
+// RemoveChosenIDs removes the "chosen" edge to the Choice entity by IDs.
+func (m *AnswerMutation) RemoveChosenIDs(ids ...uuid.UUID) {
+	if m.removedchosen == nil {
+		m.removedchosen = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.chosen, ids[i])
+		m.removedchosen[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedChosen returns the removed IDs of the "chosen" edge to the Choice entity.
+func (m *AnswerMutation) RemovedChosenIDs() (ids []uuid.UUID) {
+	for id := range m.removedchosen {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ChosenIDs returns the "chosen" edge IDs in the mutation.
+func (m *AnswerMutation) ChosenIDs() (ids []uuid.UUID) {
+	for id := range m.chosen {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetChosen resets all changes to the "chosen" edge.
+func (m *AnswerMutation) ResetChosen() {
+	m.chosen = nil
+	m.clearedchosen = false
+	m.removedchosen = nil
 }
 
 // SetQuestionID sets the "question" edge to the Question entity by id.
@@ -468,7 +527,10 @@ func (m *AnswerMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *AnswerMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.chosen != nil {
+		edges = append(edges, answer.EdgeChosen)
+	}
 	if m.question != nil {
 		edges = append(edges, answer.EdgeQuestion)
 	}
@@ -482,6 +544,12 @@ func (m *AnswerMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *AnswerMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case answer.EdgeChosen:
+		ids := make([]ent.Value, 0, len(m.chosen))
+		for id := range m.chosen {
+			ids = append(ids, id)
+		}
+		return ids
 	case answer.EdgeQuestion:
 		if id := m.question; id != nil {
 			return []ent.Value{*id}
@@ -496,19 +564,33 @@ func (m *AnswerMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *AnswerMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.removedchosen != nil {
+		edges = append(edges, answer.EdgeChosen)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *AnswerMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case answer.EdgeChosen:
+		ids := make([]ent.Value, 0, len(m.removedchosen))
+		for id := range m.removedchosen {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *AnswerMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.clearedchosen {
+		edges = append(edges, answer.EdgeChosen)
+	}
 	if m.clearedquestion {
 		edges = append(edges, answer.EdgeQuestion)
 	}
@@ -522,6 +604,8 @@ func (m *AnswerMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *AnswerMutation) EdgeCleared(name string) bool {
 	switch name {
+	case answer.EdgeChosen:
+		return m.clearedchosen
 	case answer.EdgeQuestion:
 		return m.clearedquestion
 	case answer.EdgeQuestionnaireResponse:
@@ -548,6 +632,9 @@ func (m *AnswerMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *AnswerMutation) ResetEdge(name string) error {
 	switch name {
+	case answer.EdgeChosen:
+		m.ResetChosen()
+		return nil
 	case answer.EdgeQuestion:
 		m.ResetQuestion()
 		return nil
@@ -556,6 +643,580 @@ func (m *AnswerMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Answer edge %s", name)
+}
+
+// ChoiceMutation represents an operation that mutates the Choice nodes in the graph.
+type ChoiceMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *uuid.UUID
+	body           *string
+	_order         *int
+	add_order      *int
+	clearedFields  map[string]struct{}
+	quesion        *uuid.UUID
+	clearedquesion bool
+	answer         map[uuid.UUID]struct{}
+	removedanswer  map[uuid.UUID]struct{}
+	clearedanswer  bool
+	done           bool
+	oldValue       func(context.Context) (*Choice, error)
+	predicates     []predicate.Choice
+}
+
+var _ ent.Mutation = (*ChoiceMutation)(nil)
+
+// choiceOption allows management of the mutation configuration using functional options.
+type choiceOption func(*ChoiceMutation)
+
+// newChoiceMutation creates new mutation for the Choice entity.
+func newChoiceMutation(c config, op Op, opts ...choiceOption) *ChoiceMutation {
+	m := &ChoiceMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeChoice,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withChoiceID sets the ID field of the mutation.
+func withChoiceID(id uuid.UUID) choiceOption {
+	return func(m *ChoiceMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Choice
+		)
+		m.oldValue = func(ctx context.Context) (*Choice, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Choice.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withChoice sets the old Choice of the mutation.
+func withChoice(node *Choice) choiceOption {
+	return func(m *ChoiceMutation) {
+		m.oldValue = func(context.Context) (*Choice, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ChoiceMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ChoiceMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Choice entities.
+func (m *ChoiceMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ChoiceMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ChoiceMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Choice.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetBody sets the "body" field.
+func (m *ChoiceMutation) SetBody(s string) {
+	m.body = &s
+}
+
+// Body returns the value of the "body" field in the mutation.
+func (m *ChoiceMutation) Body() (r string, exists bool) {
+	v := m.body
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBody returns the old "body" field's value of the Choice entity.
+// If the Choice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChoiceMutation) OldBody(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBody is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBody requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBody: %w", err)
+	}
+	return oldValue.Body, nil
+}
+
+// ResetBody resets all changes to the "body" field.
+func (m *ChoiceMutation) ResetBody() {
+	m.body = nil
+}
+
+// SetOrder sets the "order" field.
+func (m *ChoiceMutation) SetOrder(i int) {
+	m._order = &i
+	m.add_order = nil
+}
+
+// Order returns the value of the "order" field in the mutation.
+func (m *ChoiceMutation) Order() (r int, exists bool) {
+	v := m._order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrder returns the old "order" field's value of the Choice entity.
+// If the Choice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChoiceMutation) OldOrder(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrder is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrder requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrder: %w", err)
+	}
+	return oldValue.Order, nil
+}
+
+// AddOrder adds i to the "order" field.
+func (m *ChoiceMutation) AddOrder(i int) {
+	if m.add_order != nil {
+		*m.add_order += i
+	} else {
+		m.add_order = &i
+	}
+}
+
+// AddedOrder returns the value that was added to the "order" field in this mutation.
+func (m *ChoiceMutation) AddedOrder() (r int, exists bool) {
+	v := m.add_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetOrder resets all changes to the "order" field.
+func (m *ChoiceMutation) ResetOrder() {
+	m._order = nil
+	m.add_order = nil
+}
+
+// SetQuesionID sets the "quesion" edge to the Question entity by id.
+func (m *ChoiceMutation) SetQuesionID(id uuid.UUID) {
+	m.quesion = &id
+}
+
+// ClearQuesion clears the "quesion" edge to the Question entity.
+func (m *ChoiceMutation) ClearQuesion() {
+	m.clearedquesion = true
+}
+
+// QuesionCleared reports if the "quesion" edge to the Question entity was cleared.
+func (m *ChoiceMutation) QuesionCleared() bool {
+	return m.clearedquesion
+}
+
+// QuesionID returns the "quesion" edge ID in the mutation.
+func (m *ChoiceMutation) QuesionID() (id uuid.UUID, exists bool) {
+	if m.quesion != nil {
+		return *m.quesion, true
+	}
+	return
+}
+
+// QuesionIDs returns the "quesion" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// QuesionID instead. It exists only for internal usage by the builders.
+func (m *ChoiceMutation) QuesionIDs() (ids []uuid.UUID) {
+	if id := m.quesion; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetQuesion resets all changes to the "quesion" edge.
+func (m *ChoiceMutation) ResetQuesion() {
+	m.quesion = nil
+	m.clearedquesion = false
+}
+
+// AddAnswerIDs adds the "answer" edge to the Answer entity by ids.
+func (m *ChoiceMutation) AddAnswerIDs(ids ...uuid.UUID) {
+	if m.answer == nil {
+		m.answer = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.answer[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAnswer clears the "answer" edge to the Answer entity.
+func (m *ChoiceMutation) ClearAnswer() {
+	m.clearedanswer = true
+}
+
+// AnswerCleared reports if the "answer" edge to the Answer entity was cleared.
+func (m *ChoiceMutation) AnswerCleared() bool {
+	return m.clearedanswer
+}
+
+// RemoveAnswerIDs removes the "answer" edge to the Answer entity by IDs.
+func (m *ChoiceMutation) RemoveAnswerIDs(ids ...uuid.UUID) {
+	if m.removedanswer == nil {
+		m.removedanswer = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.answer, ids[i])
+		m.removedanswer[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAnswer returns the removed IDs of the "answer" edge to the Answer entity.
+func (m *ChoiceMutation) RemovedAnswerIDs() (ids []uuid.UUID) {
+	for id := range m.removedanswer {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AnswerIDs returns the "answer" edge IDs in the mutation.
+func (m *ChoiceMutation) AnswerIDs() (ids []uuid.UUID) {
+	for id := range m.answer {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAnswer resets all changes to the "answer" edge.
+func (m *ChoiceMutation) ResetAnswer() {
+	m.answer = nil
+	m.clearedanswer = false
+	m.removedanswer = nil
+}
+
+// Where appends a list predicates to the ChoiceMutation builder.
+func (m *ChoiceMutation) Where(ps ...predicate.Choice) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ChoiceMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ChoiceMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Choice, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ChoiceMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ChoiceMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Choice).
+func (m *ChoiceMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ChoiceMutation) Fields() []string {
+	fields := make([]string, 0, 2)
+	if m.body != nil {
+		fields = append(fields, choice.FieldBody)
+	}
+	if m._order != nil {
+		fields = append(fields, choice.FieldOrder)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ChoiceMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case choice.FieldBody:
+		return m.Body()
+	case choice.FieldOrder:
+		return m.Order()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ChoiceMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case choice.FieldBody:
+		return m.OldBody(ctx)
+	case choice.FieldOrder:
+		return m.OldOrder(ctx)
+	}
+	return nil, fmt.Errorf("unknown Choice field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ChoiceMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case choice.FieldBody:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBody(v)
+		return nil
+	case choice.FieldOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrder(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Choice field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ChoiceMutation) AddedFields() []string {
+	var fields []string
+	if m.add_order != nil {
+		fields = append(fields, choice.FieldOrder)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ChoiceMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case choice.FieldOrder:
+		return m.AddedOrder()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ChoiceMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case choice.FieldOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddOrder(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Choice numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ChoiceMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ChoiceMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ChoiceMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Choice nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ChoiceMutation) ResetField(name string) error {
+	switch name {
+	case choice.FieldBody:
+		m.ResetBody()
+		return nil
+	case choice.FieldOrder:
+		m.ResetOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown Choice field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ChoiceMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.quesion != nil {
+		edges = append(edges, choice.EdgeQuesion)
+	}
+	if m.answer != nil {
+		edges = append(edges, choice.EdgeAnswer)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ChoiceMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case choice.EdgeQuesion:
+		if id := m.quesion; id != nil {
+			return []ent.Value{*id}
+		}
+	case choice.EdgeAnswer:
+		ids := make([]ent.Value, 0, len(m.answer))
+		for id := range m.answer {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ChoiceMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removedanswer != nil {
+		edges = append(edges, choice.EdgeAnswer)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ChoiceMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case choice.EdgeAnswer:
+		ids := make([]ent.Value, 0, len(m.removedanswer))
+		for id := range m.removedanswer {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ChoiceMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedquesion {
+		edges = append(edges, choice.EdgeQuesion)
+	}
+	if m.clearedanswer {
+		edges = append(edges, choice.EdgeAnswer)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ChoiceMutation) EdgeCleared(name string) bool {
+	switch name {
+	case choice.EdgeQuesion:
+		return m.clearedquesion
+	case choice.EdgeAnswer:
+		return m.clearedanswer
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ChoiceMutation) ClearEdge(name string) error {
+	switch name {
+	case choice.EdgeQuesion:
+		m.ClearQuesion()
+		return nil
+	}
+	return fmt.Errorf("unknown Choice unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ChoiceMutation) ResetEdge(name string) error {
+	switch name {
+	case choice.EdgeQuesion:
+		m.ResetQuesion()
+		return nil
+	case choice.EdgeAnswer:
+		m.ResetAnswer()
+		return nil
+	}
+	return fmt.Errorf("unknown Choice edge %s", name)
 }
 
 // MyCardMutation represents an operation that mutates the MyCard nodes in the graph.
@@ -2566,12 +3227,16 @@ type QuestionMutation struct {
 	op                   Op
 	typ                  string
 	id                   *uuid.UUID
+	_type                *question.Type
 	body                 *string
 	_order               *int
 	add_order            *int
 	clearedFields        map[string]struct{}
 	questionnaire        *uuid.UUID
 	clearedquestionnaire bool
+	choices              map[uuid.UUID]struct{}
+	removedchoices       map[uuid.UUID]struct{}
+	clearedchoices       bool
 	answers              map[uuid.UUID]struct{}
 	removedanswers       map[uuid.UUID]struct{}
 	clearedanswers       bool
@@ -2682,6 +3347,42 @@ func (m *QuestionMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetType sets the "type" field.
+func (m *QuestionMutation) SetType(q question.Type) {
+	m._type = &q
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *QuestionMutation) GetType() (r question.Type, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the Question entity.
+// If the Question object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QuestionMutation) OldType(ctx context.Context) (v question.Type, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *QuestionMutation) ResetType() {
+	m._type = nil
 }
 
 // SetBody sets the "body" field.
@@ -2815,6 +3516,60 @@ func (m *QuestionMutation) ResetQuestionnaire() {
 	m.clearedquestionnaire = false
 }
 
+// AddChoiceIDs adds the "choices" edge to the Choice entity by ids.
+func (m *QuestionMutation) AddChoiceIDs(ids ...uuid.UUID) {
+	if m.choices == nil {
+		m.choices = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.choices[ids[i]] = struct{}{}
+	}
+}
+
+// ClearChoices clears the "choices" edge to the Choice entity.
+func (m *QuestionMutation) ClearChoices() {
+	m.clearedchoices = true
+}
+
+// ChoicesCleared reports if the "choices" edge to the Choice entity was cleared.
+func (m *QuestionMutation) ChoicesCleared() bool {
+	return m.clearedchoices
+}
+
+// RemoveChoiceIDs removes the "choices" edge to the Choice entity by IDs.
+func (m *QuestionMutation) RemoveChoiceIDs(ids ...uuid.UUID) {
+	if m.removedchoices == nil {
+		m.removedchoices = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.choices, ids[i])
+		m.removedchoices[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedChoices returns the removed IDs of the "choices" edge to the Choice entity.
+func (m *QuestionMutation) RemovedChoicesIDs() (ids []uuid.UUID) {
+	for id := range m.removedchoices {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ChoicesIDs returns the "choices" edge IDs in the mutation.
+func (m *QuestionMutation) ChoicesIDs() (ids []uuid.UUID) {
+	for id := range m.choices {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetChoices resets all changes to the "choices" edge.
+func (m *QuestionMutation) ResetChoices() {
+	m.choices = nil
+	m.clearedchoices = false
+	m.removedchoices = nil
+}
+
 // AddAnswerIDs adds the "answers" edge to the Answer entity by ids.
 func (m *QuestionMutation) AddAnswerIDs(ids ...uuid.UUID) {
 	if m.answers == nil {
@@ -2903,7 +3658,10 @@ func (m *QuestionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *QuestionMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 3)
+	if m._type != nil {
+		fields = append(fields, question.FieldType)
+	}
 	if m.body != nil {
 		fields = append(fields, question.FieldBody)
 	}
@@ -2918,6 +3676,8 @@ func (m *QuestionMutation) Fields() []string {
 // schema.
 func (m *QuestionMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case question.FieldType:
+		return m.GetType()
 	case question.FieldBody:
 		return m.Body()
 	case question.FieldOrder:
@@ -2931,6 +3691,8 @@ func (m *QuestionMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *QuestionMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case question.FieldType:
+		return m.OldType(ctx)
 	case question.FieldBody:
 		return m.OldBody(ctx)
 	case question.FieldOrder:
@@ -2944,6 +3706,13 @@ func (m *QuestionMutation) OldField(ctx context.Context, name string) (ent.Value
 // type.
 func (m *QuestionMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case question.FieldType:
+		v, ok := value.(question.Type)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
+		return nil
 	case question.FieldBody:
 		v, ok := value.(string)
 		if !ok {
@@ -3022,6 +3791,9 @@ func (m *QuestionMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *QuestionMutation) ResetField(name string) error {
 	switch name {
+	case question.FieldType:
+		m.ResetType()
+		return nil
 	case question.FieldBody:
 		m.ResetBody()
 		return nil
@@ -3034,9 +3806,12 @@ func (m *QuestionMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *QuestionMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.questionnaire != nil {
 		edges = append(edges, question.EdgeQuestionnaire)
+	}
+	if m.choices != nil {
+		edges = append(edges, question.EdgeChoices)
 	}
 	if m.answers != nil {
 		edges = append(edges, question.EdgeAnswers)
@@ -3052,6 +3827,12 @@ func (m *QuestionMutation) AddedIDs(name string) []ent.Value {
 		if id := m.questionnaire; id != nil {
 			return []ent.Value{*id}
 		}
+	case question.EdgeChoices:
+		ids := make([]ent.Value, 0, len(m.choices))
+		for id := range m.choices {
+			ids = append(ids, id)
+		}
+		return ids
 	case question.EdgeAnswers:
 		ids := make([]ent.Value, 0, len(m.answers))
 		for id := range m.answers {
@@ -3064,7 +3845,10 @@ func (m *QuestionMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *QuestionMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.removedchoices != nil {
+		edges = append(edges, question.EdgeChoices)
+	}
 	if m.removedanswers != nil {
 		edges = append(edges, question.EdgeAnswers)
 	}
@@ -3075,6 +3859,12 @@ func (m *QuestionMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *QuestionMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
+	case question.EdgeChoices:
+		ids := make([]ent.Value, 0, len(m.removedchoices))
+		for id := range m.removedchoices {
+			ids = append(ids, id)
+		}
+		return ids
 	case question.EdgeAnswers:
 		ids := make([]ent.Value, 0, len(m.removedanswers))
 		for id := range m.removedanswers {
@@ -3087,9 +3877,12 @@ func (m *QuestionMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *QuestionMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedquestionnaire {
 		edges = append(edges, question.EdgeQuestionnaire)
+	}
+	if m.clearedchoices {
+		edges = append(edges, question.EdgeChoices)
 	}
 	if m.clearedanswers {
 		edges = append(edges, question.EdgeAnswers)
@@ -3103,6 +3896,8 @@ func (m *QuestionMutation) EdgeCleared(name string) bool {
 	switch name {
 	case question.EdgeQuestionnaire:
 		return m.clearedquestionnaire
+	case question.EdgeChoices:
+		return m.clearedchoices
 	case question.EdgeAnswers:
 		return m.clearedanswers
 	}
@@ -3126,6 +3921,9 @@ func (m *QuestionMutation) ResetEdge(name string) error {
 	switch name {
 	case question.EdgeQuestionnaire:
 		m.ResetQuestionnaire()
+		return nil
+	case question.EdgeChoices:
+		m.ResetChoices()
 		return nil
 	case question.EdgeAnswers:
 		m.ResetAnswers()

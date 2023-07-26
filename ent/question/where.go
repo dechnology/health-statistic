@@ -68,6 +68,26 @@ func Order(v int) predicate.Question {
 	return predicate.Question(sql.FieldEQ(FieldOrder, v))
 }
 
+// TypeEQ applies the EQ predicate on the "type" field.
+func TypeEQ(v Type) predicate.Question {
+	return predicate.Question(sql.FieldEQ(FieldType, v))
+}
+
+// TypeNEQ applies the NEQ predicate on the "type" field.
+func TypeNEQ(v Type) predicate.Question {
+	return predicate.Question(sql.FieldNEQ(FieldType, v))
+}
+
+// TypeIn applies the In predicate on the "type" field.
+func TypeIn(vs ...Type) predicate.Question {
+	return predicate.Question(sql.FieldIn(FieldType, vs...))
+}
+
+// TypeNotIn applies the NotIn predicate on the "type" field.
+func TypeNotIn(vs ...Type) predicate.Question {
+	return predicate.Question(sql.FieldNotIn(FieldType, vs...))
+}
+
 // BodyEQ applies the EQ predicate on the "body" field.
 func BodyEQ(v string) predicate.Question {
 	return predicate.Question(sql.FieldEQ(FieldBody, v))
@@ -188,6 +208,29 @@ func HasQuestionnaire() predicate.Question {
 func HasQuestionnaireWith(preds ...predicate.Questionnaire) predicate.Question {
 	return predicate.Question(func(s *sql.Selector) {
 		step := newQuestionnaireStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasChoices applies the HasEdge predicate on the "choices" edge.
+func HasChoices() predicate.Question {
+	return predicate.Question(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ChoicesTable, ChoicesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasChoicesWith applies the HasEdge predicate on the "choices" edge with a given conditions (other predicates).
+func HasChoicesWith(preds ...predicate.Choice) predicate.Question {
+	return predicate.Question(func(s *sql.Selector) {
+		step := newChoicesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

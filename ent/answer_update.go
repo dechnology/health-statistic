@@ -16,6 +16,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/eesoymilk/health-statistic-api/ent/answer"
+	"github.com/eesoymilk/health-statistic-api/ent/choice"
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
 	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
@@ -55,17 +56,24 @@ func (au *AnswerUpdate) SetBody(s string) *AnswerUpdate {
 	return au
 }
 
-// SetQuestionID sets the "question" edge to the Question entity by ID.
-func (au *AnswerUpdate) SetQuestionID(id uuid.UUID) *AnswerUpdate {
-	au.mutation.SetQuestionID(id)
+// AddChosenIDs adds the "chosen" edge to the Choice entity by IDs.
+func (au *AnswerUpdate) AddChosenIDs(ids ...uuid.UUID) *AnswerUpdate {
+	au.mutation.AddChosenIDs(ids...)
 	return au
 }
 
-// SetNillableQuestionID sets the "question" edge to the Question entity by ID if the given value is not nil.
-func (au *AnswerUpdate) SetNillableQuestionID(id *uuid.UUID) *AnswerUpdate {
-	if id != nil {
-		au = au.SetQuestionID(*id)
+// AddChosen adds the "chosen" edges to the Choice entity.
+func (au *AnswerUpdate) AddChosen(c ...*Choice) *AnswerUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
 	}
+	return au.AddChosenIDs(ids...)
+}
+
+// SetQuestionID sets the "question" edge to the Question entity by ID.
+func (au *AnswerUpdate) SetQuestionID(id uuid.UUID) *AnswerUpdate {
+	au.mutation.SetQuestionID(id)
 	return au
 }
 
@@ -80,14 +88,6 @@ func (au *AnswerUpdate) SetQuestionnaireResponseID(id uuid.UUID) *AnswerUpdate {
 	return au
 }
 
-// SetNillableQuestionnaireResponseID sets the "questionnaire_response" edge to the QuestionnaireResponse entity by ID if the given value is not nil.
-func (au *AnswerUpdate) SetNillableQuestionnaireResponseID(id *uuid.UUID) *AnswerUpdate {
-	if id != nil {
-		au = au.SetQuestionnaireResponseID(*id)
-	}
-	return au
-}
-
 // SetQuestionnaireResponse sets the "questionnaire_response" edge to the QuestionnaireResponse entity.
 func (au *AnswerUpdate) SetQuestionnaireResponse(q *QuestionnaireResponse) *AnswerUpdate {
 	return au.SetQuestionnaireResponseID(q.ID)
@@ -96,6 +96,27 @@ func (au *AnswerUpdate) SetQuestionnaireResponse(q *QuestionnaireResponse) *Answ
 // Mutation returns the AnswerMutation object of the builder.
 func (au *AnswerUpdate) Mutation() *AnswerMutation {
 	return au.mutation
+}
+
+// ClearChosen clears all "chosen" edges to the Choice entity.
+func (au *AnswerUpdate) ClearChosen() *AnswerUpdate {
+	au.mutation.ClearChosen()
+	return au
+}
+
+// RemoveChosenIDs removes the "chosen" edge to Choice entities by IDs.
+func (au *AnswerUpdate) RemoveChosenIDs(ids ...uuid.UUID) *AnswerUpdate {
+	au.mutation.RemoveChosenIDs(ids...)
+	return au
+}
+
+// RemoveChosen removes "chosen" edges to Choice entities.
+func (au *AnswerUpdate) RemoveChosen(c ...*Choice) *AnswerUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return au.RemoveChosenIDs(ids...)
 }
 
 // ClearQuestion clears the "question" edge to the Question entity.
@@ -137,7 +158,21 @@ func (au *AnswerUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (au *AnswerUpdate) check() error {
+	if _, ok := au.mutation.QuestionID(); au.mutation.QuestionCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Answer.question"`)
+	}
+	if _, ok := au.mutation.QuestionnaireResponseID(); au.mutation.QuestionnaireResponseCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Answer.questionnaire_response"`)
+	}
+	return nil
+}
+
 func (au *AnswerUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := au.check(); err != nil {
+		return n, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(answer.Table, answer.Columns, sqlgraph.NewFieldSpec(answer.FieldID, field.TypeUUID))
 	if ps := au.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -151,6 +186,51 @@ func (au *AnswerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := au.mutation.Body(); ok {
 		_spec.SetField(answer.FieldBody, field.TypeString, value)
+	}
+	if au.mutation.ChosenCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   answer.ChosenTable,
+			Columns: answer.ChosenPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(choice.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.RemovedChosenIDs(); len(nodes) > 0 && !au.mutation.ChosenCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   answer.ChosenTable,
+			Columns: answer.ChosenPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(choice.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.ChosenIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   answer.ChosenTable,
+			Columns: answer.ChosenPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(choice.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if au.mutation.QuestionCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -250,17 +330,24 @@ func (auo *AnswerUpdateOne) SetBody(s string) *AnswerUpdateOne {
 	return auo
 }
 
-// SetQuestionID sets the "question" edge to the Question entity by ID.
-func (auo *AnswerUpdateOne) SetQuestionID(id uuid.UUID) *AnswerUpdateOne {
-	auo.mutation.SetQuestionID(id)
+// AddChosenIDs adds the "chosen" edge to the Choice entity by IDs.
+func (auo *AnswerUpdateOne) AddChosenIDs(ids ...uuid.UUID) *AnswerUpdateOne {
+	auo.mutation.AddChosenIDs(ids...)
 	return auo
 }
 
-// SetNillableQuestionID sets the "question" edge to the Question entity by ID if the given value is not nil.
-func (auo *AnswerUpdateOne) SetNillableQuestionID(id *uuid.UUID) *AnswerUpdateOne {
-	if id != nil {
-		auo = auo.SetQuestionID(*id)
+// AddChosen adds the "chosen" edges to the Choice entity.
+func (auo *AnswerUpdateOne) AddChosen(c ...*Choice) *AnswerUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
 	}
+	return auo.AddChosenIDs(ids...)
+}
+
+// SetQuestionID sets the "question" edge to the Question entity by ID.
+func (auo *AnswerUpdateOne) SetQuestionID(id uuid.UUID) *AnswerUpdateOne {
+	auo.mutation.SetQuestionID(id)
 	return auo
 }
 
@@ -275,14 +362,6 @@ func (auo *AnswerUpdateOne) SetQuestionnaireResponseID(id uuid.UUID) *AnswerUpda
 	return auo
 }
 
-// SetNillableQuestionnaireResponseID sets the "questionnaire_response" edge to the QuestionnaireResponse entity by ID if the given value is not nil.
-func (auo *AnswerUpdateOne) SetNillableQuestionnaireResponseID(id *uuid.UUID) *AnswerUpdateOne {
-	if id != nil {
-		auo = auo.SetQuestionnaireResponseID(*id)
-	}
-	return auo
-}
-
 // SetQuestionnaireResponse sets the "questionnaire_response" edge to the QuestionnaireResponse entity.
 func (auo *AnswerUpdateOne) SetQuestionnaireResponse(q *QuestionnaireResponse) *AnswerUpdateOne {
 	return auo.SetQuestionnaireResponseID(q.ID)
@@ -291,6 +370,27 @@ func (auo *AnswerUpdateOne) SetQuestionnaireResponse(q *QuestionnaireResponse) *
 // Mutation returns the AnswerMutation object of the builder.
 func (auo *AnswerUpdateOne) Mutation() *AnswerMutation {
 	return auo.mutation
+}
+
+// ClearChosen clears all "chosen" edges to the Choice entity.
+func (auo *AnswerUpdateOne) ClearChosen() *AnswerUpdateOne {
+	auo.mutation.ClearChosen()
+	return auo
+}
+
+// RemoveChosenIDs removes the "chosen" edge to Choice entities by IDs.
+func (auo *AnswerUpdateOne) RemoveChosenIDs(ids ...uuid.UUID) *AnswerUpdateOne {
+	auo.mutation.RemoveChosenIDs(ids...)
+	return auo
+}
+
+// RemoveChosen removes "chosen" edges to Choice entities.
+func (auo *AnswerUpdateOne) RemoveChosen(c ...*Choice) *AnswerUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return auo.RemoveChosenIDs(ids...)
 }
 
 // ClearQuestion clears the "question" edge to the Question entity.
@@ -345,7 +445,21 @@ func (auo *AnswerUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (auo *AnswerUpdateOne) check() error {
+	if _, ok := auo.mutation.QuestionID(); auo.mutation.QuestionCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Answer.question"`)
+	}
+	if _, ok := auo.mutation.QuestionnaireResponseID(); auo.mutation.QuestionnaireResponseCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Answer.questionnaire_response"`)
+	}
+	return nil
+}
+
 func (auo *AnswerUpdateOne) sqlSave(ctx context.Context) (_node *Answer, err error) {
+	if err := auo.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(answer.Table, answer.Columns, sqlgraph.NewFieldSpec(answer.FieldID, field.TypeUUID))
 	id, ok := auo.mutation.ID()
 	if !ok {
@@ -376,6 +490,51 @@ func (auo *AnswerUpdateOne) sqlSave(ctx context.Context) (_node *Answer, err err
 	}
 	if value, ok := auo.mutation.Body(); ok {
 		_spec.SetField(answer.FieldBody, field.TypeString, value)
+	}
+	if auo.mutation.ChosenCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   answer.ChosenTable,
+			Columns: answer.ChosenPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(choice.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.RemovedChosenIDs(); len(nodes) > 0 && !auo.mutation.ChosenCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   answer.ChosenTable,
+			Columns: answer.ChosenPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(choice.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.ChosenIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   answer.ChosenTable,
+			Columns: answer.ChosenPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(choice.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if auo.mutation.QuestionCleared() {
 		edge := &sqlgraph.EdgeSpec{

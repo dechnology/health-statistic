@@ -175,6 +175,29 @@ func BodyContainsFold(v string) predicate.Answer {
 	return predicate.Answer(sql.FieldContainsFold(FieldBody, v))
 }
 
+// HasChosen applies the HasEdge predicate on the "chosen" edge.
+func HasChosen() predicate.Answer {
+	return predicate.Answer(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, ChosenTable, ChosenPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasChosenWith applies the HasEdge predicate on the "chosen" edge with a given conditions (other predicates).
+func HasChosenWith(preds ...predicate.Choice) predicate.Answer {
+	return predicate.Answer(func(s *sql.Selector) {
+		step := newChosenStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasQuestion applies the HasEdge predicate on the "question" edge.
 func HasQuestion() predicate.Answer {
 	return predicate.Answer(func(s *sql.Selector) {

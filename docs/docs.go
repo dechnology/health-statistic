@@ -963,6 +963,23 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "ent.Choice": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "description": "Body holds the value of the \"body\" field.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID of the ent.",
+                    "type": "string"
+                },
+                "order": {
+                    "description": "Order holds the value of the \"order\" field.",
+                    "type": "integer"
+                }
+            }
+        },
         "ent.MyCard": {
             "type": "object",
             "properties": {
@@ -1052,6 +1069,14 @@ const docTemplate = `{
                 "order": {
                     "description": "Order holds the value of the \"order\" field.",
                     "type": "integer"
+                },
+                "type": {
+                    "description": "Type holds the value of the \"type\" field.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/question.Type"
+                        }
+                    ]
                 }
             }
         },
@@ -1210,6 +1235,19 @@ const docTemplate = `{
                 "TypePrice"
             ]
         },
+        "question.Type": {
+            "type": "string",
+            "enum": [
+                "short_answer",
+                "single_choice",
+                "multiple_choice"
+            ],
+            "x-enum-varnames": [
+                "TypeShortAnswer",
+                "TypeSingleChoice",
+                "TypeMultipleChoice"
+            ]
+        },
         "types.BaseAnswer": {
             "type": "object",
             "properties": {
@@ -1218,9 +1256,24 @@ const docTemplate = `{
                     "type": "string",
                     "example": "我這週心情還不錯！"
                 },
+                "choices": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ent.Choice"
+                    }
+                },
                 "question_id": {
                     "description": "The question this answer relates to, the question also needs to be in\nthe same questionnaire as the response.",
                     "type": "string"
+                }
+            }
+        },
+        "types.BaseChoice": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "type": "string",
+                    "example": "大部分時候開心"
                 }
             }
         },
@@ -1253,6 +1306,21 @@ const docTemplate = `{
                     "description": "The question body",
                     "type": "string",
                     "example": "你這週的心情如何？"
+                },
+                "choices": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.BaseChoice"
+                    }
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "short_answer",
+                        "single_choice",
+                        "multiple_choice"
+                    ],
+                    "example": "single_choice"
                 }
             }
         },
@@ -1436,6 +1504,14 @@ const docTemplate = `{
                 },
                 "questionnaire": {
                     "$ref": "#/definitions/ent.Questionnaire"
+                },
+                "type": {
+                    "description": "Type holds the value of the \"type\" field.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/question.Type"
+                        }
+                    ]
                 }
             }
         },
