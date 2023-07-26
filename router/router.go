@@ -114,7 +114,10 @@ func New(db *ent.Client) *gin.Engine {
 			h := handlers.QuestionnaireHandler{DB: db}
 			questionnaireGroup.GET("/", h.GetQuestionnaires)
 			questionnaireGroup.POST("/", h.CreateQuestionnaire)
-			questionnaireGroup.GET("/registration")
+			questionnaireGroup.GET(
+				"/registration",
+				h.GetRegistrationQuestionnaire,
+			)
 
 			idGroup := questionnaireGroup.Group("/:id")
 			{

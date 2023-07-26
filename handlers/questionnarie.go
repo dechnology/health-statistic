@@ -46,7 +46,10 @@ func (h *QuestionnaireHandler) GetRegistrationQuestionnaire(c *gin.Context) {
 	id, err := uuid.Parse("88888888-8888-4888-8888-888888888888")
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(
+			http.StatusInternalServerError,
+			gin.H{"error": err.Error()},
+		)
 		return
 	}
 
@@ -57,7 +60,10 @@ func (h *QuestionnaireHandler) GetRegistrationQuestionnaire(c *gin.Context) {
 		Only(c.Request.Context())
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(
+			http.StatusInternalServerError,
+			gin.H{"error": err.Error()},
+		)
 		return
 	}
 
