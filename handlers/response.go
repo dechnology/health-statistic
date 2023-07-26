@@ -14,7 +14,7 @@ import (
 func (h *Handler) RespondQuestionnaire(
 	ctx context.Context,
 	user_id, raw_questionnaire_id string,
-	answers []*types.BaseAnswer,
+	answers []types.BaseAnswer,
 ) (*ent.QuestionnaireResponse, error) {
 	questionnaire_id, err := uuid.Parse(raw_questionnaire_id)
 	if err != nil {
@@ -47,12 +47,12 @@ func (h *Handler) RespondQuestionnaire(
 	return responseNode, nil
 }
 
-//	@Summary				Get Responses
-//	@Description.markdown	responses.get
-//	@Tags					Response
-//	@Produce				json
-//	@Success				200	{object}	[]types.ResponseWithQuestionnaire
-//	@Router					/responses [get]
+// @Summary				Get Responses
+// @Description.markdown	responses.get
+// @Tags					Response
+// @Produce				json
+// @Success				200	{object}	[]types.ResponseWithQuestionnaire
+// @Router					/responses [get]
 func (h *Handler) GetResponses(c *gin.Context) {
 	responses, err := h.DB.QuestionnaireResponse.
 		Query().
@@ -72,13 +72,13 @@ func (h *Handler) GetResponses(c *gin.Context) {
 	c.JSON(http.StatusOK, responses)
 }
 
-//	@Summary				Get Response
-//	@Description.markdown	response.get
-//	@Tags					Response
-//	@Produce				json
-//	@Param					id	path		string	true	"The response's ID"
-//	@Success				200	{object}	types.ResponseWithQuestionnaire
-//	@Router					/responses/{id} [get]
+// @Summary				Get Response
+// @Description.markdown	response.get
+// @Tags					Response
+// @Produce				json
+// @Param					id	path		string	true	"The response's ID"
+// @Success				200	{object}	types.ResponseWithQuestionnaire
+// @Router					/responses/{id} [get]
 func (h *Handler) GetResponse(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 
@@ -107,13 +107,13 @@ func (h *Handler) GetResponse(c *gin.Context) {
 	c.JSON(http.StatusOK, responses)
 }
 
-//	@Summary				Delete Response
-//	@Description.markdown	response.delete
-//	@Tags					Response
-//	@Produce				json
-//	@Param					id	path	string	true	"The response's ID."
-//	@Success				200
-//	@Router					/responses/{id} [delete]
+// @Summary				Delete Response
+// @Description.markdown	response.delete
+// @Tags					Response
+// @Produce				json
+// @Param					id	path	string	true	"The response's ID."
+// @Success				200
+// @Router					/responses/{id} [delete]
 func (h *Handler) DeleteResponse(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 

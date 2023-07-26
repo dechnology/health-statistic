@@ -21,19 +21,19 @@ type BaseAnswer struct {
 	Choices *[]ent.Choice `json:"choices"`
 }
 
-//	@Description	BaseQuestionnaire
+// @Description	BaseQuestionnaire
 type BaseQuestionnaire struct {
 	// The name of the questionnaire
 	Name string `json:"name" example:"問卷標題"`
 	// The initial questions in this questionnaire. This field may be empty
 	// and you can add questions later using post request to
 	// `quesionnaires/:id/new/question`.
-	Questions []*BaseQuestion `json:"questions"`
+	Questions []BaseQuestion `json:"questions"`
 }
 
 type BaseResponse struct {
 	// The answers to all questions in a questionnaire.
-	Answers []*BaseAnswer `json:"answers"`
+	Answers []BaseAnswer `json:"answers"`
 }
 
 type ResponseWithUserId struct {

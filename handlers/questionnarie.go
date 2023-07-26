@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/eesoymilk/health-statistic-api/ent"
+	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaire"
 	"github.com/eesoymilk/health-statistic-api/types"
 	"github.com/gin-gonic/gin"
@@ -15,9 +16,9 @@ import (
 
 func (h *Handler) GetQuestionnaireById(
 	ctx context.Context,
-	raw_id string,
+	rawId string,
 ) (*ent.Questionnaire, error) {
-	id, err := uuid.Parse(raw_id)
+	id, err := uuid.Parse(rawId)
 	if err != nil {
 		return nil, err
 	}
@@ -34,6 +35,47 @@ func (h *Handler) GetQuestionnaireById(
 	}
 
 	return questionnaireNode, nil
+}
+
+func (h *Handler) AppendQuestions(
+	ctx context.Context,
+	rawQuestionnaireId string,
+	questions []types.BaseQuestion,
+) error {
+	questionnaireId, err := uuid.Parse(rawQuestionnaireId)
+	if err != nil {
+		return err
+	}
+
+	n_questions, err := h.DB.Questionnaire.Query().QueryQuestions().Count(ctx)
+	if err != nil {
+		return err
+	}
+
+	for i, questionData := range questions {
+		questionNode, err := h.DB.Question.Create().
+			SetType(question.Type(questionData.Type)).
+			SetBody(questionData.Body).
+			SetOrder(n_questions + i).
+			SetQuestionnaireID(questionnaireId).
+			Save(ctx)
+		if err != nil {
+			return err
+		}
+
+		for i, choice := range questionData.Choices {
+			_, err := h.DB.Choice.Create().
+				SetBody(choice).
+				SetQuesion(questionNode).
+				SetOrder(i).
+				Save(ctx)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 // @Summary				Get Questionnaires
@@ -185,59 +227,33 @@ func (h *Handler) DeleteQuestionnaire(c *gin.Context) {
 // @Accept					json
 // @Produce				json
 // @Param					id			path		string				true	"The questionnaire's ID."
-// @Param					question	body		types.BaseQuestion	true	"The question to be created."
+// @Param					question	body		[]types.BaseQuestion	true	"The question to be created."
 // @Success				200			{object}	ent.Question
 // @Failure				400
-// @Router					/questionnaires/{id}/new/question [post]
-func (h *Handler) CreateQuestion(c *gin.Context) {
-	id, err := uuid.Parse(c.Param("id"))
-	if err != nil {
+// @Router					/questionnaires/{id}/questions [post]
+func (h *Handler) CreateQuestions(c *gin.Context) {
+	var body []types.BaseQuestion
+	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(
-			http.StatusInternalServerError,
+			http.StatusBadRequest,
 			gin.H{"error": err.Error()},
 		)
 		return
 	}
 
-	var questionBody types.BaseQuestion
-	if err := c.ShouldBindJSON(&questionBody); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	n_questions, err := h.DB.Questionnaire.Query().
-		Where(questionnaire.ID(id)).
-		WithQuestions().
-		Count(c.Request.Context())
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	questionNode, err := h.DB.Question.
-		Create().
-		SetBody(questionBody.Body).
-		SetOrder(n_questions).
-		SetQuestionnaireID(id).
-		Save(c.Request.Context())
-
-	if err != nil {
-		errH := gin.H{"error": err.Error()}
-
-		if ent.IsConstraintError(err) {
-			c.JSON(
-				http.StatusBadRequest,
-				errH,
-			)
-		}
+	if err := h.AppendQuestions(
+		c.Request.Context(),
+		c.Param("id"),
+		body,
+	); err != nil {
 		c.JSON(
-			http.StatusInternalServerError,
+			http.StatusBadRequest,
 			gin.H{"error": err.Error()},
 		)
 		return
 	}
 
-	c.JSON(http.StatusOK, questionNode)
+	c.JSON(http.StatusOK, nil)
 }
 
 // @Summary				Create Response
@@ -248,7 +264,7 @@ func (h *Handler) CreateQuestion(c *gin.Context) {
 // @Param					id			path		string				true	"The questionnaire's ID."
 // @Param					response	body		types.BaseResponse	true	"The response to be created."
 // @Success				200			{object}	ent.QuestionnaireResponse
-// @Router					/questionnaires/{id}/new/response [post]
+// @Router					/questionnaires/{id}/responses [post]
 func (h *Handler) CreateResponse(c *gin.Context) {
 	var body types.ResponseWithUserId
 	if err := c.ShouldBindJSON(&body); err != nil {

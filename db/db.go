@@ -9,7 +9,7 @@ import (
 
 	"github.com/eesoymilk/health-statistic-api/ent"
 	"github.com/eesoymilk/health-statistic-api/ent/migrate"
-	"github.com/eesoymilk/health-statistic-api/ent/question"
+	"github.com/eesoymilk/health-statistic-api/handlers"
 	"github.com/eesoymilk/health-statistic-api/types"
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
@@ -18,20 +18,20 @@ import (
 func ReadRegistrationQuestionnaire() (*types.QuestionnaireWithId, error) {
 	data, err := os.ReadFile("./db/registration_questionnaire.json")
 	if err != nil {
-		return nil, fmt.Errorf("failed to read file: %v", err)
+		return nil, err
 	}
 
 	// Parse the JSON
 	var questionnaireData types.QuestionnaireWithId
 	err = json.Unmarshal(data, &questionnaireData)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse JSON: %v", err)
+		return nil, err
 	}
 
 	// Print the json
 	jsonBytes, err := json.MarshalIndent(questionnaireData, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("error marshaling to JSON: %v", err)
+		return nil, err
 	}
 	log.Printf("data: %v", string(jsonBytes))
 
@@ -45,7 +45,7 @@ func CreateRegistrationQuestionnaire(
 	// Parse the JSON
 	questionnaireData, err := ReadRegistrationQuestionnaire()
 	if err != nil {
-		return err
+		return fmt.Errorf("error marshaling to JSON: %v", err)
 	}
 
 	id, err := uuid.Parse(questionnaireData.ID)
@@ -53,7 +53,7 @@ func CreateRegistrationQuestionnaire(
 		return fmt.Errorf("failed parsing id: %v", err)
 	}
 
-	questionnaireNode, err := db.Questionnaire.Create().
+	_, err = db.Questionnaire.Create().
 		SetID(id).
 		SetName(questionnaireData.Name).
 		Save(ctx)
@@ -65,28 +65,16 @@ func CreateRegistrationQuestionnaire(
 		)
 	}
 
-	for i, questionData := range questionnaireData.Questions {
-		questionNode, err := db.Question.Create().
-			SetType(question.Type(questionData.Type)).
-			SetBody(questionData.Body).
-			SetOrder(i).
-			SetQuestionnaire(questionnaireNode).
-			Save(ctx)
-		if err != nil {
-			return fmt.Errorf("failed to create question: %v", err)
-		}
-
-		for i, choice := range questionData.Choices {
-			log.Default().Printf("creating options: %v", choice)
-			_, err := db.Choice.Create().
-				SetBody(choice).
-				SetQuesion(questionNode).
-				SetOrder(i).
-				Save(ctx)
-			if err != nil {
-				return fmt.Errorf("failed to create choice: %v", err)
-			}
-		}
+	h := handlers.Handler{DB: db}
+	if err := h.AppendQuestions(
+		ctx,
+		questionnaireData.ID,
+		questionnaireData.Questions,
+	); err != nil {
+		return fmt.Errorf(
+			"failed to append registration questionnaire questions: %v",
+			err,
+		)
 	}
 
 	return nil
