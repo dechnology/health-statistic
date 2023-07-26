@@ -444,7 +444,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/questionnaires/{id}/new/question": {
+        "/questionnaires/{id}/questions": {
             "post": {
                 "description": "Create a new question for the questionnaire  by the ` + "`" + `id` + "`" + ` path param.\n\n## Request Body\n\n- ` + "`" + `body` + "`" + ` *` + "`" + `string` + "`" + `* **Required**\n    The body of one of the question in the questionnaire.\n\n- ` + "`" + `type` + "`" + ` *` + "`" + `string` + "`" + `* **Required**\n    The type of the question. For now, we accept all strings but in the future this field might be an enum.",
                 "consumes": [
@@ -471,7 +471,10 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/types.BaseQuestion"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/types.BaseQuestion"
+                            }
                         }
                     }
                 ],
@@ -484,47 +487,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request"
-                    }
-                }
-            }
-        },
-        "/questionnaires/{id}/new/response": {
-            "post": {
-                "description": "Create a new response for the questionnaire specified by ` + "`" + `id` + "`" + ` path param.\n\n## Request Body\n\n- ` + "`" + `user_id` + "`" + ` *` + "`" + `string` + "`" + `* **Required**\n    The user auth0 ID. This is the user who submits this response.\n\n- ` + "`" + `answers` + "`" + ` *` + "`" + `array` + "`" + `* **Required**\n    The answers to the questions in the questionnaire submitted by the user above.Note that the length of the answers array must equal to the number of questions in the given questionnaire. Also, all the ` + "`" + `question_id` + "`" + `s must match the questions in the questionnaire.\n \n    - ` + "`" + `question_id` + "`" + ` *` + "`" + `string` + "`" + `* **Required**\n    The question id of a question in the questionnaire which this answer correspond to.\n\n    - ` + "`" + `body` + "`" + ` *` + "`" + `string` + "`" + `* **Required**\n    The body of the answer.\n",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Questionnaire"
-                ],
-                "summary": "Create Response",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The questionnaire's ID.",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "The response to be created.",
-                        "name": "response",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.BaseResponse"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/ent.QuestionnaireResponse"
-                        }
                     }
                 }
             }
@@ -672,7 +634,6 @@ const docTemplate = `{
         },
         "/responses": {
             "get": {
-                "description": "Get all responses from the database. **This will NOT include questionnaires and questions.**\n",
                 "produces": [
                     "application/json"
                 ],

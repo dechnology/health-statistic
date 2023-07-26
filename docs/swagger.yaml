@@ -881,7 +881,7 @@ paths:
       summary: Get Questionnaire
       tags:
       - Questionnaire
-  /questionnaires/{id}/new/question:
+  /questionnaires/{id}/questions:
     post:
       consumes:
       - application/json
@@ -906,7 +906,9 @@ paths:
         name: question
         required: true
         schema:
-          $ref: '#/definitions/types.BaseQuestion'
+          items:
+            $ref: '#/definitions/types.BaseQuestion'
+          type: array
       produces:
       - application/json
       responses:
@@ -917,42 +919,6 @@ paths:
         "400":
           description: Bad Request
       summary: Create Question
-      tags:
-      - Questionnaire
-  /questionnaires/{id}/new/response:
-    post:
-      consumes:
-      - application/json
-      description: "Create a new response for the questionnaire specified by `id`
-        path param.\n\n## Request Body\n\n- `user_id` *`string`* **Required**\n    The
-        user auth0 ID. This is the user who submits this response.\n\n- `answers`
-        *`array`* **Required**\n    The answers to the questions in the questionnaire
-        submitted by the user above.Note that the length of the answers array must
-        equal to the number of questions in the given questionnaire. Also, all the
-        `question_id`s must match the questions in the questionnaire.\n \n    - `question_id`
-        *`string`* **Required**\n    The question id of a question in the questionnaire
-        which this answer correspond to.\n\n    - `body` *`string`* **Required**\n
-        \   The body of the answer.\n"
-      parameters:
-      - description: The questionnaire's ID.
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: The response to be created.
-        in: body
-        name: response
-        required: true
-        schema:
-          $ref: '#/definitions/types.BaseResponse'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/ent.QuestionnaireResponse'
-      summary: Create Response
       tags:
       - Questionnaire
   /questionnaires/{id}/responses:
@@ -1133,8 +1099,6 @@ paths:
       - Registration
   /responses:
     get:
-      description: |
-        Get all responses from the database. **This will NOT include questionnaires and questions.**
       produces:
       - application/json
       responses:

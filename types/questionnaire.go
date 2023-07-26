@@ -21,7 +21,7 @@ type BaseAnswer struct {
 	Choices *[]ent.Choice `json:"choices"`
 }
 
-// @Description	BaseQuestionnaire
+//	@Description	BaseQuestionnaire
 type BaseQuestionnaire struct {
 	// The name of the questionnaire
 	Name string `json:"name" example:"問卷標題"`
