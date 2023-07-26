@@ -17,12 +17,6 @@ import (
 //	@Schemes	https
 //	@BasePath	/api/v1
 func main() {
-	_, err := db.ReadRegistrationQuestionnaire()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return
-
 	// Loading environment variables when not using a docker container
 	if os.Getenv("RUNNING_IN_DOCKER") == "" {
 		log.Print("Not running in a docker container. Loading .env file...")
