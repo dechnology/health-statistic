@@ -9,6 +9,7 @@ import (
 
 	"github.com/eesoymilk/health-statistic-api/ent"
 	"github.com/eesoymilk/health-statistic-api/ent/migrate"
+	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/eesoymilk/health-statistic-api/types"
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
@@ -66,6 +67,7 @@ func CreateRegistrationQuestionnaire(
 
 	for i, questionData := range questionnaireData.Questions {
 		questionNode, err := db.Question.Create().
+			SetType(question.Type(questionData.Type)).
 			SetBody(questionData.Body).
 			SetOrder(i).
 			SetQuestionnaire(questionnaireNode).
