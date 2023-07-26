@@ -59,6 +59,7 @@ import (
 // New registers the routes and returns the router.
 func New(db *ent.Client) *gin.Engine {
 	r := gin.Default()
+	h := handlers.Handler{DB: db}
 
 	// This route is always accessible.
 	r.GET(
@@ -88,13 +89,11 @@ func New(db *ent.Client) *gin.Engine {
 
 		registerGroup := v1.Group("/register")
 		{
-			h := handlers.RegisterHandler{DB: db}
 			registerGroup.POST("/", h.Register)
 		}
 
 		userGroup := v1.Group("/users")
 		{
-			h := handlers.UserHandler{DB: db}
 			userGroup.GET("/", h.GetUsers)
 			userGroup.POST("/", h.CreateUser)
 
@@ -111,7 +110,6 @@ func New(db *ent.Client) *gin.Engine {
 
 		questionnaireGroup := v1.Group("/questionnaires")
 		{
-			h := handlers.QuestionnaireHandler{DB: db}
 			questionnaireGroup.GET("/", h.GetQuestionnaires)
 			questionnaireGroup.POST("/", h.CreateQuestionnaire)
 			questionnaireGroup.GET(
@@ -130,7 +128,6 @@ func New(db *ent.Client) *gin.Engine {
 
 		responseGroup := v1.Group("/responses")
 		{
-			h := handlers.ResponseHandler{DB: db}
 			responseGroup.GET("/", h.GetResponses)
 			responseGroup.GET("/:id", h.GetResponse)
 			responseGroup.DELETE("/:id", h.DeleteResponse)
@@ -138,7 +135,6 @@ func New(db *ent.Client) *gin.Engine {
 
 		questionGroup := v1.Group("/questions")
 		{
-			h := handlers.QuestionHandler{DB: db}
 			questionGroup.GET("/", h.GetQuestions)
 			questionGroup.GET("/:id", h.GetQuestion)
 			questionGroup.DELETE("/:id", h.DeleteQuestion)
@@ -146,7 +142,6 @@ func New(db *ent.Client) *gin.Engine {
 
 		notificationGroup := v1.Group("/notifications")
 		{
-			h := handlers.NotificationHandler{DB: db}
 			notificationGroup.GET("/", h.GetNotifications)
 			notificationGroup.GET("/:id", h.GetNotification)
 			notificationGroup.DELETE("/:id", h.DeleteNotification)
@@ -154,7 +149,6 @@ func New(db *ent.Client) *gin.Engine {
 
 		myCardGroup := v1.Group("/mycards")
 		{
-			h := handlers.MyCardHandler{DB: db}
 			myCardGroup.GET("/", h.GetMyCards)
 			myCardGroup.GET("/:id", h.GetMyCard)
 			myCardGroup.DELETE("/:id", h.DeleteMyCard)
@@ -162,7 +156,6 @@ func New(db *ent.Client) *gin.Engine {
 
 		priceGroup := v1.Group("/prices")
 		{
-			h := handlers.PriceHandler{DB: db}
 			priceGroup.GET("/", h.GetPrices)
 			priceGroup.GET("/:id", h.GetPrice)
 			priceGroup.DELETE("/:id", h.DeletePrice)
