@@ -235,7 +235,7 @@ func (pc *PriceCreate) createSpec() (*Price, *sqlgraph.CreateSpec) {
 	if nodes := pc.mutation.RecipientIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   price.RecipientTable,
 			Columns: []string{price.RecipientColumn},
 			Bidi:    false,
@@ -246,7 +246,7 @@ func (pc *PriceCreate) createSpec() (*Price, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.price_recipient = &nodes[0]
+		_node.user_prices = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := pc.mutation.NotificationsIDs(); len(nodes) > 0 {

@@ -46,7 +46,7 @@ var (
 		{Name: "card_password", Type: field.TypeString, Unique: true, Size: 12},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "taken_at", Type: field.TypeTime, Nullable: true},
-		{Name: "my_card_recipient", Type: field.TypeString, Nullable: true},
+		{Name: "user_mycards", Type: field.TypeString, Nullable: true},
 	}
 	// MyCardsTable holds the schema information for the "my_cards" table.
 	MyCardsTable = &schema.Table{
@@ -55,7 +55,7 @@ var (
 		PrimaryKey: []*schema.Column{MyCardsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "my_cards_users_recipient",
+				Symbol:     "my_cards_users_mycards",
 				Columns:    []*schema.Column{MyCardsColumns[4]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -101,12 +101,12 @@ var (
 	}
 	// PricesColumns holds the columns for the "prices" table.
 	PricesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID},
+		{Name: "id", Type: field.TypeUUID, Unique: true},
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "taken_at", Type: field.TypeTime, Nullable: true},
-		{Name: "price_recipient", Type: field.TypeString, Nullable: true},
+		{Name: "user_prices", Type: field.TypeString, Nullable: true},
 	}
 	// PricesTable holds the schema information for the "prices" table.
 	PricesTable = &schema.Table{
@@ -115,7 +115,7 @@ var (
 		PrimaryKey: []*schema.Column{PricesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "prices_users_recipient",
+				Symbol:     "prices_users_prices",
 				Columns:    []*schema.Column{PricesColumns[5]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -126,7 +126,7 @@ var (
 	QuestionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "body", Type: field.TypeString, Size: 2147483647},
-		{Name: "order", Type: field.TypeInt},
+		{Name: "order", Type: field.TypeInt, Unique: true},
 		{Name: "questionnaire_questions", Type: field.TypeUUID, Nullable: true},
 	}
 	// QuestionsTable holds the schema information for the "questions" table.

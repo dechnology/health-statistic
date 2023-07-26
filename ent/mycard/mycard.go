@@ -40,7 +40,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	RecipientInverseTable = "users"
 	// RecipientColumn is the table column denoting the recipient relation/edge.
-	RecipientColumn = "my_card_recipient"
+	RecipientColumn = "user_mycards"
 	// NotificationsTable is the table that holds the notifications relation/edge.
 	NotificationsTable = "notifications"
 	// NotificationsInverseTable is the table name for the Notification entity.
@@ -61,7 +61,7 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the "my_cards"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
-	"my_card_recipient",
+	"user_mycards",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -135,7 +135,7 @@ func newRecipientStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(RecipientInverseTable, UserFieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, RecipientTable, RecipientColumn),
+		sqlgraph.Edge(sqlgraph.M2O, true, RecipientTable, RecipientColumn),
 	)
 }
 func newNotificationsStep() *sqlgraph.Step {

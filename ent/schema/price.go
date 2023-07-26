@@ -18,7 +18,8 @@ type Price struct {
 func (Price) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).
-			Default(uuid.New),
+			Default(uuid.New).
+			Unique(),
 		field.String("name").
 			NotEmpty(),
 		field.String("description").
@@ -33,7 +34,8 @@ func (Price) Fields() []ent.Field {
 // Edges of the Price.
 func (Price) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("recipient", User.Type).
+		edge.From("recipient", User.Type).
+			Ref("prices").
 			Unique(),
 		edge.To("notifications", Notification.Type),
 	}

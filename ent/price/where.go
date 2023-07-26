@@ -305,7 +305,7 @@ func HasRecipient() predicate.Price {
 	return predicate.Price(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, RecipientTable, RecipientColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, RecipientTable, RecipientColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})

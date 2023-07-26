@@ -14,7 +14,9 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
+	"github.com/eesoymilk/health-statistic-api/ent/price"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
 	"github.com/google/uuid"
@@ -189,6 +191,36 @@ func (uc *UserCreate) AddNotifications(n ...*Notification) *UserCreate {
 		ids[i] = n[i].ID
 	}
 	return uc.AddNotificationIDs(ids...)
+}
+
+// AddPriceIDs adds the "prices" edge to the Price entity by IDs.
+func (uc *UserCreate) AddPriceIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddPriceIDs(ids...)
+	return uc
+}
+
+// AddPrices adds the "prices" edges to the Price entity.
+func (uc *UserCreate) AddPrices(p ...*Price) *UserCreate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uc.AddPriceIDs(ids...)
+}
+
+// AddMycardIDs adds the "mycards" edge to the MyCard entity by IDs.
+func (uc *UserCreate) AddMycardIDs(ids ...string) *UserCreate {
+	uc.mutation.AddMycardIDs(ids...)
+	return uc
+}
+
+// AddMycards adds the "mycards" edges to the MyCard entity.
+func (uc *UserCreate) AddMycards(m ...*MyCard) *UserCreate {
+	ids := make([]string, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return uc.AddMycardIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -464,6 +496,38 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.PricesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PricesTable,
+			Columns: []string{user.PricesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(price.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.MycardsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.MycardsTable,
+			Columns: []string{user.MycardsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(mycard.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

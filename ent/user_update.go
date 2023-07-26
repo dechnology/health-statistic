@@ -15,8 +15,10 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
+	"github.com/eesoymilk/health-statistic-api/ent/price"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
 	"github.com/google/uuid"
@@ -218,6 +220,36 @@ func (uu *UserUpdate) AddNotifications(n ...*Notification) *UserUpdate {
 	return uu.AddNotificationIDs(ids...)
 }
 
+// AddPriceIDs adds the "prices" edge to the Price entity by IDs.
+func (uu *UserUpdate) AddPriceIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddPriceIDs(ids...)
+	return uu
+}
+
+// AddPrices adds the "prices" edges to the Price entity.
+func (uu *UserUpdate) AddPrices(p ...*Price) *UserUpdate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uu.AddPriceIDs(ids...)
+}
+
+// AddMycardIDs adds the "mycards" edge to the MyCard entity by IDs.
+func (uu *UserUpdate) AddMycardIDs(ids ...string) *UserUpdate {
+	uu.mutation.AddMycardIDs(ids...)
+	return uu
+}
+
+// AddMycards adds the "mycards" edges to the MyCard entity.
+func (uu *UserUpdate) AddMycards(m ...*MyCard) *UserUpdate {
+	ids := make([]string, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return uu.AddMycardIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -263,6 +295,48 @@ func (uu *UserUpdate) RemoveNotifications(n ...*Notification) *UserUpdate {
 		ids[i] = n[i].ID
 	}
 	return uu.RemoveNotificationIDs(ids...)
+}
+
+// ClearPrices clears all "prices" edges to the Price entity.
+func (uu *UserUpdate) ClearPrices() *UserUpdate {
+	uu.mutation.ClearPrices()
+	return uu
+}
+
+// RemovePriceIDs removes the "prices" edge to Price entities by IDs.
+func (uu *UserUpdate) RemovePriceIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemovePriceIDs(ids...)
+	return uu
+}
+
+// RemovePrices removes "prices" edges to Price entities.
+func (uu *UserUpdate) RemovePrices(p ...*Price) *UserUpdate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uu.RemovePriceIDs(ids...)
+}
+
+// ClearMycards clears all "mycards" edges to the MyCard entity.
+func (uu *UserUpdate) ClearMycards() *UserUpdate {
+	uu.mutation.ClearMycards()
+	return uu
+}
+
+// RemoveMycardIDs removes the "mycards" edge to MyCard entities by IDs.
+func (uu *UserUpdate) RemoveMycardIDs(ids ...string) *UserUpdate {
+	uu.mutation.RemoveMycardIDs(ids...)
+	return uu
+}
+
+// RemoveMycards removes "mycards" edges to MyCard entities.
+func (uu *UserUpdate) RemoveMycards(m ...*MyCard) *UserUpdate {
+	ids := make([]string, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return uu.RemoveMycardIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -531,6 +605,96 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.PricesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PricesTable,
+			Columns: []string{user.PricesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(price.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedPricesIDs(); len(nodes) > 0 && !uu.mutation.PricesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PricesTable,
+			Columns: []string{user.PricesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(price.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.PricesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PricesTable,
+			Columns: []string{user.PricesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(price.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.MycardsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.MycardsTable,
+			Columns: []string{user.MycardsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(mycard.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedMycardsIDs(); len(nodes) > 0 && !uu.mutation.MycardsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.MycardsTable,
+			Columns: []string{user.MycardsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(mycard.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.MycardsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.MycardsTable,
+			Columns: []string{user.MycardsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(mycard.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -734,6 +898,36 @@ func (uuo *UserUpdateOne) AddNotifications(n ...*Notification) *UserUpdateOne {
 	return uuo.AddNotificationIDs(ids...)
 }
 
+// AddPriceIDs adds the "prices" edge to the Price entity by IDs.
+func (uuo *UserUpdateOne) AddPriceIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddPriceIDs(ids...)
+	return uuo
+}
+
+// AddPrices adds the "prices" edges to the Price entity.
+func (uuo *UserUpdateOne) AddPrices(p ...*Price) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uuo.AddPriceIDs(ids...)
+}
+
+// AddMycardIDs adds the "mycards" edge to the MyCard entity by IDs.
+func (uuo *UserUpdateOne) AddMycardIDs(ids ...string) *UserUpdateOne {
+	uuo.mutation.AddMycardIDs(ids...)
+	return uuo
+}
+
+// AddMycards adds the "mycards" edges to the MyCard entity.
+func (uuo *UserUpdateOne) AddMycards(m ...*MyCard) *UserUpdateOne {
+	ids := make([]string, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return uuo.AddMycardIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -779,6 +973,48 @@ func (uuo *UserUpdateOne) RemoveNotifications(n ...*Notification) *UserUpdateOne
 		ids[i] = n[i].ID
 	}
 	return uuo.RemoveNotificationIDs(ids...)
+}
+
+// ClearPrices clears all "prices" edges to the Price entity.
+func (uuo *UserUpdateOne) ClearPrices() *UserUpdateOne {
+	uuo.mutation.ClearPrices()
+	return uuo
+}
+
+// RemovePriceIDs removes the "prices" edge to Price entities by IDs.
+func (uuo *UserUpdateOne) RemovePriceIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemovePriceIDs(ids...)
+	return uuo
+}
+
+// RemovePrices removes "prices" edges to Price entities.
+func (uuo *UserUpdateOne) RemovePrices(p ...*Price) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uuo.RemovePriceIDs(ids...)
+}
+
+// ClearMycards clears all "mycards" edges to the MyCard entity.
+func (uuo *UserUpdateOne) ClearMycards() *UserUpdateOne {
+	uuo.mutation.ClearMycards()
+	return uuo
+}
+
+// RemoveMycardIDs removes the "mycards" edge to MyCard entities by IDs.
+func (uuo *UserUpdateOne) RemoveMycardIDs(ids ...string) *UserUpdateOne {
+	uuo.mutation.RemoveMycardIDs(ids...)
+	return uuo
+}
+
+// RemoveMycards removes "mycards" edges to MyCard entities.
+func (uuo *UserUpdateOne) RemoveMycards(m ...*MyCard) *UserUpdateOne {
+	ids := make([]string, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return uuo.RemoveMycardIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -1070,6 +1306,96 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.PricesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PricesTable,
+			Columns: []string{user.PricesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(price.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedPricesIDs(); len(nodes) > 0 && !uuo.mutation.PricesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PricesTable,
+			Columns: []string{user.PricesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(price.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.PricesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PricesTable,
+			Columns: []string{user.PricesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(price.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.MycardsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.MycardsTable,
+			Columns: []string{user.MycardsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(mycard.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedMycardsIDs(); len(nodes) > 0 && !uuo.mutation.MycardsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.MycardsTable,
+			Columns: []string{user.MycardsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(mycard.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.MycardsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.MycardsTable,
+			Columns: []string{user.MycardsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(mycard.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

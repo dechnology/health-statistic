@@ -34,9 +34,9 @@ type Price struct {
 	TakenAt time.Time `json:"taken_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PriceQuery when eager-loading is set.
-	Edges           PriceEdges `json:"-"`
-	price_recipient *string
-	selectValues    sql.SelectValues
+	Edges        PriceEdges `json:"-"`
+	user_prices  *string
+	selectValues sql.SelectValues
 }
 
 // PriceEdges holds the relations/edges for other nodes in the graph.
@@ -83,7 +83,7 @@ func (*Price) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullTime)
 		case price.FieldID:
 			values[i] = new(uuid.UUID)
-		case price.ForeignKeys[0]: // price_recipient
+		case price.ForeignKeys[0]: // user_prices
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -132,10 +132,10 @@ func (pr *Price) assignValues(columns []string, values []any) error {
 			}
 		case price.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field price_recipient", values[i])
+				return fmt.Errorf("unexpected type %T for field user_prices", values[i])
 			} else if value.Valid {
-				pr.price_recipient = new(string)
-				*pr.price_recipient = value.String
+				pr.user_prices = new(string)
+				*pr.user_prices = value.String
 			}
 		default:
 			pr.selectValues.Set(columns[i], values[i])

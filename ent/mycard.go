@@ -31,9 +31,9 @@ type MyCard struct {
 	TakenAt time.Time `json:"taken_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the MyCardQuery when eager-loading is set.
-	Edges             MyCardEdges `json:"-"`
-	my_card_recipient *string
-	selectValues      sql.SelectValues
+	Edges        MyCardEdges `json:"-"`
+	user_mycards *string
+	selectValues sql.SelectValues
 }
 
 // MyCardEdges holds the relations/edges for other nodes in the graph.
@@ -78,7 +78,7 @@ func (*MyCard) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case mycard.FieldCreatedAt, mycard.FieldTakenAt:
 			values[i] = new(sql.NullTime)
-		case mycard.ForeignKeys[0]: // my_card_recipient
+		case mycard.ForeignKeys[0]: // user_mycards
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -121,10 +121,10 @@ func (mc *MyCard) assignValues(columns []string, values []any) error {
 			}
 		case mycard.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field my_card_recipient", values[i])
+				return fmt.Errorf("unexpected type %T for field user_mycards", values[i])
 			} else if value.Valid {
-				mc.my_card_recipient = new(string)
-				*mc.my_card_recipient = value.String
+				mc.user_mycards = new(string)
+				*mc.user_mycards = value.String
 			}
 		default:
 			mc.selectValues.Set(columns[i], values[i])

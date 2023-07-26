@@ -55,6 +55,12 @@ const (
 	EdgeQuestionnaireResponses = "questionnaire_responses"
 	// EdgeNotifications holds the string denoting the notifications edge name in mutations.
 	EdgeNotifications = "notifications"
+	// EdgePrices holds the string denoting the prices edge name in mutations.
+	EdgePrices = "prices"
+	// EdgeMycards holds the string denoting the mycards edge name in mutations.
+	EdgeMycards = "mycards"
+	// MyCardFieldID holds the string denoting the ID field of the MyCard.
+	MyCardFieldID = "card_number"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// QuestionnaireResponsesTable is the table that holds the questionnaire_responses relation/edge.
@@ -71,6 +77,20 @@ const (
 	NotificationsInverseTable = "notifications"
 	// NotificationsColumn is the table column denoting the notifications relation/edge.
 	NotificationsColumn = "user_notifications"
+	// PricesTable is the table that holds the prices relation/edge.
+	PricesTable = "prices"
+	// PricesInverseTable is the table name for the Price entity.
+	// It exists in this package in order to avoid circular dependency with the "price" package.
+	PricesInverseTable = "prices"
+	// PricesColumn is the table column denoting the prices relation/edge.
+	PricesColumn = "user_prices"
+	// MycardsTable is the table that holds the mycards relation/edge.
+	MycardsTable = "my_cards"
+	// MycardsInverseTable is the table name for the MyCard entity.
+	// It exists in this package in order to avoid circular dependency with the "mycard" package.
+	MycardsInverseTable = "my_cards"
+	// MycardsColumn is the table column denoting the mycards relation/edge.
+	MycardsColumn = "user_mycards"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -413,6 +433,34 @@ func ByNotifications(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newNotificationsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByPricesCount orders the results by prices count.
+func ByPricesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPricesStep(), opts...)
+	}
+}
+
+// ByPrices orders the results by prices terms.
+func ByPrices(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPricesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByMycardsCount orders the results by mycards count.
+func ByMycardsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newMycardsStep(), opts...)
+	}
+}
+
+// ByMycards orders the results by mycards terms.
+func ByMycards(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newMycardsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newQuestionnaireResponsesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -425,5 +473,19 @@ func newNotificationsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(NotificationsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, NotificationsTable, NotificationsColumn),
+	)
+}
+func newPricesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PricesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PricesTable, PricesColumn),
+	)
+}
+func newMycardsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(MycardsInverseTable, MyCardFieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, MycardsTable, MycardsColumn),
 	)
 }

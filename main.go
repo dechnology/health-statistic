@@ -30,7 +30,7 @@ func main() {
 
 	// migration code: perform it only onces is enough
 	if err := db.Migrate(entClient); err != nil {
-		log.Fatalf(err.Error())
+		log.Print(err.Error())
 	}
 
 	r := router.New(entClient)

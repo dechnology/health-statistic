@@ -219,7 +219,7 @@ func (pu *PriceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if pu.mutation.RecipientCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   price.RecipientTable,
 			Columns: []string{price.RecipientColumn},
 			Bidi:    false,
@@ -232,7 +232,7 @@ func (pu *PriceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if nodes := pu.mutation.RecipientIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   price.RecipientTable,
 			Columns: []string{price.RecipientColumn},
 			Bidi:    false,
@@ -524,7 +524,7 @@ func (puo *PriceUpdateOne) sqlSave(ctx context.Context) (_node *Price, err error
 	if puo.mutation.RecipientCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   price.RecipientTable,
 			Columns: []string{price.RecipientColumn},
 			Bidi:    false,
@@ -537,7 +537,7 @@ func (puo *PriceUpdateOne) sqlSave(ctx context.Context) (_node *Price, err error
 	if nodes := puo.mutation.RecipientIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   price.RecipientTable,
 			Columns: []string{price.RecipientColumn},
 			Bidi:    false,

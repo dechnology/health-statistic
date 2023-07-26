@@ -66,9 +66,13 @@ type UserEdges struct {
 	QuestionnaireResponses []*QuestionnaireResponse `json:"questionnaire_responses,omitempty"`
 	// Notifications holds the value of the notifications edge.
 	Notifications []*Notification `json:"notifications,omitempty"`
+	// Prices holds the value of the prices edge.
+	Prices []*Price `json:"prices,omitempty"`
+	// Mycards holds the value of the mycards edge.
+	Mycards []*MyCard `json:"mycards,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [4]bool
 }
 
 // QuestionnaireResponsesOrErr returns the QuestionnaireResponses value or an error if the edge
@@ -87,6 +91,24 @@ func (e UserEdges) NotificationsOrErr() ([]*Notification, error) {
 		return e.Notifications, nil
 	}
 	return nil, &NotLoadedError{edge: "notifications"}
+}
+
+// PricesOrErr returns the Prices value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) PricesOrErr() ([]*Price, error) {
+	if e.loadedTypes[2] {
+		return e.Prices, nil
+	}
+	return nil, &NotLoadedError{edge: "prices"}
+}
+
+// MycardsOrErr returns the Mycards value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) MycardsOrErr() ([]*MyCard, error) {
+	if e.loadedTypes[3] {
+		return e.Mycards, nil
+	}
+	return nil, &NotLoadedError{edge: "mycards"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -242,6 +264,16 @@ func (u *User) QueryQuestionnaireResponses() *QuestionnaireResponseQuery {
 // QueryNotifications queries the "notifications" edge of the User entity.
 func (u *User) QueryNotifications() *NotificationQuery {
 	return NewUserClient(u.config).QueryNotifications(u)
+}
+
+// QueryPrices queries the "prices" edge of the User entity.
+func (u *User) QueryPrices() *PriceQuery {
+	return NewUserClient(u.config).QueryPrices(u)
+}
+
+// QueryMycards queries the "mycards" edge of the User entity.
+func (u *User) QueryMycards() *MyCardQuery {
+	return NewUserClient(u.config).QueryMycards(u)
 }
 
 // Update returns a builder for updating this User.

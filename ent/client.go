@@ -510,7 +510,7 @@ func (c *MyCardClient) QueryRecipient(mc *MyCard) *UserQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(mycard.Table, mycard.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, mycard.RecipientTable, mycard.RecipientColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, mycard.RecipientTable, mycard.RecipientColumn),
 		)
 		fromV = sqlgraph.Neighbors(mc.driver.Dialect(), step)
 		return fromV, nil
@@ -826,7 +826,7 @@ func (c *PriceClient) QueryRecipient(pr *Price) *UserQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(price.Table, price.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, price.RecipientTable, price.RecipientColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, price.RecipientTable, price.RecipientColumn),
 		)
 		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 		return fromV, nil
@@ -1459,6 +1459,38 @@ func (c *UserClient) QueryNotifications(u *User) *NotificationQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(notification.Table, notification.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.NotificationsTable, user.NotificationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPrices queries the prices edge of a User.
+func (c *UserClient) QueryPrices(u *User) *PriceQuery {
+	query := (&PriceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(price.Table, price.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.PricesTable, user.PricesColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMycards queries the mycards edge of a User.
+func (c *UserClient) QueryMycards(u *User) *MyCardQuery {
+	query := (&MyCardClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(mycard.Table, mycard.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.MycardsTable, user.MycardsColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

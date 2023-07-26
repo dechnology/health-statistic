@@ -210,7 +210,7 @@ func (mcc *MyCardCreate) createSpec() (*MyCard, *sqlgraph.CreateSpec) {
 	if nodes := mcc.mutation.RecipientIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   mycard.RecipientTable,
 			Columns: []string{mycard.RecipientColumn},
 			Bidi:    false,
@@ -221,7 +221,7 @@ func (mcc *MyCardCreate) createSpec() (*MyCard, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.my_card_recipient = &nodes[0]
+		_node.user_mycards = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := mcc.mutation.NotificationsIDs(); len(nodes) > 0 {

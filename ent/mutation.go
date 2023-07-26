@@ -4271,6 +4271,12 @@ type UserMutation struct {
 	notifications                   map[uuid.UUID]struct{}
 	removednotifications            map[uuid.UUID]struct{}
 	clearednotifications            bool
+	prices                          map[uuid.UUID]struct{}
+	removedprices                   map[uuid.UUID]struct{}
+	clearedprices                   bool
+	mycards                         map[string]struct{}
+	removedmycards                  map[string]struct{}
+	clearedmycards                  bool
 	done                            bool
 	oldValue                        func(context.Context) (*User, error)
 	predicates                      []predicate.User
@@ -5150,6 +5156,114 @@ func (m *UserMutation) ResetNotifications() {
 	m.removednotifications = nil
 }
 
+// AddPriceIDs adds the "prices" edge to the Price entity by ids.
+func (m *UserMutation) AddPriceIDs(ids ...uuid.UUID) {
+	if m.prices == nil {
+		m.prices = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.prices[ids[i]] = struct{}{}
+	}
+}
+
+// ClearPrices clears the "prices" edge to the Price entity.
+func (m *UserMutation) ClearPrices() {
+	m.clearedprices = true
+}
+
+// PricesCleared reports if the "prices" edge to the Price entity was cleared.
+func (m *UserMutation) PricesCleared() bool {
+	return m.clearedprices
+}
+
+// RemovePriceIDs removes the "prices" edge to the Price entity by IDs.
+func (m *UserMutation) RemovePriceIDs(ids ...uuid.UUID) {
+	if m.removedprices == nil {
+		m.removedprices = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.prices, ids[i])
+		m.removedprices[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedPrices returns the removed IDs of the "prices" edge to the Price entity.
+func (m *UserMutation) RemovedPricesIDs() (ids []uuid.UUID) {
+	for id := range m.removedprices {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// PricesIDs returns the "prices" edge IDs in the mutation.
+func (m *UserMutation) PricesIDs() (ids []uuid.UUID) {
+	for id := range m.prices {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetPrices resets all changes to the "prices" edge.
+func (m *UserMutation) ResetPrices() {
+	m.prices = nil
+	m.clearedprices = false
+	m.removedprices = nil
+}
+
+// AddMycardIDs adds the "mycards" edge to the MyCard entity by ids.
+func (m *UserMutation) AddMycardIDs(ids ...string) {
+	if m.mycards == nil {
+		m.mycards = make(map[string]struct{})
+	}
+	for i := range ids {
+		m.mycards[ids[i]] = struct{}{}
+	}
+}
+
+// ClearMycards clears the "mycards" edge to the MyCard entity.
+func (m *UserMutation) ClearMycards() {
+	m.clearedmycards = true
+}
+
+// MycardsCleared reports if the "mycards" edge to the MyCard entity was cleared.
+func (m *UserMutation) MycardsCleared() bool {
+	return m.clearedmycards
+}
+
+// RemoveMycardIDs removes the "mycards" edge to the MyCard entity by IDs.
+func (m *UserMutation) RemoveMycardIDs(ids ...string) {
+	if m.removedmycards == nil {
+		m.removedmycards = make(map[string]struct{})
+	}
+	for i := range ids {
+		delete(m.mycards, ids[i])
+		m.removedmycards[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedMycards returns the removed IDs of the "mycards" edge to the MyCard entity.
+func (m *UserMutation) RemovedMycardsIDs() (ids []string) {
+	for id := range m.removedmycards {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// MycardsIDs returns the "mycards" edge IDs in the mutation.
+func (m *UserMutation) MycardsIDs() (ids []string) {
+	for id := range m.mycards {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetMycards resets all changes to the "mycards" edge.
+func (m *UserMutation) ResetMycards() {
+	m.mycards = nil
+	m.clearedmycards = false
+	m.removedmycards = nil
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -5592,12 +5706,18 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
 	if m.questionnaire_responses != nil {
 		edges = append(edges, user.EdgeQuestionnaireResponses)
 	}
 	if m.notifications != nil {
 		edges = append(edges, user.EdgeNotifications)
+	}
+	if m.prices != nil {
+		edges = append(edges, user.EdgePrices)
+	}
+	if m.mycards != nil {
+		edges = append(edges, user.EdgeMycards)
 	}
 	return edges
 }
@@ -5618,18 +5738,36 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgePrices:
+		ids := make([]ent.Value, 0, len(m.prices))
+		for id := range m.prices {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeMycards:
+		ids := make([]ent.Value, 0, len(m.mycards))
+		for id := range m.mycards {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
 	if m.removedquestionnaire_responses != nil {
 		edges = append(edges, user.EdgeQuestionnaireResponses)
 	}
 	if m.removednotifications != nil {
 		edges = append(edges, user.EdgeNotifications)
+	}
+	if m.removedprices != nil {
+		edges = append(edges, user.EdgePrices)
+	}
+	if m.removedmycards != nil {
+		edges = append(edges, user.EdgeMycards)
 	}
 	return edges
 }
@@ -5650,18 +5788,36 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgePrices:
+		ids := make([]ent.Value, 0, len(m.removedprices))
+		for id := range m.removedprices {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeMycards:
+		ids := make([]ent.Value, 0, len(m.removedmycards))
+		for id := range m.removedmycards {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
 	if m.clearedquestionnaire_responses {
 		edges = append(edges, user.EdgeQuestionnaireResponses)
 	}
 	if m.clearednotifications {
 		edges = append(edges, user.EdgeNotifications)
+	}
+	if m.clearedprices {
+		edges = append(edges, user.EdgePrices)
+	}
+	if m.clearedmycards {
+		edges = append(edges, user.EdgeMycards)
 	}
 	return edges
 }
@@ -5674,6 +5830,10 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedquestionnaire_responses
 	case user.EdgeNotifications:
 		return m.clearednotifications
+	case user.EdgePrices:
+		return m.clearedprices
+	case user.EdgeMycards:
+		return m.clearedmycards
 	}
 	return false
 }
@@ -5695,6 +5855,12 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeNotifications:
 		m.ResetNotifications()
+		return nil
+	case user.EdgePrices:
+		m.ResetPrices()
+		return nil
+	case user.EdgeMycards:
+		m.ResetMycards()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

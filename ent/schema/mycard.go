@@ -37,7 +37,8 @@ func (MyCard) Fields() []ent.Field {
 // Edges of the MyCard.
 func (MyCard) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("recipient", User.Type).
+		edge.From("recipient", User.Type).
+			Ref("mycards").
 			Unique(),
 		edge.To("notifications", Notification.Type),
 	}

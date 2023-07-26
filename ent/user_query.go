@@ -15,8 +15,10 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
+	"github.com/eesoymilk/health-statistic-api/ent/price"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
 )
@@ -30,6 +32,8 @@ type UserQuery struct {
 	predicates                 []predicate.User
 	withQuestionnaireResponses *QuestionnaireResponseQuery
 	withNotifications          *NotificationQuery
+	withPrices                 *PriceQuery
+	withMycards                *MyCardQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -103,6 +107,50 @@ func (uq *UserQuery) QueryNotifications() *NotificationQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(notification.Table, notification.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.NotificationsTable, user.NotificationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPrices chains the current query on the "prices" edge.
+func (uq *UserQuery) QueryPrices() *PriceQuery {
+	query := (&PriceClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(price.Table, price.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.PricesTable, user.PricesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryMycards chains the current query on the "mycards" edge.
+func (uq *UserQuery) QueryMycards() *MyCardQuery {
+	query := (&MyCardClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(mycard.Table, mycard.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.MycardsTable, user.MycardsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -304,6 +352,8 @@ func (uq *UserQuery) Clone() *UserQuery {
 		predicates:                 append([]predicate.User{}, uq.predicates...),
 		withQuestionnaireResponses: uq.withQuestionnaireResponses.Clone(),
 		withNotifications:          uq.withNotifications.Clone(),
+		withPrices:                 uq.withPrices.Clone(),
+		withMycards:                uq.withMycards.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -329,6 +379,28 @@ func (uq *UserQuery) WithNotifications(opts ...func(*NotificationQuery)) *UserQu
 		opt(query)
 	}
 	uq.withNotifications = query
+	return uq
+}
+
+// WithPrices tells the query-builder to eager-load the nodes that are connected to
+// the "prices" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithPrices(opts ...func(*PriceQuery)) *UserQuery {
+	query := (&PriceClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withPrices = query
+	return uq
+}
+
+// WithMycards tells the query-builder to eager-load the nodes that are connected to
+// the "mycards" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithMycards(opts ...func(*MyCardQuery)) *UserQuery {
+	query := (&MyCardClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withMycards = query
 	return uq
 }
 
@@ -410,9 +482,11 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [4]bool{
 			uq.withQuestionnaireResponses != nil,
 			uq.withNotifications != nil,
+			uq.withPrices != nil,
+			uq.withMycards != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -446,6 +520,20 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadNotifications(ctx, query, nodes,
 			func(n *User) { n.Edges.Notifications = []*Notification{} },
 			func(n *User, e *Notification) { n.Edges.Notifications = append(n.Edges.Notifications, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withPrices; query != nil {
+		if err := uq.loadPrices(ctx, query, nodes,
+			func(n *User) { n.Edges.Prices = []*Price{} },
+			func(n *User, e *Price) { n.Edges.Prices = append(n.Edges.Prices, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withMycards; query != nil {
+		if err := uq.loadMycards(ctx, query, nodes,
+			func(n *User) { n.Edges.Mycards = []*MyCard{} },
+			func(n *User, e *MyCard) { n.Edges.Mycards = append(n.Edges.Mycards, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -509,6 +597,68 @@ func (uq *UserQuery) loadNotifications(ctx context.Context, query *NotificationQ
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "user_notifications" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadPrices(ctx context.Context, query *PriceQuery, nodes []*User, init func(*User), assign func(*User, *Price)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Price(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.PricesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.user_prices
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "user_prices" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_prices" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadMycards(ctx context.Context, query *MyCardQuery, nodes []*User, init func(*User), assign func(*User, *MyCard)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.MyCard(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.MycardsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.user_mycards
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "user_mycards" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_mycards" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

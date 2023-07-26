@@ -82,7 +82,7 @@ func (pq *PriceQuery) QueryRecipient() *UserQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(price.Table, price.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, price.RecipientTable, price.RecipientColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, price.RecipientTable, price.RecipientColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
@@ -462,10 +462,10 @@ func (pq *PriceQuery) loadRecipient(ctx context.Context, query *UserQuery, nodes
 	ids := make([]string, 0, len(nodes))
 	nodeids := make(map[string][]*Price)
 	for i := range nodes {
-		if nodes[i].price_recipient == nil {
+		if nodes[i].user_prices == nil {
 			continue
 		}
-		fk := *nodes[i].price_recipient
+		fk := *nodes[i].user_prices
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -482,7 +482,7 @@ func (pq *PriceQuery) loadRecipient(ctx context.Context, query *UserQuery, nodes
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "price_recipient" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "user_prices" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

@@ -81,7 +81,7 @@ func (mcq *MyCardQuery) QueryRecipient() *UserQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(mycard.Table, mycard.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, mycard.RecipientTable, mycard.RecipientColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, mycard.RecipientTable, mycard.RecipientColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(mcq.driver.Dialect(), step)
 		return fromU, nil
@@ -461,10 +461,10 @@ func (mcq *MyCardQuery) loadRecipient(ctx context.Context, query *UserQuery, nod
 	ids := make([]string, 0, len(nodes))
 	nodeids := make(map[string][]*MyCard)
 	for i := range nodes {
-		if nodes[i].my_card_recipient == nil {
+		if nodes[i].user_mycards == nil {
 			continue
 		}
-		fk := *nodes[i].my_card_recipient
+		fk := *nodes[i].user_mycards
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -481,7 +481,7 @@ func (mcq *MyCardQuery) loadRecipient(ctx context.Context, query *UserQuery, nod
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "my_card_recipient" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "user_mycards" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

@@ -183,7 +183,7 @@ func (mcu *MyCardUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if mcu.mutation.RecipientCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   mycard.RecipientTable,
 			Columns: []string{mycard.RecipientColumn},
 			Bidi:    false,
@@ -196,7 +196,7 @@ func (mcu *MyCardUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if nodes := mcu.mutation.RecipientIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   mycard.RecipientTable,
 			Columns: []string{mycard.RecipientColumn},
 			Bidi:    false,
@@ -452,7 +452,7 @@ func (mcuo *MyCardUpdateOne) sqlSave(ctx context.Context) (_node *MyCard, err er
 	if mcuo.mutation.RecipientCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   mycard.RecipientTable,
 			Columns: []string{mycard.RecipientColumn},
 			Bidi:    false,
@@ -465,7 +465,7 @@ func (mcuo *MyCardUpdateOne) sqlSave(ctx context.Context) (_node *MyCard, err er
 	if nodes := mcuo.mutation.RecipientIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   mycard.RecipientTable,
 			Columns: []string{mycard.RecipientColumn},
 			Bidi:    false,
