@@ -37,15 +37,10 @@ func ReadRegistrationQuestionnaire() (*types.QuestionnaireWithId, error) {
 	return &questionnaireData, nil
 }
 
-func Migrate(db *ent.Client) error {
-	if err := db.Schema.Create(
-		context.Background(),
-		migrate.WithDropIndex(true),
-		migrate.WithDropColumn(true),
-	); err != nil {
-		return fmt.Errorf("failed creating schema resources: %v", err)
-	}
-
+func CreateRegistrationQuestionnaire(
+	ctx context.Context,
+	db *ent.Client,
+) error {
 	// Parse the JSON
 	questionnaireData, err := ReadRegistrationQuestionnaire()
 	if err != nil {
@@ -53,7 +48,6 @@ func Migrate(db *ent.Client) error {
 	}
 
 	id, err := uuid.Parse(questionnaireData.ID)
-
 	if err != nil {
 		return fmt.Errorf("failed parsing id: %v", err)
 	}
@@ -61,8 +55,7 @@ func Migrate(db *ent.Client) error {
 	questionnaireNode, err := db.Questionnaire.Create().
 		SetID(id).
 		SetName(questionnaireData.Name).
-		Save(context.Background())
-
+		Save(ctx)
 	if err != nil {
 		// This error occurs if registration questionnaire is already created
 		return fmt.Errorf(
@@ -76,23 +69,46 @@ func Migrate(db *ent.Client) error {
 			SetBody(questionData.Body).
 			SetOrder(i).
 			SetQuestionnaire(questionnaireNode).
-			Save(context.Background())
-
+			Save(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to create question: %v", err)
 		}
 
 		for i, choice := range questionData.Choices {
+			log.Default().Printf("creating options: %v", choice)
 			_, err := db.Choice.Create().
 				SetBody(choice).
 				SetQuesion(questionNode).
 				SetOrder(i).
-				Save(context.Background())
-
+				Save(ctx)
 			if err != nil {
 				return fmt.Errorf("failed to create choice: %v", err)
 			}
 		}
+	}
+
+	return nil
+}
+
+func Migrate(ctx context.Context, db *ent.Client) error {
+	if err := db.Schema.Create(
+		ctx,
+		migrate.WithDropIndex(true),
+		migrate.WithDropColumn(true),
+	); err != nil {
+		return fmt.Errorf(
+			"failed creating schema resources: %v",
+			err,
+		)
+	}
+
+	// Parse the JSON
+	err := CreateRegistrationQuestionnaire(ctx, db)
+	if err != nil {
+		return fmt.Errorf(
+			"failed creating registration questionnaire: %v",
+			err,
+		)
 	}
 
 	return nil

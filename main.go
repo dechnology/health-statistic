@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 
@@ -10,12 +11,12 @@ import (
 	"github.com/joho/godotenv"
 )
 
-//	@Title		Web3 - 健康資料公鏈API開發文件
-//	@Version	1.0
-//	@Description.markdown
-//	@Host		health-statistic.dechnology.com.tw
-//	@Schemes	https
-//	@BasePath	/api/v1
+// @Title		Web3 - 健康資料公鏈API開發文件
+// @Version	1.0
+// @Description.markdown
+// @Host		health-statistic.dechnology.com.tw
+// @Schemes	https
+// @BasePath	/api/v1
 func main() {
 	// Loading environment variables when not using a docker container
 	if os.Getenv("RUNNING_IN_DOCKER") == "" {
@@ -29,7 +30,7 @@ func main() {
 	defer entClient.Close()
 
 	// migration code: perform it only onces is enough
-	if err := db.Migrate(entClient); err != nil {
+	if err := db.Migrate(context.Background(), entClient); err != nil {
 		log.Print(err.Error())
 	}
 
