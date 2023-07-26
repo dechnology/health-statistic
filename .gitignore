@@ -28,3 +28,6 @@ docs/*.png
 docs/*.html
 docs/*.css*
 docs/*.js*
+
+#
+node_modules
