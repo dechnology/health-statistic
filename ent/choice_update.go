@@ -53,19 +53,15 @@ func (cu *ChoiceUpdate) AddOrder(i int) *ChoiceUpdate {
 	return cu
 }
 
-// AddQuesionIDs adds the "quesion" edge to the Question entity by IDs.
-func (cu *ChoiceUpdate) AddQuesionIDs(ids ...uuid.UUID) *ChoiceUpdate {
-	cu.mutation.AddQuesionIDs(ids...)
+// SetQuesionID sets the "quesion" edge to the Question entity by ID.
+func (cu *ChoiceUpdate) SetQuesionID(id uuid.UUID) *ChoiceUpdate {
+	cu.mutation.SetQuesionID(id)
 	return cu
 }
 
-// AddQuesion adds the "quesion" edges to the Question entity.
-func (cu *ChoiceUpdate) AddQuesion(q ...*Question) *ChoiceUpdate {
-	ids := make([]uuid.UUID, len(q))
-	for i := range q {
-		ids[i] = q[i].ID
-	}
-	return cu.AddQuesionIDs(ids...)
+// SetQuesion sets the "quesion" edge to the Question entity.
+func (cu *ChoiceUpdate) SetQuesion(q *Question) *ChoiceUpdate {
+	return cu.SetQuesionID(q.ID)
 }
 
 // AddAnswerIDs adds the "answer" edge to the Answer entity by IDs.
@@ -88,25 +84,10 @@ func (cu *ChoiceUpdate) Mutation() *ChoiceMutation {
 	return cu.mutation
 }
 
-// ClearQuesion clears all "quesion" edges to the Question entity.
+// ClearQuesion clears the "quesion" edge to the Question entity.
 func (cu *ChoiceUpdate) ClearQuesion() *ChoiceUpdate {
 	cu.mutation.ClearQuesion()
 	return cu
-}
-
-// RemoveQuesionIDs removes the "quesion" edge to Question entities by IDs.
-func (cu *ChoiceUpdate) RemoveQuesionIDs(ids ...uuid.UUID) *ChoiceUpdate {
-	cu.mutation.RemoveQuesionIDs(ids...)
-	return cu
-}
-
-// RemoveQuesion removes "quesion" edges to Question entities.
-func (cu *ChoiceUpdate) RemoveQuesion(q ...*Question) *ChoiceUpdate {
-	ids := make([]uuid.UUID, len(q))
-	for i := range q {
-		ids[i] = q[i].ID
-	}
-	return cu.RemoveQuesionIDs(ids...)
 }
 
 // ClearAnswer clears all "answer" edges to the Answer entity.
@@ -169,6 +150,9 @@ func (cu *ChoiceUpdate) check() error {
 			return &ValidationError{Name: "order", err: fmt.Errorf(`ent: validator failed for field "Choice.order": %w`, err)}
 		}
 	}
+	if _, ok := cu.mutation.QuesionID(); cu.mutation.QuesionCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Choice.quesion"`)
+	}
 	return nil
 }
 
@@ -195,39 +179,23 @@ func (cu *ChoiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if cu.mutation.QuesionCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   choice.QuesionTable,
-			Columns: choice.QuesionPrimaryKey,
+			Columns: []string{choice.QuesionColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(question.FieldID, field.TypeUUID),
 			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := cu.mutation.RemovedQuesionIDs(); len(nodes) > 0 && !cu.mutation.QuesionCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   choice.QuesionTable,
-			Columns: choice.QuesionPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(question.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := cu.mutation.QuesionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   choice.QuesionTable,
-			Columns: choice.QuesionPrimaryKey,
+			Columns: []string{choice.QuesionColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(question.FieldID, field.TypeUUID),
@@ -322,19 +290,15 @@ func (cuo *ChoiceUpdateOne) AddOrder(i int) *ChoiceUpdateOne {
 	return cuo
 }
 
-// AddQuesionIDs adds the "quesion" edge to the Question entity by IDs.
-func (cuo *ChoiceUpdateOne) AddQuesionIDs(ids ...uuid.UUID) *ChoiceUpdateOne {
-	cuo.mutation.AddQuesionIDs(ids...)
+// SetQuesionID sets the "quesion" edge to the Question entity by ID.
+func (cuo *ChoiceUpdateOne) SetQuesionID(id uuid.UUID) *ChoiceUpdateOne {
+	cuo.mutation.SetQuesionID(id)
 	return cuo
 }
 
-// AddQuesion adds the "quesion" edges to the Question entity.
-func (cuo *ChoiceUpdateOne) AddQuesion(q ...*Question) *ChoiceUpdateOne {
-	ids := make([]uuid.UUID, len(q))
-	for i := range q {
-		ids[i] = q[i].ID
-	}
-	return cuo.AddQuesionIDs(ids...)
+// SetQuesion sets the "quesion" edge to the Question entity.
+func (cuo *ChoiceUpdateOne) SetQuesion(q *Question) *ChoiceUpdateOne {
+	return cuo.SetQuesionID(q.ID)
 }
 
 // AddAnswerIDs adds the "answer" edge to the Answer entity by IDs.
@@ -357,25 +321,10 @@ func (cuo *ChoiceUpdateOne) Mutation() *ChoiceMutation {
 	return cuo.mutation
 }
 
-// ClearQuesion clears all "quesion" edges to the Question entity.
+// ClearQuesion clears the "quesion" edge to the Question entity.
 func (cuo *ChoiceUpdateOne) ClearQuesion() *ChoiceUpdateOne {
 	cuo.mutation.ClearQuesion()
 	return cuo
-}
-
-// RemoveQuesionIDs removes the "quesion" edge to Question entities by IDs.
-func (cuo *ChoiceUpdateOne) RemoveQuesionIDs(ids ...uuid.UUID) *ChoiceUpdateOne {
-	cuo.mutation.RemoveQuesionIDs(ids...)
-	return cuo
-}
-
-// RemoveQuesion removes "quesion" edges to Question entities.
-func (cuo *ChoiceUpdateOne) RemoveQuesion(q ...*Question) *ChoiceUpdateOne {
-	ids := make([]uuid.UUID, len(q))
-	for i := range q {
-		ids[i] = q[i].ID
-	}
-	return cuo.RemoveQuesionIDs(ids...)
 }
 
 // ClearAnswer clears all "answer" edges to the Answer entity.
@@ -451,6 +400,9 @@ func (cuo *ChoiceUpdateOne) check() error {
 			return &ValidationError{Name: "order", err: fmt.Errorf(`ent: validator failed for field "Choice.order": %w`, err)}
 		}
 	}
+	if _, ok := cuo.mutation.QuesionID(); cuo.mutation.QuesionCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Choice.quesion"`)
+	}
 	return nil
 }
 
@@ -494,39 +446,23 @@ func (cuo *ChoiceUpdateOne) sqlSave(ctx context.Context) (_node *Choice, err err
 	}
 	if cuo.mutation.QuesionCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   choice.QuesionTable,
-			Columns: choice.QuesionPrimaryKey,
+			Columns: []string{choice.QuesionColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(question.FieldID, field.TypeUUID),
 			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := cuo.mutation.RemovedQuesionIDs(); len(nodes) > 0 && !cuo.mutation.QuesionCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   choice.QuesionTable,
-			Columns: choice.QuesionPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(question.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := cuo.mutation.QuesionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   choice.QuesionTable,
-			Columns: choice.QuesionPrimaryKey,
+			Columns: []string{choice.QuesionColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(question.FieldID, field.TypeUUID),

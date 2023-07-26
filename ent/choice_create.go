@@ -52,19 +52,15 @@ func (cc *ChoiceCreate) SetNillableID(u *uuid.UUID) *ChoiceCreate {
 	return cc
 }
 
-// AddQuesionIDs adds the "quesion" edge to the Question entity by IDs.
-func (cc *ChoiceCreate) AddQuesionIDs(ids ...uuid.UUID) *ChoiceCreate {
-	cc.mutation.AddQuesionIDs(ids...)
+// SetQuesionID sets the "quesion" edge to the Question entity by ID.
+func (cc *ChoiceCreate) SetQuesionID(id uuid.UUID) *ChoiceCreate {
+	cc.mutation.SetQuesionID(id)
 	return cc
 }
 
-// AddQuesion adds the "quesion" edges to the Question entity.
-func (cc *ChoiceCreate) AddQuesion(q ...*Question) *ChoiceCreate {
-	ids := make([]uuid.UUID, len(q))
-	for i := range q {
-		ids[i] = q[i].ID
-	}
-	return cc.AddQuesionIDs(ids...)
+// SetQuesion sets the "quesion" edge to the Question entity.
+func (cc *ChoiceCreate) SetQuesion(q *Question) *ChoiceCreate {
+	return cc.SetQuesionID(q.ID)
 }
 
 // AddAnswerIDs adds the "answer" edge to the Answer entity by IDs.
@@ -141,6 +137,9 @@ func (cc *ChoiceCreate) check() error {
 			return &ValidationError{Name: "order", err: fmt.Errorf(`ent: validator failed for field "Choice.order": %w`, err)}
 		}
 	}
+	if _, ok := cc.mutation.QuesionID(); !ok {
+		return &ValidationError{Name: "quesion", err: errors.New(`ent: missing required edge "Choice.quesion"`)}
+	}
 	return nil
 }
 
@@ -186,10 +185,10 @@ func (cc *ChoiceCreate) createSpec() (*Choice, *sqlgraph.CreateSpec) {
 	}
 	if nodes := cc.mutation.QuesionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   choice.QuesionTable,
-			Columns: choice.QuesionPrimaryKey,
+			Columns: []string{choice.QuesionColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(question.FieldID, field.TypeUUID),
@@ -198,6 +197,7 @@ func (cc *ChoiceCreate) createSpec() (*Choice, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_node.question_choices = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := cc.mutation.AnswerIDs(); len(nodes) > 0 {

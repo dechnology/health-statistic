@@ -29,7 +29,9 @@ func (Choice) Fields() []ent.Field {
 func (Choice) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("quesion", Question.Type).
-			Ref("choices"),
+			Ref("choices").
+			Unique().
+			Required(),
 		edge.From("answer", Answer.Type).
 			Ref("chosen"),
 	}

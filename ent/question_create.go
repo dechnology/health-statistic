@@ -236,10 +236,10 @@ func (qc *QuestionCreate) createSpec() (*Question, *sqlgraph.CreateSpec) {
 	}
 	if nodes := qc.mutation.ChoicesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   question.ChoicesTable,
-			Columns: question.ChoicesPrimaryKey,
+			Columns: []string{question.ChoicesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(choice.FieldID, field.TypeUUID),

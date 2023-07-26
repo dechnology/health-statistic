@@ -534,7 +534,7 @@ func (c *ChoiceClient) QueryQuesion(ch *Choice) *QuestionQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(choice.Table, choice.FieldID, id),
 			sqlgraph.To(question.Table, question.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, choice.QuesionTable, choice.QuesionPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, choice.QuesionTable, choice.QuesionColumn),
 		)
 		fromV = sqlgraph.Neighbors(ch.driver.Dialect(), step)
 		return fromV, nil
@@ -1166,7 +1166,7 @@ func (c *QuestionClient) QueryChoices(q *Question) *ChoiceQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(question.Table, question.FieldID, id),
 			sqlgraph.To(choice.Table, choice.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, question.ChoicesTable, question.ChoicesPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, question.ChoicesTable, question.ChoicesColumn),
 		)
 		fromV = sqlgraph.Neighbors(q.driver.Dialect(), step)
 		return fromV, nil

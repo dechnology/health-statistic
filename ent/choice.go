@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/eesoymilk/health-statistic-api/ent/choice"
+	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/google/uuid"
 )
 
@@ -28,14 +29,15 @@ type Choice struct {
 	Order int `json:"order,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ChoiceQuery when eager-loading is set.
-	Edges        ChoiceEdges `json:"-"`
-	selectValues sql.SelectValues
+	Edges            ChoiceEdges `json:"-"`
+	question_choices *uuid.UUID
+	selectValues     sql.SelectValues
 }
 
 // ChoiceEdges holds the relations/edges for other nodes in the graph.
 type ChoiceEdges struct {
 	// Quesion holds the value of the quesion edge.
-	Quesion []*Question `json:"quesion,omitempty"`
+	Quesion *Question `json:"quesion,omitempty"`
 	// Answer holds the value of the answer edge.
 	Answer []*Answer `json:"answer,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -44,9 +46,13 @@ type ChoiceEdges struct {
 }
 
 // QuesionOrErr returns the Quesion value or an error if the edge
-// was not loaded in eager-loading.
-func (e ChoiceEdges) QuesionOrErr() ([]*Question, error) {
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ChoiceEdges) QuesionOrErr() (*Question, error) {
 	if e.loadedTypes[0] {
+		if e.Quesion == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: question.Label}
+		}
 		return e.Quesion, nil
 	}
 	return nil, &NotLoadedError{edge: "quesion"}
@@ -72,6 +78,8 @@ func (*Choice) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case choice.FieldID:
 			values[i] = new(uuid.UUID)
+		case choice.ForeignKeys[0]: // question_choices
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -104,6 +112,13 @@ func (c *Choice) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field order", values[i])
 			} else if value.Valid {
 				c.Order = int(value.Int64)
+			}
+		case choice.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field question_choices", values[i])
+			} else if value.Valid {
+				c.question_choices = new(uuid.UUID)
+				*c.question_choices = *value.S.(*uuid.UUID)
 			}
 		default:
 			c.selectValues.Set(columns[i], values[i])
