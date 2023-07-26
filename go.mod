@@ -5,6 +5,7 @@ go 1.20
 require (
 	entgo.io/ent v0.12.3
 	github.com/auth0/go-jwt-middleware/v2 v2.1.0
+	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/google/uuid v1.3.0
 	github.com/gwatts/gin-adapter v1.0.0

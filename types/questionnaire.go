@@ -9,7 +9,7 @@ type BaseQuestion struct {
 	// The question body
 	Body    string   `json:"body" example:"你這週的心情如何？"`
 	Type    string   `json:"type" enums:"short_answer,single_choice,multiple_choice" example:"single_choice"`
-	Choices []string `json:"choices" example:"[是,否]"`
+	Choices []string `json:"choices" example:"是,否"`
 }
 
 type BaseChoice struct {
@@ -25,7 +25,7 @@ type BaseAnswer struct {
 	ChoiceIds *[]uuid.UUID `json:"choice_ids" example:"88888888-8888-4888-8888-888888888888,88888888-8888-4444-8888-888888888888"`
 }
 
-//	@Description	BaseQuestionnaire
+// @Description	BaseQuestionnaire
 type BaseQuestionnaire struct {
 	// The name of the questionnaire
 	Name string `json:"name" example:"問卷標題"`

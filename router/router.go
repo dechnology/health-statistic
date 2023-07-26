@@ -3,7 +3,7 @@ package router
 import (
 	"github.com/eesoymilk/health-statistic-api/ent"
 	"github.com/eesoymilk/health-statistic-api/handlers"
-	"github.com/eesoymilk/health-statistic-api/middlewares"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -59,28 +59,13 @@ import (
 // New registers the routes and returns the router.
 func New(db *ent.Client) *gin.Engine {
 	r := gin.Default()
+	r.Use(cors.New(cors.Config{
+		AllowAllOrigins: true, // this allows all origins
+		AllowMethods:    []string{"GET", "POST", "PUT", "PATCH", "DELETE"},
+		AllowHeaders:    []string{"Origin", "Content-Length", "Content-Type"},
+	}))
+
 	h := handlers.Handler{DB: db}
-
-	// This route is always accessible.
-	r.GET(
-		"/api/public",
-		handlers.HandlePublic,
-	)
-
-	// This route is only accessible if the user has a valid access_token.
-	r.GET(
-		"/api/private",
-		middlewares.EnsureValidToken(),
-		handlers.HandlePrivate,
-	)
-
-	// This route is only accessible if the user has a
-	// valid access_token with the read:messages scope.
-	r.GET(
-		"/api/private-scoped",
-		middlewares.EnsureValidToken(),
-		handlers.HandlePrivateScoped,
-	)
 
 	v1 := r.Group("/api/v1")
 	{
