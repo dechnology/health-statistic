@@ -56,11 +56,16 @@ func (h *Handler) RespondQuestionnaire(
 func (h *Handler) GetResponses(c *gin.Context) {
 	responses, err := h.DB.QuestionnaireResponse.
 		Query().
-		WithAnswers().
+		WithAnswers(func(q *ent.AnswerQuery) {
+			q.WithChosen().All(c.Request.Context())
+		}).
 		All(c.Request.Context())
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(
+			http.StatusInternalServerError,
+			gin.H{"error": err.Error()},
+		)
 		return
 	}
 
@@ -86,7 +91,9 @@ func (h *Handler) GetResponse(c *gin.Context) {
 		Query().
 		Where(questionnaireresponse.ID((id))).
 		WithQuestionnaire().
-		WithAnswers().
+		WithAnswers(func(q *ent.AnswerQuery) {
+			q.WithChosen().All(c.Request.Context())
+		}).
 		Only(c.Request.Context())
 
 	if err != nil {

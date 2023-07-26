@@ -483,10 +483,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/ent.Question"
-                        }
+                        "description": "Bad Request"
                     }
                 }
             }
@@ -520,6 +517,37 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/types.BaseResponse"
                         }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ent.QuestionnaireResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/questionnaires/{id}/responses": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Questionnaire"
+                ],
+                "summary": "Get Questionnaire Responses",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The questionnaire's ID.",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {

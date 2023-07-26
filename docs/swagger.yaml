@@ -916,8 +916,6 @@ paths:
             $ref: '#/definitions/ent.Question'
         "400":
           description: Bad Request
-          schema:
-            $ref: '#/definitions/ent.Question'
       summary: Create Question
       tags:
       - Questionnaire
@@ -955,6 +953,26 @@ paths:
           schema:
             $ref: '#/definitions/ent.QuestionnaireResponse'
       summary: Create Response
+      tags:
+      - Questionnaire
+  /questionnaires/{id}/responses:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: The questionnaire's ID.
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ent.QuestionnaireResponse'
+      summary: Get Questionnaire Responses
       tags:
       - Questionnaire
   /questionnaires/registration:

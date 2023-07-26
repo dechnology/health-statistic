@@ -123,6 +123,7 @@ func New(db *ent.Client) *gin.Engine {
 				idGroup.DELETE("/", h.DeleteQuestionnaire)
 				idGroup.POST("/new/question", h.CreateQuestion)
 				idGroup.POST("/new/response", h.CreateResponse)
+				idGroup.GET("/responses", h.GetQuestionnaireResponses)
 			}
 		}
 
