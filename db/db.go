@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/eesoymilk/health-statistic-api/ent"
+	"github.com/eesoymilk/health-statistic-api/ent/migrate"
 	"github.com/eesoymilk/health-statistic-api/types"
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
@@ -37,7 +38,11 @@ func ReadRegistrationQuestionnaire() (*types.QuestionnaireWithId, error) {
 }
 
 func Migrate(db *ent.Client) error {
-	if err := db.Schema.Create(context.Background()); err != nil {
+	if err := db.Schema.Create(
+		context.Background(),
+		migrate.WithDropIndex(true),
+		migrate.WithDropColumn(true),
+	); err != nil {
 		return fmt.Errorf("failed creating schema resources: %v", err)
 	}
 
@@ -57,6 +62,14 @@ func Migrate(db *ent.Client) error {
 		SetID(id).
 		SetName(questionnaireData.Name).
 		Save(context.Background())
+
+	if err != nil {
+		// This error occurs if registration questionnaire is already created
+		return fmt.Errorf(
+			"failed to create registration questionnaire: %v",
+			err,
+		)
+	}
 
 	for i, questionData := range questionnaireData.Questions {
 		_, err := db.Question.Create().

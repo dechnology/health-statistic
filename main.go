@@ -1,16 +1,5 @@
 package main
 
-/**************  TODO  **************/
-/*	1. Auth0 Integration			*/
-/*	2. CRUD - User Information		*/
-/*	3. CRUD - Questionnaire			*/
-/*	4. CRUD - User Healthkit Data	*/
-/*	5. CRUD - DeeGoo Links			*/
-/*	6. CRUD - Reward Notification? 	*/
-/*	7. Noitfication - Reward Keys?	*/
-/*	8. Noitfication - Lottory Keys? */
-/************************************/
-
 import (
 	"log"
 	"os"
@@ -40,7 +29,9 @@ func main() {
 	defer entClient.Close()
 
 	// migration code: perform it only onces is enough
-	db.Migrate(entClient)
+	if err := db.Migrate(entClient); err != nil {
+		log.Fatalf(err.Error())
+	}
 
 	r := router.New(entClient)
 	r.Run()

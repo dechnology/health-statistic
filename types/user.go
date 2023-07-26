@@ -4,8 +4,6 @@ import "github.com/eesoymilk/health-statistic-api/ent"
 
 type BaseUser struct {
 	ID                           string  `json:"id"`
-	FirstName                    string  `json:"first_name" example:"中天"`
-	LastName                     string  `json:"last_name" example:"大"`
 	BirthYear                    int     `json:"birth_year" example:"2000"`
 	Height                       float64 `json:"height" example:"185.2"`
 	Weight                       float64 `json:"weight" example:"80.3"`

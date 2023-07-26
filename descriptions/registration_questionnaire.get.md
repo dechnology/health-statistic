@@ -1,0 +1,1 @@
+The questionnaire all users must submit before registering to our database. This endpoint retrieves that registration questionnaire. It has at total 16 questions.

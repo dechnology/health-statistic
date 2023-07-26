@@ -1,1 +1,1 @@
-Get all notifications of an user.
+Get all history notifications of an user.
