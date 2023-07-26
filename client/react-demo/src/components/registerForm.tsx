@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
+import { useEffect, useRef } from 'react';
 
 interface Choice {
   id: string;
@@ -11,6 +12,12 @@ interface Question {
   body: string;
   type: 'short_answer' | 'single_choice' | 'multiple_choice';
   choices: Choice[];
+}
+
+interface Answer {
+  question_id: string;
+  choice_ids?: string[];
+  body?: string;
 }
 
 interface Questionnaire {
@@ -34,17 +41,41 @@ const RegisterForm = () => {
     ['registrationQuestionnaireData'],
     fetchRegistrationQuestionnaire,
   );
+  const answers = useRef<Answer[]>();
+
+  useEffect(() => {
+    answers.current = data?.questions.map((question) => {
+      const answer = { question_id: question.id };
+      return question.type === 'short_answer'
+        ? { body: '', ...answer }
+        : { choice_ids: [question.choices[0].id], ...answer };
+    });
+  }, [data]);
 
   if (isLoading) return <div>Loading Registration Questionnaire...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
-  const questions = data?.questions.map((question, idx) => (
+  const questions = data.questions.map((question, idx) => (
     <>
-      <h3 key={idx}>{question.body}</h3>
+      <h3 key={question.id}>{question.body}</h3>
       <ol>
-        {question.choices.map((choice, idx) => (
-          <li key={idx}>
-            <p>{choice.body}</p>
+        {question.choices.map((choice) => (
+          <li key={choice.id}>
+            <input
+              type="radio"
+              name={question.id}
+              checked={
+                answers.current &&
+                answers.current[idx] &&
+                answers.current[idx].choice_ids?.includes(choice.id)
+              }
+              onChange={() => {
+                if (answers.current && answers.current[idx]) {
+                  answers.current[idx].choice_ids = [choice.id];
+                }
+              }}
+            />
+            <span>{choice.body}</span>
           </li>
         ))}
       </ol>
@@ -55,6 +86,7 @@ const RegisterForm = () => {
     <div>
       <h2 className="text-xl">{data?.name}</h2>
       <div>{questions}</div>
+      <button type="submit">Submit</button>
     </div>
   );
 };
