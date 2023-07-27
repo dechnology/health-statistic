@@ -12,6 +12,7 @@ export interface Question {
 
 export interface Answer {
   question_id: string;
+  type: 'short_answer' | 'single_choice';
   body: string;
 }
 

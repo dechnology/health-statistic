@@ -28,6 +28,7 @@ const RegistrationView = () => {
   const [infoAnswers, setInfoAnswers] = useState<Answer[]>(
     InfoQuestionnaire.questions.map((q) => ({
       question_id: q.id,
+      type: q.type,
       body: q.type === 'single_choice' && q.choices ? q.choices[0].id : '',
     })),
   );
@@ -42,6 +43,7 @@ const RegistrationView = () => {
     const newRegitrationAnswers = registrationQuestionnaire.questions.map(
       (q) => ({
         question_id: q.id,
+        type: q.type,
         body: q.type === 'single_choice' && q.choices ? q.choices[0].id : '',
       }),
     );
@@ -106,11 +108,17 @@ const RegistrationView = () => {
       }, {}),
     };
 
+    const response = {
+      questionnaire_id: registrationQuestionnaire.id,
+      answers: registrationAnswers.map((a) =>
+        a.type === 'single_choice'
+          ? { question_id: a.question_id, choice_ids: [a.body] }
+          : { question_id: a.question_id, body: a.body },
+      ),
+    };
+
     requestBody.current = {
-      response: {
-        questionnaire_id: registrationQuestionnaire.id,
-        answers: registrationAnswers,
-      },
+      response: response,
       user: userInfo,
     };
 
