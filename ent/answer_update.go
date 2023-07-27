@@ -56,6 +56,20 @@ func (au *AnswerUpdate) SetBody(s string) *AnswerUpdate {
 	return au
 }
 
+// SetNillableBody sets the "body" field if the given value is not nil.
+func (au *AnswerUpdate) SetNillableBody(s *string) *AnswerUpdate {
+	if s != nil {
+		au.SetBody(*s)
+	}
+	return au
+}
+
+// ClearBody clears the value of the "body" field.
+func (au *AnswerUpdate) ClearBody() *AnswerUpdate {
+	au.mutation.ClearBody()
+	return au
+}
+
 // AddChosenIDs adds the "chosen" edge to the Choice entity by IDs.
 func (au *AnswerUpdate) AddChosenIDs(ids ...uuid.UUID) *AnswerUpdate {
 	au.mutation.AddChosenIDs(ids...)
@@ -186,6 +200,9 @@ func (au *AnswerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := au.mutation.Body(); ok {
 		_spec.SetField(answer.FieldBody, field.TypeString, value)
+	}
+	if au.mutation.BodyCleared() {
+		_spec.ClearField(answer.FieldBody, field.TypeString)
 	}
 	if au.mutation.ChosenCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -327,6 +344,20 @@ func (auo *AnswerUpdateOne) SetNillableCreatedAt(t *time.Time) *AnswerUpdateOne 
 // SetBody sets the "body" field.
 func (auo *AnswerUpdateOne) SetBody(s string) *AnswerUpdateOne {
 	auo.mutation.SetBody(s)
+	return auo
+}
+
+// SetNillableBody sets the "body" field if the given value is not nil.
+func (auo *AnswerUpdateOne) SetNillableBody(s *string) *AnswerUpdateOne {
+	if s != nil {
+		auo.SetBody(*s)
+	}
+	return auo
+}
+
+// ClearBody clears the value of the "body" field.
+func (auo *AnswerUpdateOne) ClearBody() *AnswerUpdateOne {
+	auo.mutation.ClearBody()
 	return auo
 }
 
@@ -490,6 +521,9 @@ func (auo *AnswerUpdateOne) sqlSave(ctx context.Context) (_node *Answer, err err
 	}
 	if value, ok := auo.mutation.Body(); ok {
 		_spec.SetField(answer.FieldBody, field.TypeString, value)
+	}
+	if auo.mutation.BodyCleared() {
+		_spec.ClearField(answer.FieldBody, field.TypeString)
 	}
 	if auo.mutation.ChosenCleared() {
 		edge := &sqlgraph.EdgeSpec{

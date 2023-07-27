@@ -165,6 +165,16 @@ func BodyHasSuffix(v string) predicate.Answer {
 	return predicate.Answer(sql.FieldHasSuffix(FieldBody, v))
 }
 
+// BodyIsNil applies the IsNil predicate on the "body" field.
+func BodyIsNil() predicate.Answer {
+	return predicate.Answer(sql.FieldIsNull(FieldBody))
+}
+
+// BodyNotNil applies the NotNil predicate on the "body" field.
+func BodyNotNil() predicate.Answer {
+	return predicate.Answer(sql.FieldNotNull(FieldBody))
+}
+
 // BodyEqualFold applies the EqualFold predicate on the "body" field.
 func BodyEqualFold(v string) predicate.Answer {
 	return predicate.Answer(sql.FieldEqualFold(FieldBody, v))

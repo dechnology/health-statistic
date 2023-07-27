@@ -16,7 +16,7 @@ var (
 	AnswersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
 		{Name: "created_at", Type: field.TypeTime},
-		{Name: "body", Type: field.TypeString, Size: 2147483647},
+		{Name: "body", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "question_answers", Type: field.TypeUUID},
 		{Name: "questionnaire_response_answers", Type: field.TypeUUID},
 	}

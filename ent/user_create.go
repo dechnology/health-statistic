@@ -362,6 +362,9 @@ func (uc *UserCreate) check() error {
 			return &ValidationError{Name: "smoking_habit", err: fmt.Errorf(`ent: validator failed for field "User.smoking_habit": %w`, err)}
 		}
 	}
+	if len(uc.mutation.MycardsIDs()) == 0 {
+		return &ValidationError{Name: "mycards", err: errors.New(`ent: missing required edge "User.mycards"`)}
+	}
 	return nil
 }
 

@@ -108,6 +108,7 @@ func (User) Edges() []ent.Edge {
 		edge.To("questionnaire_responses", QuestionnaireResponse.Type),
 		edge.To("notifications", Notification.Type),
 		edge.To("prices", Price.Type),
-		edge.To("mycards", MyCard.Type),
+		edge.To("mycards", MyCard.Type).
+			Required(),
 	}
 }

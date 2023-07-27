@@ -205,7 +205,7 @@ func (mcc *MyCardCreate) createSpec() (*MyCard, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := mcc.mutation.TakenAt(); ok {
 		_spec.SetField(mycard.FieldTakenAt, field.TypeTime, value)
-		_node.TakenAt = value
+		_node.TakenAt = &value
 	}
 	if nodes := mcc.mutation.RecipientIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

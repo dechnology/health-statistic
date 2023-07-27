@@ -28,7 +28,7 @@ type MyCard struct {
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// TakenAt holds the value of the "taken_at" field.
-	TakenAt time.Time `json:"taken_at,omitempty"`
+	TakenAt *time.Time `json:"taken_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the MyCardQuery when eager-loading is set.
 	Edges        MyCardEdges `json:"-"`
@@ -117,7 +117,8 @@ func (mc *MyCard) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field taken_at", values[i])
 			} else if value.Valid {
-				mc.TakenAt = value.Time
+				mc.TakenAt = new(time.Time)
+				*mc.TakenAt = value.Time
 			}
 		case mycard.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -178,8 +179,10 @@ func (mc *MyCard) String() string {
 	builder.WriteString("created_at=")
 	builder.WriteString(mc.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("taken_at=")
-	builder.WriteString(mc.TakenAt.Format(time.ANSIC))
+	if v := mc.TakenAt; v != nil {
+		builder.WriteString("taken_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

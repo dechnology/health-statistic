@@ -28,7 +28,7 @@ type Answer struct {
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Body holds the value of the "body" field.
-	Body string `json:"body,omitempty"`
+	Body *string `json:"body,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AnswerQuery when eager-loading is set.
 	Edges                          AnswerEdges `json:"-"`
@@ -131,7 +131,8 @@ func (a *Answer) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field body", values[i])
 			} else if value.Valid {
-				a.Body = value.String
+				a.Body = new(string)
+				*a.Body = value.String
 			}
 		case answer.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -201,8 +202,10 @@ func (a *Answer) String() string {
 	builder.WriteString("created_at=")
 	builder.WriteString(a.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("body=")
-	builder.WriteString(a.Body)
+	if v := a.Body; v != nil {
+		builder.WriteString("body=")
+		builder.WriteString(*v)
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

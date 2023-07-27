@@ -48,6 +48,14 @@ func (ac *AnswerCreate) SetBody(s string) *AnswerCreate {
 	return ac
 }
 
+// SetNillableBody sets the "body" field if the given value is not nil.
+func (ac *AnswerCreate) SetNillableBody(s *string) *AnswerCreate {
+	if s != nil {
+		ac.SetBody(*s)
+	}
+	return ac
+}
+
 // SetID sets the "id" field.
 func (ac *AnswerCreate) SetID(u uuid.UUID) *AnswerCreate {
 	ac.mutation.SetID(u)
@@ -149,9 +157,6 @@ func (ac *AnswerCreate) check() error {
 	if _, ok := ac.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Answer.created_at"`)}
 	}
-	if _, ok := ac.mutation.Body(); !ok {
-		return &ValidationError{Name: "body", err: errors.New(`ent: missing required field "Answer.body"`)}
-	}
 	if _, ok := ac.mutation.QuestionID(); !ok {
 		return &ValidationError{Name: "question", err: errors.New(`ent: missing required edge "Answer.question"`)}
 	}
@@ -199,7 +204,7 @@ func (ac *AnswerCreate) createSpec() (*Answer, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := ac.mutation.Body(); ok {
 		_spec.SetField(answer.FieldBody, field.TypeString, value)
-		_node.Body = value
+		_node.Body = &value
 	}
 	if nodes := ac.mutation.ChosenIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

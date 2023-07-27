@@ -226,7 +226,7 @@ func (m *AnswerMutation) Body() (r string, exists bool) {
 // OldBody returns the old "body" field's value of the Answer entity.
 // If the Answer object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AnswerMutation) OldBody(ctx context.Context) (v string, err error) {
+func (m *AnswerMutation) OldBody(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldBody is only allowed on UpdateOne operations")
 	}
@@ -240,9 +240,22 @@ func (m *AnswerMutation) OldBody(ctx context.Context) (v string, err error) {
 	return oldValue.Body, nil
 }
 
+// ClearBody clears the value of the "body" field.
+func (m *AnswerMutation) ClearBody() {
+	m.body = nil
+	m.clearedFields[answer.FieldBody] = struct{}{}
+}
+
+// BodyCleared returns if the "body" field was cleared in this mutation.
+func (m *AnswerMutation) BodyCleared() bool {
+	_, ok := m.clearedFields[answer.FieldBody]
+	return ok
+}
+
 // ResetBody resets all changes to the "body" field.
 func (m *AnswerMutation) ResetBody() {
 	m.body = nil
+	delete(m.clearedFields, answer.FieldBody)
 }
 
 // AddChosenIDs adds the "chosen" edge to the Choice entity by ids.
@@ -495,7 +508,11 @@ func (m *AnswerMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *AnswerMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(answer.FieldBody) {
+		fields = append(fields, answer.FieldBody)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -508,6 +525,11 @@ func (m *AnswerMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *AnswerMutation) ClearField(name string) error {
+	switch name {
+	case answer.FieldBody:
+		m.ClearBody()
+		return nil
+	}
 	return fmt.Errorf("unknown Answer nullable field %s", name)
 }
 
@@ -1432,7 +1454,7 @@ func (m *MyCardMutation) TakenAt() (r time.Time, exists bool) {
 // OldTakenAt returns the old "taken_at" field's value of the MyCard entity.
 // If the MyCard object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MyCardMutation) OldTakenAt(ctx context.Context) (v time.Time, err error) {
+func (m *MyCardMutation) OldTakenAt(ctx context.Context) (v *time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldTakenAt is only allowed on UpdateOne operations")
 	}
