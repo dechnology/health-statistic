@@ -10,8 +10,6 @@ on:
       - "Dockerfile"
       - "docker-compose.yml"
       - "**.go"
-      - "swagger.json"
-
 
 env:
   REGISTRY: ghcr.io
@@ -85,7 +83,7 @@ jobs:
             cd ~
             mkdir source || true
             cd source || exit 1
-  
+
             export POSTGRES_PORT=${{ env.POSTGRES_PORT }}
             export POSTGRES_USER=${{ env.POSTGRES_USER }}
             export POSTGRES_DB=${{ env.POSTGRES_DB }}
