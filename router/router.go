@@ -3,7 +3,7 @@ package router
 import (
 	"github.com/eesoymilk/health-statistic-api/ent"
 	"github.com/eesoymilk/health-statistic-api/handlers"
-	"github.com/gin-contrib/cors"
+	"github.com/eesoymilk/health-statistic-api/middlewares"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -59,27 +59,7 @@ import (
 // New registers the routes and returns the router.
 func New(db *ent.Client) *gin.Engine {
 	r := gin.Default()
-	r.Use(cors.New(cors.Config{
-		AllowAllOrigins: true, // this allows all origins
-		AllowMethods: []string{
-			"GET",
-			"POST",
-			"PUT",
-			"PATCH",
-			"DELETE",
-			"HEAD",
-			"OPTIONS",
-		},
-		AllowHeaders: []string{
-			"Accept",
-			"User-Agent",
-			"Content-Length",
-			"Content-Type",
-			"Authorization",
-		},
-		AllowCredentials: true,
-		ExposeHeaders:    []string{"Content-length"},
-	}))
+	r.Use(middlewares.CorsMiddleware())
 
 	h := handlers.Handler{DB: db}
 
