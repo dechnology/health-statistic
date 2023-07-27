@@ -5,6 +5,7 @@ import (
 	"github.com/eesoymilk/health-statistic-api/handlers"
 	"github.com/eesoymilk/health-statistic-api/middlewares"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -61,7 +62,12 @@ func New(db *ent.Client) *gin.Engine {
 	r := gin.Default()
 	r.Use(middlewares.CorsMiddleware())
 
-	h := handlers.Handler{DB: db}
+	h := handlers.Handler{
+		DB: db,
+		RegistrationQuestionnaireId: uuid.MustParse(
+			"88888888-8888-4888-8888-888888888888",
+		),
+	}
 
 	v1 := r.Group("/api/v1")
 	{

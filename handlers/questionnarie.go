@@ -16,13 +16,8 @@ import (
 
 func (h *Handler) GetQuestionnaireById(
 	ctx context.Context,
-	rawId string,
+	id uuid.UUID,
 ) (*ent.Questionnaire, error) {
-	id, err := uuid.Parse(rawId)
-	if err != nil {
-		return nil, err
-	}
-
 	questionnaireNode, err := h.DB.Questionnaire.
 		Query().
 		Where(questionnaire.ID(id)).
@@ -109,7 +104,7 @@ func (h *Handler) GetQuestionnaires(c *gin.Context) {
 func (h *Handler) GetRegistrationQuestionnaire(c *gin.Context) {
 	questionnaireNode, err := h.GetQuestionnaireById(
 		c.Request.Context(),
-		"88888888-8888-4888-8888-888888888888",
+		h.RegistrationQuestionnaireId,
 	)
 	if err != nil {
 		c.JSON(
@@ -130,9 +125,18 @@ func (h *Handler) GetRegistrationQuestionnaire(c *gin.Context) {
 //	@Success				200	{object}	types.QuestionnaireDetails
 //	@Router					/questionnaires/{id} [get]
 func (h *Handler) GetQuestionnaire(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(
+			http.StatusBadRequest,
+			gin.H{"error": err.Error()},
+		)
+		return
+	}
+
 	questionnaireNode, err := h.GetQuestionnaireById(
 		c.Request.Context(),
-		c.Param("id"),
+		id,
 	)
 	if err != nil {
 		c.JSON(
