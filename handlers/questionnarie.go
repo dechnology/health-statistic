@@ -221,41 +221,6 @@ func (h *Handler) DeleteQuestionnaire(c *gin.Context) {
 	c.JSON(http.StatusNoContent, nil)
 }
 
-//	@Summary				Create Question
-//	@Description.markdown	questionnaire_questions.post
-//	@Tags					Questionnaire
-//	@Accept					json
-//	@Produce				json
-//	@Param					id			path		string					true	"The questionnaire's ID."
-//	@Param					question	body		[]types.BaseQuestion	true	"The question to be created."
-//	@Success				200			{object}	ent.Question
-//	@Failure				400
-//	@Router					/questionnaires/{id}/questions [post]
-func (h *Handler) CreateQuestions(c *gin.Context) {
-	var body []types.BaseQuestion
-	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(
-			http.StatusBadRequest,
-			gin.H{"error": err.Error()},
-		)
-		return
-	}
-
-	if err := h.AppendQuestions(
-		c.Request.Context(),
-		c.Param("id"),
-		body,
-	); err != nil {
-		c.JSON(
-			http.StatusBadRequest,
-			gin.H{"error": err.Error()},
-		)
-		return
-	}
-
-	c.JSON(http.StatusOK, nil)
-}
-
 //	@Summary				Create Questionnaire Response
 //	@Description.markdown	questionnaire_responses.post
 //	@Tags					Questionnaire

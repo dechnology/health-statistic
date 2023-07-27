@@ -927,38 +927,6 @@ paths:
       summary: Get Questionnaire
       tags:
       - Questionnaire
-  /questionnaires/{id}/questions:
-    post:
-      consumes:
-      - application/json
-      description: |
-        Get all questions from the database. **This will NOT include questionnaires and responses.**
-      parameters:
-      - description: The questionnaire's ID.
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: The question to be created.
-        in: body
-        name: question
-        required: true
-        schema:
-          items:
-            $ref: '#/definitions/types.BaseQuestion'
-          type: array
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/ent.Question'
-        "400":
-          description: Bad Request
-      summary: Create Question
-      tags:
-      - Questionnaire
   /questionnaires/{id}/responses:
     get:
       consumes:

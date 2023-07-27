@@ -440,53 +440,6 @@
                 }
             }
         },
-        "/questionnaires/{id}/questions": {
-            "post": {
-                "description": "Get all questions from the database. **This will NOT include questionnaires and responses.**\n",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Questionnaire"
-                ],
-                "summary": "Create Question",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The questionnaire's ID.",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "The question to be created.",
-                        "name": "question",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/types.BaseQuestion"
-                            }
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/ent.Question"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request"
-                    }
-                }
-            }
-        },
         "/questionnaires/{id}/responses": {
             "get": {
                 "consumes": [

@@ -99,8 +99,7 @@ func New(db *ent.Client) *gin.Engine {
 			{
 				id.GET("", h.GetQuestionnaire)
 				id.DELETE("", h.DeleteQuestionnaire)
-				id.POST("/new/question", h.CreateQuestions)
-				id.POST("/new/response", h.CreateQuestionnaireResponse)
+				id.POST("/responses", h.CreateQuestionnaireResponse)
 				id.GET("/responses", h.GetQuestionnaireResponses)
 			}
 		}
