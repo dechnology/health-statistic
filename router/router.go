@@ -61,7 +61,15 @@ func New(db *ent.Client) *gin.Engine {
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
 		AllowAllOrigins: true, // this allows all origins
-		AllowMethods:    []string{"GET", "POST", "PUT", "DELETE"},
+		AllowMethods: []string{
+			"GET",
+			"POST",
+			"PUT",
+			"PATCH",
+			"DELETE",
+			"HEAD",
+			"OPTIONS",
+		},
 		AllowHeaders: []string{
 			"Accept",
 			"User-Agent",
