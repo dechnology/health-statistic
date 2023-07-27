@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
 	"github.com/eesoymilk/health-statistic-api/types"
 	"github.com/gin-gonic/gin"
@@ -20,6 +21,20 @@ import (
 // @Success				200		{object}	types.RegisterResponse
 // @Router					/register [post]
 func (h *Handler) Register(c *gin.Context) {
+
+	// STEP 0:	Check if a MyCard is available
+	myCardNode, err := h.DB.MyCard.Query().
+		Where(mycard.Not(mycard.HasRecipient())).
+		First(c.Request.Context())
+	if err != nil {
+		c.JSON(
+			http.StatusInternalServerError,
+			gin.H{"error": err.Error()},
+		)
+		return
+	}
+
+	// STEP 1:	Create a new user
 	var body types.RegisterData
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -50,6 +65,7 @@ func (h *Handler) Register(c *gin.Context) {
 		SetEarCondition(user.EarCondition(body.User.EarCondition)).
 		SetEyesightCondition(user.EyesightCondition(body.User.EyesightCondition)).
 		SetSmokingHabit(user.SmokingHabit(body.User.SmokingHabit)).
+		AddMycards(myCardNode). // Assign a MyCard
 		Save(c.Request.Context())
 	if err != nil {
 		c.JSON(
@@ -59,6 +75,7 @@ func (h *Handler) Register(c *gin.Context) {
 		return
 	}
 
+	// STEP 2:	Respond to registration questionnaire
 	raw_questionnaire_id := body.Response.QuestionnaireId
 	if raw_questionnaire_id != "88888888-8888-4888-8888-888888888888" {
 		c.JSON(
@@ -83,8 +100,10 @@ func (h *Handler) Register(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"user":     userNode,
+		"mycard":   myCardNode,
 		"response": responseNode,
 	})
 
-	// TODO: Send notification
+	// TODO
+	// STEP	3:	Send notification
 }

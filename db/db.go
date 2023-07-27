@@ -33,7 +33,7 @@ func ReadRegistrationQuestionnaire() (*types.QuestionnaireWithId, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("data: %v", string(jsonBytes))
+	log.Printf("regisration questionnaire: %v", string(jsonBytes))
 
 	return &questionnaireData, nil
 }
@@ -80,6 +80,53 @@ func CreateRegistrationQuestionnaire(
 	return nil
 }
 
+func ReadMyCards() (*[]types.BaseMyCard, error) {
+	data, err := os.ReadFile("./db/mycards.json")
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse the JSON
+	var mycards []types.BaseMyCard
+	err = json.Unmarshal(data, &mycards)
+	if err != nil {
+		return nil, err
+	}
+
+	// Print the json
+	jsonBytes, err := json.MarshalIndent(mycards, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+	log.Printf("fake mycards: %v", string(jsonBytes))
+
+	return &mycards, nil
+}
+
+func CreateMyCards(ctx context.Context, db *ent.Client) error {
+	// Parse the JSON
+	mycards, err := ReadMyCards()
+	if err != nil {
+		return fmt.Errorf("error marshaling to JSON: %v", err)
+	}
+
+	for _, mycardData := range *mycards {
+		_, err = db.MyCard.Create().
+			SetID(mycardData.CardNumber).
+			SetCardPassword(mycardData.CardPassword).
+			Save(ctx)
+		if err != nil {
+			// This error occurs if registration questionnaire is already created
+			return fmt.Errorf(
+				"failed to create mycard: %v",
+				err,
+			)
+		}
+	}
+
+	return nil
+}
+
 func Migrate(ctx context.Context, db *ent.Client) error {
 	if err := db.Schema.Create(
 		ctx,
@@ -92,11 +139,16 @@ func Migrate(ctx context.Context, db *ent.Client) error {
 		)
 	}
 
-	// Parse the JSON
-	err := CreateRegistrationQuestionnaire(ctx, db)
-	if err != nil {
+	if err := CreateRegistrationQuestionnaire(ctx, db); err != nil {
 		return fmt.Errorf(
-			"failed creating registration questionnaire: %v",
+			"failed to create registration questionnaire: %v",
+			err,
+		)
+	}
+
+	if err := CreateMyCards(ctx, db); err != nil {
+		return fmt.Errorf(
+			"failed to create MyCards: %v",
 			err,
 		)
 	}
