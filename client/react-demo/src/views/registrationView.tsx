@@ -102,7 +102,10 @@ const RegistrationView = () => {
     console.dir(requestBody.current);
 
     await axios.post(`${baseUrl}/register`, requestBody.current, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
     });
   };
 
