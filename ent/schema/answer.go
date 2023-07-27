@@ -23,7 +23,8 @@ func (Answer) Fields() []ent.Field {
 		field.Time("created_at").
 			Default(time.Now),
 		field.Text("body").
-			Optional().Nillable(),
+			Optional().
+			Nillable(),
 	}
 }
 
