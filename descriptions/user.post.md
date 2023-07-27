@@ -1,1 +1,0 @@
-**This is a debugging endpoint and it is not meant to be consumed by the client side.**

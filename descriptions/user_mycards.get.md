@@ -1,1 +1,0 @@
-The ID field is the card number you are supposed to enter when redeeming the MyCards.

@@ -6,22 +6,23 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
-	"github.com/eesoymilk/health-statistic-api/ent/price"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
 	"github.com/eesoymilk/health-statistic-api/types"
 	"github.com/gin-gonic/gin"
 )
 
-//	@Summary				Get Users
-//	@Description.markdown	users.get
-//	@Tags					User
-//	@Produce				json
-//	@Success				200	{object}	[]ent.User
-//	@Router					/users [get]
+// @Summary				Get Users
+// @Description.markdown	users.get
+// @Tags					User
+// @Produce				json
+// @Success				200	{object}	[]ent.User
+// @Router					/users [get]
 func (h *Handler) GetUsers(c *gin.Context) {
-	users, err := h.DB.User.Query().All(c.Request.Context())
+	users, err := h.DB.User.Query().
+		WithMycards().
+		WithPrices().
+		All(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -29,15 +30,19 @@ func (h *Handler) GetUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, users)
 }
 
-//	@Summary				Get User
-//	@Description.markdown	user.get
-//	@Tags					User
-//	@Produce				json
-//	@Param					id	path		string	true	"The user's Auth0 ID"
-//	@Success				200	{object}	ent.User
-//	@Router					/users/{id} [get]
+// @Summary				Get User
+// @Description.markdown	user.get
+// @Tags					User
+// @Produce				json
+// @Param					id	path		string	true	"The user's Auth0 ID"
+// @Success				200	{object}	ent.User
+// @Router					/users/{id} [get]
 func (h *Handler) GetUser(c *gin.Context) {
-	user, err := h.DB.User.Get(c.Request.Context(), c.Param("id"))
+	user, err := h.DB.User.Query().
+		Where(user.ID(c.Param("id"))).
+		WithMycards().
+		WithPrices().
+		Only(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -45,15 +50,15 @@ func (h *Handler) GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-//	@Summary				Update User
-//	@Description.markdown	user.put
-//	@Tags					User
-//	@Accept					json
-//	@Produce				json
-//	@Param					id		path		string			true	"The user's Auth0 ID"
-//	@Param					user	body		types.BaseUser	true	"user to be updated"
-//	@Success				200		{object}	ent.User
-//	@Router					/users/{id} [put]
+// @Summary				Update User
+// @Description.markdown	user.put
+// @Tags					User
+// @Accept					json
+// @Produce				json
+// @Param					id		path		string			true	"The user's Auth0 ID"
+// @Param					user	body		types.BaseUser	true	"user to be updated"
+// @Success				200		{object}	ent.User
+// @Router					/users/{id} [put]
 func (h *Handler) UpdateUser(c *gin.Context) {
 	var body types.BaseUser
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -101,13 +106,13 @@ func (h *Handler) UpdateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, updatedUserNode)
 }
 
-//	@Summary				Delete User
-//	@Description.markdown	user.delete
-//	@Tags					User
-//	@Produce				json
-//	@Param					id	path	string	true	"The user's Auth0 ID"
-//	@Success				200
-//	@Router					/users/{id} [delete]
+// @Summary				Delete User
+// @Description.markdown	user.delete
+// @Tags					User
+// @Produce				json
+// @Param					id	path	string	true	"The user's Auth0 ID"
+// @Success				200
+// @Router					/users/{id} [delete]
 func (h *Handler) DeleteUser(c *gin.Context) {
 	if err := h.DB.User.DeleteOneID(c.Param("id")).Exec(c.Request.Context()); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -116,16 +121,16 @@ func (h *Handler) DeleteUser(c *gin.Context) {
 	c.JSON(http.StatusNoContent, nil)
 }
 
-//	@Summary				Get All Notifications From an User
+// @Summary				Get All Notifications From an User
 //
-//	@Description.markdown	user_notifications.get
+// @Description.markdown	user_notifications.get
 //
-//	@Tags					User
-//	@Produce				json
-//	@Param					id	path		string	true	"The user's Auth0 ID"
-//	@Success				200	{object}	[]ent.Notifications
+// @Tags					User
+// @Produce				json
+// @Param					id	path		string	true	"The user's Auth0 ID"
+// @Success				200	{object}	[]ent.Notifications
 //
-//	@Router					/users/{id}/notifications [get]
+// @Router					/users/{id}/notifications [get]
 func (h *Handler) GetUserNotifications(c *gin.Context) {
 	notifications, err := h.DB.Notification.
 		Query().
@@ -141,50 +146,4 @@ func (h *Handler) GetUserNotifications(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, notifications)
-}
-
-//	@Summary				Get All MyCards From an User
-//	@Description.markdown	user_mycards.get
-//	@Tags					User
-//	@Produce				json
-//	@Param					id	path		string	true	"The user's Auth0 ID"
-//	@Success				200	{object}	[]ent.MyCard
-//	@Router					/users/{id}/mycards [get]
-func (h *Handler) GetUserMyCards(c *gin.Context) {
-	mycards, err := h.DB.MyCard.
-		Query().
-		Where(
-			mycard.HasRecipientWith(user.ID(c.Param("id"))),
-		).
-		All(c.Request.Context())
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, mycards)
-}
-
-//	@Summary				Get All Prices From an User
-//	@Description.markdown	user_prices.get
-//	@Tags					User
-//	@Produce				json
-//	@Param					id	path		string	true	"The user's Auth0 ID"
-//	@Success				200	{object}	[]ent.Price
-//	@Router					/users/{id}/prices [get]
-func (h *Handler) GetUserPrices(c *gin.Context) {
-	prices, err := h.DB.Price.
-		Query().
-		Where(
-			price.HasRecipientWith(user.ID(c.Param("id"))),
-		).
-		All(c.Request.Context())
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, prices)
 }

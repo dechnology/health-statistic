@@ -83,8 +83,6 @@ func New(db *ent.Client) *gin.Engine {
 				id.PUT("", h.UpdateUser)
 				id.DELETE("", h.DeleteUser)
 				id.GET("/notifications", h.GetUserNotifications)
-				id.GET("/mycards", h.GetUserMyCards)
-				id.GET("/prices", h.GetUserPrices)
 			}
 		}
 
