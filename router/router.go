@@ -70,18 +70,18 @@ func New(db *ent.Client) *gin.Engine {
 
 		register := v1.Group("/register")
 		{
-			register.POST("/", h.Register)
+			register.POST("", h.Register)
 		}
 
 		users := v1.Group("/users")
 		{
-			users.GET("/", h.GetUsers)
+			users.GET("", h.GetUsers)
 
 			id := users.Group("/:id")
 			{
-				id.GET("/", h.GetUser)
-				id.PUT("/", h.UpdateUser)
-				id.DELETE("/", h.DeleteUser)
+				id.GET("", h.GetUser)
+				id.PUT("", h.UpdateUser)
+				id.DELETE("", h.DeleteUser)
 				id.GET("/notifications", h.GetUserNotifications)
 				id.GET("/mycards", h.GetUserMyCards)
 				id.GET("/prices", h.GetUserPrices)
@@ -90,8 +90,8 @@ func New(db *ent.Client) *gin.Engine {
 
 		questionnaires := v1.Group("/questionnaires")
 		{
-			questionnaires.GET("/", h.GetQuestionnaires)
-			questionnaires.POST("/", h.CreateQuestionnaire)
+			questionnaires.GET("", h.GetQuestionnaires)
+			questionnaires.POST("", h.CreateQuestionnaire)
 			questionnaires.GET(
 				"/registration",
 				h.GetRegistrationQuestionnaire,
@@ -99,8 +99,8 @@ func New(db *ent.Client) *gin.Engine {
 
 			id := questionnaires.Group("/:id")
 			{
-				id.GET("/", h.GetQuestionnaire)
-				id.DELETE("/", h.DeleteQuestionnaire)
+				id.GET("", h.GetQuestionnaire)
+				id.DELETE("", h.DeleteQuestionnaire)
 				id.POST("/new/question", h.CreateQuestions)
 				id.POST("/new/response", h.CreateQuestionnaireResponse)
 				id.GET("/responses", h.GetQuestionnaireResponses)
@@ -109,35 +109,35 @@ func New(db *ent.Client) *gin.Engine {
 
 		responses := v1.Group("/responses")
 		{
-			responses.GET("/", h.GetResponses)
+			responses.GET("", h.GetResponses)
 			responses.GET("/:id", h.GetResponse)
 			responses.DELETE("/:id", h.DeleteResponse)
 		}
 
 		questions := v1.Group("/questions")
 		{
-			questions.GET("/", h.GetQuestions)
+			questions.GET("", h.GetQuestions)
 			questions.GET("/:id", h.GetQuestion)
 			questions.DELETE("/:id", h.DeleteQuestion)
 		}
 
 		notifications := v1.Group("/notifications")
 		{
-			notifications.GET("/", h.GetNotifications)
+			notifications.GET("", h.GetNotifications)
 			notifications.GET("/:id", h.GetNotification)
 			notifications.DELETE("/:id", h.DeleteNotification)
 		}
 
 		mycards := v1.Group("/mycards")
 		{
-			mycards.GET("/", h.GetMyCards)
+			mycards.GET("", h.GetMyCards)
 			mycards.GET("/:id", h.GetMyCard)
 			mycards.DELETE("/:id", h.DeleteMyCard)
 		}
 
 		prices := v1.Group("/prices")
 		{
-			prices.GET("/", h.GetPrices)
+			prices.GET("", h.GetPrices)
 			prices.GET("/:id", h.GetPrice)
 			prices.DELETE("/:id", h.DeletePrice)
 		}
