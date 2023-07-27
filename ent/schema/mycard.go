@@ -30,7 +30,8 @@ func (MyCard) Fields() []ent.Field {
 		field.Time("created_at").
 			Default(time.Now),
 		field.Time("taken_at").
-			Optional(),
+			Optional().
+			Nillable(),
 	}
 }
 
