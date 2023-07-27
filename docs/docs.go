@@ -861,38 +861,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/{id}/mycards": {
-            "get": {
-                "description": "The ID field is the card number you are supposed to enter when redeeming the MyCards.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "User"
-                ],
-                "summary": "Get All MyCards From an User",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The user's Auth0 ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/ent.MyCard"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/users/{id}/notifications": {
             "get": {
                 "description": "Get all history notifications of an user.\n",
@@ -922,37 +890,6 @@ const docTemplate = `{
                                 "items": {
                                     "$ref": "#/definitions/ent.Notification"
                                 }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/users/{id}/prices": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "User"
-                ],
-                "summary": "Get All Prices From an User",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The user's Auth0 ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/ent.Price"
                             }
                         }
                     }
@@ -1639,7 +1576,7 @@ const docTemplate = `{
                         "$ref": "#/definitions/types.BaseAnswer"
                     }
                 },
-                "quesionnaire_id": {
+                "questionnaire_id": {
                     "type": "string"
                 }
             }

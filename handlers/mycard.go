@@ -11,12 +11,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// @Summary				Get MyCards
-// @Description.markdown	mycards.get
-// @Tags					MyCard
-// @Produce				json
-// @Success				200	{object}	[]ent.MyCard
-// @Router					/mycards [get]
+//	@Summary				Get MyCards
+//	@Description.markdown	mycards.get
+//	@Tags					MyCard
+//	@Produce				json
+//	@Success				200	{object}	[]ent.MyCard
+//	@Router					/mycards [get]
 func (h *Handler) GetMyCards(c *gin.Context) {
 	mycards, err := h.DB.MyCard.
 		Query().
@@ -31,13 +31,13 @@ func (h *Handler) GetMyCards(c *gin.Context) {
 	c.JSON(http.StatusOK, mycards)
 }
 
-// @Summary				Get MyCard
-// @Description.markdown	mycard.get
-// @Tags					MyCard
-// @Produce				json
-// @Param					id	path		string	true	"The mycard's ID"
-// @Success				200	{object}	ent.MyCard
-// @Router					/mycards/{id} [get]
+//	@Summary				Get MyCard
+//	@Description.markdown	mycard.get
+//	@Tags					MyCard
+//	@Produce				json
+//	@Param					id	path		string	true	"The mycard's ID"
+//	@Success				200	{object}	ent.MyCard
+//	@Router					/mycards/{id} [get]
 func (h *Handler) GetMyCard(c *gin.Context) {
 	id := c.Param("id")
 
@@ -58,14 +58,14 @@ func (h *Handler) GetMyCard(c *gin.Context) {
 	c.JSON(http.StatusOK, mycards)
 }
 
-// @Summary				Create MyCard
-// @Description.markdown	mycard.post
-// @Tags					MyCard
-// @Accept					json
-// @Produce				json
-// @Param					mycard	body		types.BaseMyCard	true	"The mycard to be created"
-// @Success				200		{object}	ent.MyCard
-// @Router					/mycards [post]
+//	@Summary				Create MyCard
+//	@Description.markdown	mycard.post
+//	@Tags					MyCard
+//	@Accept					json
+//	@Produce				json
+//	@Param					mycard	body		types.BaseMyCard	true	"The mycard to be created"
+//	@Success				200		{object}	ent.MyCard
+//	@Router					/mycards [post]
 func (h *Handler) CreateMyCard(c *gin.Context) {
 	var body types.BaseMyCard
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -95,13 +95,13 @@ func (h *Handler) CreateMyCard(c *gin.Context) {
 	c.JSON(http.StatusOK, mycardNode)
 }
 
-// @Summary				Delete MyCard
-// @Description.markdown	mycard.delete
-// @Tags					MyCard
-// @Produce				json
-// @Param					id	path	string	true	"The mycard's ID."
-// @Success				200
-// @Router					/mycards/{id} [delete]
+//	@Summary				Delete MyCard
+//	@Description.markdown	mycard.delete
+//	@Tags					MyCard
+//	@Produce				json
+//	@Param					id	path	string	true	"The mycard's ID."
+//	@Success				200
+//	@Router					/mycards/{id} [delete]
 func (h *Handler) DeleteMyCard(c *gin.Context) {
 	id := c.Param("id")
 
