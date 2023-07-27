@@ -703,7 +703,7 @@ const docTemplate = `{
         },
         "/users": {
             "get": {
-                "description": "Get all users from the database.",
+                "description": "Get all users from the database.\n",
                 "produces": [
                     "application/json"
                 ],

@@ -1182,7 +1182,8 @@ paths:
       - Response
   /users:
     get:
-      description: Get all users from the database.
+      description: |
+        Get all users from the database.
       produces:
       - application/json
       responses:
