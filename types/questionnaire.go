@@ -25,7 +25,7 @@ type BaseAnswer struct {
 	ChoiceIds *[]uuid.UUID `json:"choice_ids" example:"88888888-8888-4888-8888-888888888888,88888888-8888-4444-8888-888888888888"`
 }
 
-//	@Description	BaseQuestionnaire
+// @Description	BaseQuestionnaire
 type BaseQuestionnaire struct {
 	// The name of the questionnaire
 	Name string `json:"name" example:"問卷標題"`
@@ -47,7 +47,7 @@ type ResponseWithUserId struct {
 }
 
 type ResponseWithQuestionnaireId struct {
-	QuestionnaireId string `json:"quesionnaire_id"`
+	QuestionnaireId string `json:"questionnaire_id"`
 	BaseResponse
 }
 

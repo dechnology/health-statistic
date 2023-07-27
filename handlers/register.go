@@ -11,14 +11,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//	@Summary				Register an User
-//	@Description.markdown	register.post
-//	@Tags					Registration
-//	@Accept					json
-//	@Produce				json
-//	@Param					user	body		types.RegisterData	true	"The registration data."
-//	@Success				200		{object}	types.RegisterResponse
-//	@Router					/register [post]
+// @Summary				Register an User
+// @Description.markdown	register.post
+// @Tags					Registration
+// @Accept					json
+// @Produce				json
+// @Param					user	body		types.RegisterData	true	"The registration data."
+// @Success				200		{object}	types.RegisterResponse
+// @Router					/register [post]
 func (h *Handler) Register(c *gin.Context) {
 	var body types.RegisterData
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -60,7 +60,7 @@ func (h *Handler) Register(c *gin.Context) {
 	}
 
 	raw_questionnaire_id := body.Response.QuestionnaireId
-	if raw_questionnaire_id != "" {
+	if raw_questionnaire_id != "88888888-8888-4888-8888-888888888888" {
 		c.JSON(
 			http.StatusBadRequest,
 			gin.H{"error": "you should submit the registration questionnaire instead"},

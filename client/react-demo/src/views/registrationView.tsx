@@ -87,7 +87,22 @@ const RegistrationView = () => {
     const userInfo = {
       id: user.sub,
       ...infoAnswers.reduce((acc, answer) => {
-        return { ...acc, [answer.question_id]: answer.body };
+        let value: string | number | boolean = answer.body;
+
+        if (answer.question_id === 'birth_year') {
+          value = parseInt(value) + 1911;
+        } else if (
+          answer.question_id === 'weight' ||
+          answer.question_id === 'height'
+        ) {
+          value = parseFloat(value);
+        } else if (
+          answer.question_id === 'demented_among_direct_relatives' ||
+          answer.question_id === 'head_injury_experience'
+        ) {
+          value = value === 'true';
+        }
+        return { ...acc, [answer.question_id]: value };
       }, {}),
     };
 
