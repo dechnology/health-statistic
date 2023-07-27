@@ -57,6 +57,8 @@ func (User) Fields() []ent.Field {
 			"industry_and_commerce",
 			"freelancer",
 			"domestic",
+			"retired",
+			"others",
 		),
 		field.Enum("marriage").Values(
 			"single",
@@ -64,12 +66,22 @@ func (User) Fields() []ent.Field {
 			"divorced",
 			"widowed",
 		),
-		field.String("medical_history").
-			MaxLen(100).
-			Optional(),
-		field.String("medication_status").
-			MaxLen(100).
-			Optional(),
+		field.Enum("medical_history").Values(
+			"high_blood_pressure",
+			"hyperlipidemia",
+			"diabetes",
+			"heart_disease",
+			"stroke",
+			"mental_illness",
+			"dementia",
+			"none_of_the_above",
+		),
+		field.Enum("medication_status").Values(
+			"cardiovascular_drugs",
+			"psychiatric_drugs",
+			"other_drugs",
+			"no_drugs",
+		),
 		field.Bool("demented_among_direct_relatives"),
 		field.Bool("head_injury_experience"),
 		field.Enum("ear_condition").Values(
