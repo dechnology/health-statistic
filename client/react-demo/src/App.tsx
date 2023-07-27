@@ -1,5 +1,4 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import './App.css';
 import NavBar from './components/NavBar';
 import RegisterView from './views/registrationView';
 import { useAuth0 } from '@auth0/auth0-react';
