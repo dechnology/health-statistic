@@ -128,6 +128,7 @@ func CreateMyCards(ctx context.Context, db *ent.Client) error {
 }
 
 func Migrate(ctx context.Context, db *ent.Client) error {
+	// Create resources
 	if err := db.Schema.Create(
 		ctx,
 		migrate.WithDropIndex(true),
@@ -139,6 +140,7 @@ func Migrate(ctx context.Context, db *ent.Client) error {
 		)
 	}
 
+	// Create registration questionnaire
 	if err := CreateRegistrationQuestionnaire(ctx, db); err != nil {
 		return fmt.Errorf(
 			"failed to create registration questionnaire: %v",
@@ -146,6 +148,7 @@ func Migrate(ctx context.Context, db *ent.Client) error {
 		)
 	}
 
+	// Create MyCards (they are fake lol)
 	if err := CreateMyCards(ctx, db); err != nil {
 		return fmt.Errorf(
 			"failed to create MyCards: %v",
