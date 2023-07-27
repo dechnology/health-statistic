@@ -65,9 +65,12 @@ func New(db *ent.Client) *gin.Engine {
 		AllowHeaders: []string{
 			"Accept",
 			"User-Agent",
+			"Content-Length",
 			"Content-Type",
 			"Authorization",
 		},
+		AllowCredentials: true,
+		ExposeHeaders:    []string{"Content-length"},
 	}))
 
 	h := handlers.Handler{DB: db}
