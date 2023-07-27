@@ -45,56 +45,6 @@ func (h *Handler) GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-//	@Summary				Create User
-//	@Description.markdown	user.post
-//	@Tags					User
-//	@Accept					json
-//	@Produce				json
-//	@Param					user	body		types.BaseUser	true	"The user to be created"
-//	@Success				200		{object}	ent.User
-//	@Router					/users [post]
-func (h *Handler) CreateUser(c *gin.Context) {
-	var body types.BaseUser
-	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	out, err := json.MarshalIndent(body, "", "  ")
-	if err != nil {
-		log.Fatal(err)
-		os.Exit(1)
-	}
-
-	log.Print(string(out))
-
-	userNode, err := h.DB.User.
-		Create().
-		SetID(body.ID).
-		SetBirthYear(body.BirthYear).
-		SetHeight(body.Height).
-		SetWeight(body.Weight).
-		SetGender(user.Gender(body.Gender)).
-		SetEducationLevel(user.EducationLevel(body.EducationLevel)).
-		SetOccupation(user.Occupation(body.Occupation)).
-		SetMarriage(user.Marriage(body.Marriage)).
-		SetMedicalHistory(body.MedicalHistory).
-		SetMedicationStatus(body.MedicationStatus).
-		SetDementedAmongDirectRelatives(body.DementedAmongDirectRelatives).
-		SetHeadInjuryExperience(body.HeadInjuryExperience).
-		SetEarCondition(user.EarCondition(body.EarCondition)).
-		SetEyesightCondition(user.EyesightCondition(body.EyesightCondition)).
-		SetSmokingHabit(user.SmokingHabit(body.SmokingHabit)).
-		Save(c.Request.Context())
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, userNode)
-}
-
 //	@Summary				Update User
 //	@Description.markdown	user.put
 //	@Tags					User
@@ -134,8 +84,8 @@ func (h *Handler) UpdateUser(c *gin.Context) {
 		SetEducationLevel(user.EducationLevel(body.EducationLevel)).
 		SetOccupation(user.Occupation(body.Occupation)).
 		SetMarriage(user.Marriage(body.Marriage)).
-		SetMedicalHistory(body.MedicalHistory).
-		SetMedicationStatus(body.MedicationStatus).
+		SetMedicalHistory(user.MedicalHistory(body.MedicalHistory)).
+		SetMedicationStatus(user.MedicationStatus(body.MedicationStatus)).
 		SetDementedAmongDirectRelatives(body.DementedAmongDirectRelatives).
 		SetHeadInjuryExperience(body.HeadInjuryExperience).
 		SetEarCondition(user.EarCondition(body.EarCondition)).

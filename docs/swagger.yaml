@@ -133,11 +133,13 @@ definitions:
         - $ref: '#/definitions/user.Marriage'
         description: Marriage holds the value of the "marriage" field.
       medical_history:
+        allOf:
+        - $ref: '#/definitions/user.MedicalHistory'
         description: MedicalHistory holds the value of the "medical_history" field.
-        type: string
       medication_status:
+        allOf:
+        - $ref: '#/definitions/user.MedicationStatus'
         description: MedicationStatus holds the value of the "medication_status" field.
-        type: string
       occupation:
         allOf:
         - $ref: '#/definitions/user.Occupation'
@@ -223,8 +225,8 @@ definitions:
         type: string
       choices:
         example:
-        - '[是'
-        - 否]
+        - 是
+        - 否
         items:
           type: string
         type: array
@@ -531,6 +533,38 @@ definitions:
     - MarriageMarried
     - MarriageDivorced
     - MarriageWidowed
+  user.MedicalHistory:
+    enum:
+    - high_blood_pressure
+    - hyperlipidemia
+    - diabetes
+    - heart_disease
+    - stroke
+    - mental_illness
+    - dementia
+    - none_of_the_above
+    type: string
+    x-enum-varnames:
+    - MedicalHistoryHighBloodPressure
+    - MedicalHistoryHyperlipidemia
+    - MedicalHistoryDiabetes
+    - MedicalHistoryHeartDisease
+    - MedicalHistoryStroke
+    - MedicalHistoryMentalIllness
+    - MedicalHistoryDementia
+    - MedicalHistoryNoneOfTheAbove
+  user.MedicationStatus:
+    enum:
+    - cardiovascular_drugs
+    - psychiatric_drugs
+    - other_drugs
+    - no_drugs
+    type: string
+    x-enum-varnames:
+    - MedicationStatusCardiovascularDrugs
+    - MedicationStatusPsychiatricDrugs
+    - MedicationStatusOtherDrugs
+    - MedicationStatusNoDrugs
   user.Occupation:
     enum:
     - student
@@ -539,6 +573,8 @@ definitions:
     - industry_and_commerce
     - freelancer
     - domestic
+    - retired
+    - others
     type: string
     x-enum-varnames:
     - OccupationStudent
@@ -547,6 +583,8 @@ definitions:
     - OccupationIndustryAndCommerce
     - OccupationFreelancer
     - OccupationDomestic
+    - OccupationRetired
+    - OccupationOthers
   user.SmokingHabit:
     enum:
     - none
@@ -1172,28 +1210,6 @@ paths:
               $ref: '#/definitions/ent.User'
             type: array
       summary: Get Users
-      tags:
-      - User
-    post:
-      consumes:
-      - application/json
-      description: '**This is a debugging endpoint and it is not meant to be consumed
-        by the client side.**'
-      parameters:
-      - description: The user to be created
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/types.BaseUser'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/ent.User'
-      summary: Create User
       tags:
       - User
   /users/{id}:

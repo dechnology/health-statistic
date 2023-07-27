@@ -43,8 +43,8 @@ func (h *Handler) Register(c *gin.Context) {
 		SetEducationLevel(user.EducationLevel(body.User.EducationLevel)).
 		SetOccupation(user.Occupation(body.User.Occupation)).
 		SetMarriage(user.Marriage(body.User.Marriage)).
-		SetMedicalHistory(body.User.MedicalHistory).
-		SetMedicationStatus(body.User.MedicationStatus).
+		SetMedicalHistory(user.MedicalHistory(body.User.MedicalHistory)).
+		SetMedicationStatus(user.MedicationStatus(body.User.MedicationStatus)).
 		SetDementedAmongDirectRelatives(body.User.DementedAmongDirectRelatives).
 		SetHeadInjuryExperience(body.User.HeadInjuryExperience).
 		SetEarCondition(user.EarCondition(body.User.EarCondition)).

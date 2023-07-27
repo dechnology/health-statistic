@@ -100,30 +100,14 @@ func (uc *UserCreate) SetMarriage(u user.Marriage) *UserCreate {
 }
 
 // SetMedicalHistory sets the "medical_history" field.
-func (uc *UserCreate) SetMedicalHistory(s string) *UserCreate {
-	uc.mutation.SetMedicalHistory(s)
-	return uc
-}
-
-// SetNillableMedicalHistory sets the "medical_history" field if the given value is not nil.
-func (uc *UserCreate) SetNillableMedicalHistory(s *string) *UserCreate {
-	if s != nil {
-		uc.SetMedicalHistory(*s)
-	}
+func (uc *UserCreate) SetMedicalHistory(uh user.MedicalHistory) *UserCreate {
+	uc.mutation.SetMedicalHistory(uh)
 	return uc
 }
 
 // SetMedicationStatus sets the "medication_status" field.
-func (uc *UserCreate) SetMedicationStatus(s string) *UserCreate {
-	uc.mutation.SetMedicationStatus(s)
-	return uc
-}
-
-// SetNillableMedicationStatus sets the "medication_status" field if the given value is not nil.
-func (uc *UserCreate) SetNillableMedicationStatus(s *string) *UserCreate {
-	if s != nil {
-		uc.SetMedicationStatus(*s)
-	}
+func (uc *UserCreate) SetMedicationStatus(us user.MedicationStatus) *UserCreate {
+	uc.mutation.SetMedicationStatus(us)
 	return uc
 }
 
@@ -332,10 +316,16 @@ func (uc *UserCreate) check() error {
 			return &ValidationError{Name: "marriage", err: fmt.Errorf(`ent: validator failed for field "User.marriage": %w`, err)}
 		}
 	}
+	if _, ok := uc.mutation.MedicalHistory(); !ok {
+		return &ValidationError{Name: "medical_history", err: errors.New(`ent: missing required field "User.medical_history"`)}
+	}
 	if v, ok := uc.mutation.MedicalHistory(); ok {
 		if err := user.MedicalHistoryValidator(v); err != nil {
 			return &ValidationError{Name: "medical_history", err: fmt.Errorf(`ent: validator failed for field "User.medical_history": %w`, err)}
 		}
+	}
+	if _, ok := uc.mutation.MedicationStatus(); !ok {
+		return &ValidationError{Name: "medication_status", err: errors.New(`ent: missing required field "User.medication_status"`)}
 	}
 	if v, ok := uc.mutation.MedicationStatus(); ok {
 		if err := user.MedicationStatusValidator(v); err != nil {
@@ -444,11 +434,11 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_node.Marriage = value
 	}
 	if value, ok := uc.mutation.MedicalHistory(); ok {
-		_spec.SetField(user.FieldMedicalHistory, field.TypeString, value)
+		_spec.SetField(user.FieldMedicalHistory, field.TypeEnum, value)
 		_node.MedicalHistory = value
 	}
 	if value, ok := uc.mutation.MedicationStatus(); ok {
-		_spec.SetField(user.FieldMedicationStatus, field.TypeString, value)
+		_spec.SetField(user.FieldMedicationStatus, field.TypeEnum, value)
 		_node.MedicationStatus = value
 	}
 	if value, ok := uc.mutation.DementedAmongDirectRelatives(); ok {

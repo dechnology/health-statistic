@@ -94,16 +94,6 @@ func Weight(v float64) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldWeight, v))
 }
 
-// MedicalHistory applies equality check predicate on the "medical_history" field. It's identical to MedicalHistoryEQ.
-func MedicalHistory(v string) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldMedicalHistory, v))
-}
-
-// MedicationStatus applies equality check predicate on the "medication_status" field. It's identical to MedicationStatusEQ.
-func MedicationStatus(v string) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldMedicationStatus, v))
-}
-
 // DementedAmongDirectRelatives applies equality check predicate on the "demented_among_direct_relatives" field. It's identical to DementedAmongDirectRelativesEQ.
 func DementedAmongDirectRelatives(v bool) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldDementedAmongDirectRelatives, v))
@@ -395,153 +385,43 @@ func MarriageNotIn(vs ...Marriage) predicate.User {
 }
 
 // MedicalHistoryEQ applies the EQ predicate on the "medical_history" field.
-func MedicalHistoryEQ(v string) predicate.User {
+func MedicalHistoryEQ(v MedicalHistory) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldMedicalHistory, v))
 }
 
 // MedicalHistoryNEQ applies the NEQ predicate on the "medical_history" field.
-func MedicalHistoryNEQ(v string) predicate.User {
+func MedicalHistoryNEQ(v MedicalHistory) predicate.User {
 	return predicate.User(sql.FieldNEQ(FieldMedicalHistory, v))
 }
 
 // MedicalHistoryIn applies the In predicate on the "medical_history" field.
-func MedicalHistoryIn(vs ...string) predicate.User {
+func MedicalHistoryIn(vs ...MedicalHistory) predicate.User {
 	return predicate.User(sql.FieldIn(FieldMedicalHistory, vs...))
 }
 
 // MedicalHistoryNotIn applies the NotIn predicate on the "medical_history" field.
-func MedicalHistoryNotIn(vs ...string) predicate.User {
+func MedicalHistoryNotIn(vs ...MedicalHistory) predicate.User {
 	return predicate.User(sql.FieldNotIn(FieldMedicalHistory, vs...))
 }
 
-// MedicalHistoryGT applies the GT predicate on the "medical_history" field.
-func MedicalHistoryGT(v string) predicate.User {
-	return predicate.User(sql.FieldGT(FieldMedicalHistory, v))
-}
-
-// MedicalHistoryGTE applies the GTE predicate on the "medical_history" field.
-func MedicalHistoryGTE(v string) predicate.User {
-	return predicate.User(sql.FieldGTE(FieldMedicalHistory, v))
-}
-
-// MedicalHistoryLT applies the LT predicate on the "medical_history" field.
-func MedicalHistoryLT(v string) predicate.User {
-	return predicate.User(sql.FieldLT(FieldMedicalHistory, v))
-}
-
-// MedicalHistoryLTE applies the LTE predicate on the "medical_history" field.
-func MedicalHistoryLTE(v string) predicate.User {
-	return predicate.User(sql.FieldLTE(FieldMedicalHistory, v))
-}
-
-// MedicalHistoryContains applies the Contains predicate on the "medical_history" field.
-func MedicalHistoryContains(v string) predicate.User {
-	return predicate.User(sql.FieldContains(FieldMedicalHistory, v))
-}
-
-// MedicalHistoryHasPrefix applies the HasPrefix predicate on the "medical_history" field.
-func MedicalHistoryHasPrefix(v string) predicate.User {
-	return predicate.User(sql.FieldHasPrefix(FieldMedicalHistory, v))
-}
-
-// MedicalHistoryHasSuffix applies the HasSuffix predicate on the "medical_history" field.
-func MedicalHistoryHasSuffix(v string) predicate.User {
-	return predicate.User(sql.FieldHasSuffix(FieldMedicalHistory, v))
-}
-
-// MedicalHistoryIsNil applies the IsNil predicate on the "medical_history" field.
-func MedicalHistoryIsNil() predicate.User {
-	return predicate.User(sql.FieldIsNull(FieldMedicalHistory))
-}
-
-// MedicalHistoryNotNil applies the NotNil predicate on the "medical_history" field.
-func MedicalHistoryNotNil() predicate.User {
-	return predicate.User(sql.FieldNotNull(FieldMedicalHistory))
-}
-
-// MedicalHistoryEqualFold applies the EqualFold predicate on the "medical_history" field.
-func MedicalHistoryEqualFold(v string) predicate.User {
-	return predicate.User(sql.FieldEqualFold(FieldMedicalHistory, v))
-}
-
-// MedicalHistoryContainsFold applies the ContainsFold predicate on the "medical_history" field.
-func MedicalHistoryContainsFold(v string) predicate.User {
-	return predicate.User(sql.FieldContainsFold(FieldMedicalHistory, v))
-}
-
 // MedicationStatusEQ applies the EQ predicate on the "medication_status" field.
-func MedicationStatusEQ(v string) predicate.User {
+func MedicationStatusEQ(v MedicationStatus) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldMedicationStatus, v))
 }
 
 // MedicationStatusNEQ applies the NEQ predicate on the "medication_status" field.
-func MedicationStatusNEQ(v string) predicate.User {
+func MedicationStatusNEQ(v MedicationStatus) predicate.User {
 	return predicate.User(sql.FieldNEQ(FieldMedicationStatus, v))
 }
 
 // MedicationStatusIn applies the In predicate on the "medication_status" field.
-func MedicationStatusIn(vs ...string) predicate.User {
+func MedicationStatusIn(vs ...MedicationStatus) predicate.User {
 	return predicate.User(sql.FieldIn(FieldMedicationStatus, vs...))
 }
 
 // MedicationStatusNotIn applies the NotIn predicate on the "medication_status" field.
-func MedicationStatusNotIn(vs ...string) predicate.User {
+func MedicationStatusNotIn(vs ...MedicationStatus) predicate.User {
 	return predicate.User(sql.FieldNotIn(FieldMedicationStatus, vs...))
-}
-
-// MedicationStatusGT applies the GT predicate on the "medication_status" field.
-func MedicationStatusGT(v string) predicate.User {
-	return predicate.User(sql.FieldGT(FieldMedicationStatus, v))
-}
-
-// MedicationStatusGTE applies the GTE predicate on the "medication_status" field.
-func MedicationStatusGTE(v string) predicate.User {
-	return predicate.User(sql.FieldGTE(FieldMedicationStatus, v))
-}
-
-// MedicationStatusLT applies the LT predicate on the "medication_status" field.
-func MedicationStatusLT(v string) predicate.User {
-	return predicate.User(sql.FieldLT(FieldMedicationStatus, v))
-}
-
-// MedicationStatusLTE applies the LTE predicate on the "medication_status" field.
-func MedicationStatusLTE(v string) predicate.User {
-	return predicate.User(sql.FieldLTE(FieldMedicationStatus, v))
-}
-
-// MedicationStatusContains applies the Contains predicate on the "medication_status" field.
-func MedicationStatusContains(v string) predicate.User {
-	return predicate.User(sql.FieldContains(FieldMedicationStatus, v))
-}
-
-// MedicationStatusHasPrefix applies the HasPrefix predicate on the "medication_status" field.
-func MedicationStatusHasPrefix(v string) predicate.User {
-	return predicate.User(sql.FieldHasPrefix(FieldMedicationStatus, v))
-}
-
-// MedicationStatusHasSuffix applies the HasSuffix predicate on the "medication_status" field.
-func MedicationStatusHasSuffix(v string) predicate.User {
-	return predicate.User(sql.FieldHasSuffix(FieldMedicationStatus, v))
-}
-
-// MedicationStatusIsNil applies the IsNil predicate on the "medication_status" field.
-func MedicationStatusIsNil() predicate.User {
-	return predicate.User(sql.FieldIsNull(FieldMedicationStatus))
-}
-
-// MedicationStatusNotNil applies the NotNil predicate on the "medication_status" field.
-func MedicationStatusNotNil() predicate.User {
-	return predicate.User(sql.FieldNotNull(FieldMedicationStatus))
-}
-
-// MedicationStatusEqualFold applies the EqualFold predicate on the "medication_status" field.
-func MedicationStatusEqualFold(v string) predicate.User {
-	return predicate.User(sql.FieldEqualFold(FieldMedicationStatus, v))
-}
-
-// MedicationStatusContainsFold applies the ContainsFold predicate on the "medication_status" field.
-func MedicationStatusContainsFold(v string) predicate.User {
-	return predicate.User(sql.FieldContainsFold(FieldMedicationStatus, v))
 }
 
 // DementedAmongDirectRelativesEQ applies the EQ predicate on the "demented_among_direct_relatives" field.

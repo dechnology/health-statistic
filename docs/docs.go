@@ -769,38 +769,6 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
-            "post": {
-                "description": "**This is a debugging endpoint and it is not meant to be consumed by the client side.**",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "User"
-                ],
-                "summary": "Create User",
-                "parameters": [
-                    {
-                        "description": "The user to be created",
-                        "name": "user",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.BaseUser"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/ent.User"
-                        }
-                    }
-                }
             }
         },
         "/users/{id}": {
@@ -1192,11 +1160,19 @@ const docTemplate = `{
                 },
                 "medical_history": {
                     "description": "MedicalHistory holds the value of the \"medical_history\" field.",
-                    "type": "string"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/user.MedicalHistory"
+                        }
+                    ]
                 },
                 "medication_status": {
                     "description": "MedicationStatus holds the value of the \"medication_status\" field.",
-                    "type": "string"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/user.MedicationStatus"
+                        }
+                    ]
                 },
                 "occupation": {
                     "description": "Occupation holds the value of the \"occupation\" field.",
@@ -1322,8 +1298,8 @@ const docTemplate = `{
                         "type": "string"
                     },
                     "example": [
-                        "[是",
-                        "否]"
+                        "是",
+                        "否"
                     ]
                 },
                 "type": {
@@ -1741,6 +1717,44 @@ const docTemplate = `{
                 "MarriageWidowed"
             ]
         },
+        "user.MedicalHistory": {
+            "type": "string",
+            "enum": [
+                "high_blood_pressure",
+                "hyperlipidemia",
+                "diabetes",
+                "heart_disease",
+                "stroke",
+                "mental_illness",
+                "dementia",
+                "none_of_the_above"
+            ],
+            "x-enum-varnames": [
+                "MedicalHistoryHighBloodPressure",
+                "MedicalHistoryHyperlipidemia",
+                "MedicalHistoryDiabetes",
+                "MedicalHistoryHeartDisease",
+                "MedicalHistoryStroke",
+                "MedicalHistoryMentalIllness",
+                "MedicalHistoryDementia",
+                "MedicalHistoryNoneOfTheAbove"
+            ]
+        },
+        "user.MedicationStatus": {
+            "type": "string",
+            "enum": [
+                "cardiovascular_drugs",
+                "psychiatric_drugs",
+                "other_drugs",
+                "no_drugs"
+            ],
+            "x-enum-varnames": [
+                "MedicationStatusCardiovascularDrugs",
+                "MedicationStatusPsychiatricDrugs",
+                "MedicationStatusOtherDrugs",
+                "MedicationStatusNoDrugs"
+            ]
+        },
         "user.Occupation": {
             "type": "string",
             "enum": [
@@ -1749,7 +1763,9 @@ const docTemplate = `{
                 "service_industry",
                 "industry_and_commerce",
                 "freelancer",
-                "domestic"
+                "domestic",
+                "retired",
+                "others"
             ],
             "x-enum-varnames": [
                 "OccupationStudent",
@@ -1757,7 +1773,9 @@ const docTemplate = `{
                 "OccupationServiceIndustry",
                 "OccupationIndustryAndCommerce",
                 "OccupationFreelancer",
-                "OccupationDomestic"
+                "OccupationDomestic",
+                "OccupationRetired",
+                "OccupationOthers"
             ]
         },
         "user.SmokingHabit": {

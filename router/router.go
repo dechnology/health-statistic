@@ -80,7 +80,6 @@ func New(db *ent.Client) *gin.Engine {
 		users := v1.Group("/users")
 		{
 			users.GET("/", h.GetUsers)
-			users.POST("/", h.CreateUser)
 
 			id := users.Group("/:id")
 			{

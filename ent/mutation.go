@@ -5055,8 +5055,8 @@ type UserMutation struct {
 	education_level                 *user.EducationLevel
 	occupation                      *user.Occupation
 	marriage                        *user.Marriage
-	medical_history                 *string
-	medication_status               *string
+	medical_history                 *user.MedicalHistory
+	medication_status               *user.MedicationStatus
 	demented_among_direct_relatives *bool
 	head_injury_experience          *bool
 	ear_condition                   *user.EarCondition
@@ -5569,12 +5569,12 @@ func (m *UserMutation) ResetMarriage() {
 }
 
 // SetMedicalHistory sets the "medical_history" field.
-func (m *UserMutation) SetMedicalHistory(s string) {
-	m.medical_history = &s
+func (m *UserMutation) SetMedicalHistory(uh user.MedicalHistory) {
+	m.medical_history = &uh
 }
 
 // MedicalHistory returns the value of the "medical_history" field in the mutation.
-func (m *UserMutation) MedicalHistory() (r string, exists bool) {
+func (m *UserMutation) MedicalHistory() (r user.MedicalHistory, exists bool) {
 	v := m.medical_history
 	if v == nil {
 		return
@@ -5585,7 +5585,7 @@ func (m *UserMutation) MedicalHistory() (r string, exists bool) {
 // OldMedicalHistory returns the old "medical_history" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldMedicalHistory(ctx context.Context) (v string, err error) {
+func (m *UserMutation) OldMedicalHistory(ctx context.Context) (v user.MedicalHistory, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldMedicalHistory is only allowed on UpdateOne operations")
 	}
@@ -5599,31 +5599,18 @@ func (m *UserMutation) OldMedicalHistory(ctx context.Context) (v string, err err
 	return oldValue.MedicalHistory, nil
 }
 
-// ClearMedicalHistory clears the value of the "medical_history" field.
-func (m *UserMutation) ClearMedicalHistory() {
-	m.medical_history = nil
-	m.clearedFields[user.FieldMedicalHistory] = struct{}{}
-}
-
-// MedicalHistoryCleared returns if the "medical_history" field was cleared in this mutation.
-func (m *UserMutation) MedicalHistoryCleared() bool {
-	_, ok := m.clearedFields[user.FieldMedicalHistory]
-	return ok
-}
-
 // ResetMedicalHistory resets all changes to the "medical_history" field.
 func (m *UserMutation) ResetMedicalHistory() {
 	m.medical_history = nil
-	delete(m.clearedFields, user.FieldMedicalHistory)
 }
 
 // SetMedicationStatus sets the "medication_status" field.
-func (m *UserMutation) SetMedicationStatus(s string) {
-	m.medication_status = &s
+func (m *UserMutation) SetMedicationStatus(us user.MedicationStatus) {
+	m.medication_status = &us
 }
 
 // MedicationStatus returns the value of the "medication_status" field in the mutation.
-func (m *UserMutation) MedicationStatus() (r string, exists bool) {
+func (m *UserMutation) MedicationStatus() (r user.MedicationStatus, exists bool) {
 	v := m.medication_status
 	if v == nil {
 		return
@@ -5634,7 +5621,7 @@ func (m *UserMutation) MedicationStatus() (r string, exists bool) {
 // OldMedicationStatus returns the old "medication_status" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldMedicationStatus(ctx context.Context) (v string, err error) {
+func (m *UserMutation) OldMedicationStatus(ctx context.Context) (v user.MedicationStatus, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldMedicationStatus is only allowed on UpdateOne operations")
 	}
@@ -5648,22 +5635,9 @@ func (m *UserMutation) OldMedicationStatus(ctx context.Context) (v string, err e
 	return oldValue.MedicationStatus, nil
 }
 
-// ClearMedicationStatus clears the value of the "medication_status" field.
-func (m *UserMutation) ClearMedicationStatus() {
-	m.medication_status = nil
-	m.clearedFields[user.FieldMedicationStatus] = struct{}{}
-}
-
-// MedicationStatusCleared returns if the "medication_status" field was cleared in this mutation.
-func (m *UserMutation) MedicationStatusCleared() bool {
-	_, ok := m.clearedFields[user.FieldMedicationStatus]
-	return ok
-}
-
 // ResetMedicationStatus resets all changes to the "medication_status" field.
 func (m *UserMutation) ResetMedicationStatus() {
 	m.medication_status = nil
-	delete(m.clearedFields, user.FieldMedicationStatus)
 }
 
 // SetDementedAmongDirectRelatives sets the "demented_among_direct_relatives" field.
@@ -6299,14 +6273,14 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		m.SetMarriage(v)
 		return nil
 	case user.FieldMedicalHistory:
-		v, ok := value.(string)
+		v, ok := value.(user.MedicalHistory)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetMedicalHistory(v)
 		return nil
 	case user.FieldMedicationStatus:
-		v, ok := value.(string)
+		v, ok := value.(user.MedicationStatus)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -6415,14 +6389,7 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *UserMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(user.FieldMedicalHistory) {
-		fields = append(fields, user.FieldMedicalHistory)
-	}
-	if m.FieldCleared(user.FieldMedicationStatus) {
-		fields = append(fields, user.FieldMedicationStatus)
-	}
-	return fields
+	return nil
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -6435,14 +6402,6 @@ func (m *UserMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *UserMutation) ClearField(name string) error {
-	switch name {
-	case user.FieldMedicalHistory:
-		m.ClearMedicalHistory()
-		return nil
-	case user.FieldMedicationStatus:
-		m.ClearMedicationStatus()
-		return nil
-	}
 	return fmt.Errorf("unknown User nullable field %s", name)
 }
 

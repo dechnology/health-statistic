@@ -137,10 +137,6 @@ var (
 	HeightValidator func(float64) error
 	// WeightValidator is a validator for the "weight" field. It is called by the builders before save.
 	WeightValidator func(float64) error
-	// MedicalHistoryValidator is a validator for the "medical_history" field. It is called by the builders before save.
-	MedicalHistoryValidator func(string) error
-	// MedicationStatusValidator is a validator for the "medication_status" field. It is called by the builders before save.
-	MedicationStatusValidator func(string) error
 )
 
 // Gender defines the type for the "gender" enum field.
@@ -205,6 +201,8 @@ const (
 	OccupationIndustryAndCommerce Occupation = "industry_and_commerce"
 	OccupationFreelancer          Occupation = "freelancer"
 	OccupationDomestic            Occupation = "domestic"
+	OccupationRetired             Occupation = "retired"
+	OccupationOthers              Occupation = "others"
 )
 
 func (o Occupation) String() string {
@@ -214,7 +212,7 @@ func (o Occupation) String() string {
 // OccupationValidator is a validator for the "occupation" field enum values. It is called by the builders before save.
 func OccupationValidator(o Occupation) error {
 	switch o {
-	case OccupationStudent, OccupationGovernmentEmployee, OccupationServiceIndustry, OccupationIndustryAndCommerce, OccupationFreelancer, OccupationDomestic:
+	case OccupationStudent, OccupationGovernmentEmployee, OccupationServiceIndustry, OccupationIndustryAndCommerce, OccupationFreelancer, OccupationDomestic, OccupationRetired, OccupationOthers:
 		return nil
 	default:
 		return fmt.Errorf("user: invalid enum value for occupation field: %q", o)
@@ -243,6 +241,60 @@ func MarriageValidator(m Marriage) error {
 		return nil
 	default:
 		return fmt.Errorf("user: invalid enum value for marriage field: %q", m)
+	}
+}
+
+// MedicalHistory defines the type for the "medical_history" enum field.
+type MedicalHistory string
+
+// MedicalHistory values.
+const (
+	MedicalHistoryHighBloodPressure MedicalHistory = "high_blood_pressure"
+	MedicalHistoryHyperlipidemia    MedicalHistory = "hyperlipidemia"
+	MedicalHistoryDiabetes          MedicalHistory = "diabetes"
+	MedicalHistoryHeartDisease      MedicalHistory = "heart_disease"
+	MedicalHistoryStroke            MedicalHistory = "stroke"
+	MedicalHistoryMentalIllness     MedicalHistory = "mental_illness"
+	MedicalHistoryDementia          MedicalHistory = "dementia"
+	MedicalHistoryNoneOfTheAbove    MedicalHistory = "none_of_the_above"
+)
+
+func (mh MedicalHistory) String() string {
+	return string(mh)
+}
+
+// MedicalHistoryValidator is a validator for the "medical_history" field enum values. It is called by the builders before save.
+func MedicalHistoryValidator(mh MedicalHistory) error {
+	switch mh {
+	case MedicalHistoryHighBloodPressure, MedicalHistoryHyperlipidemia, MedicalHistoryDiabetes, MedicalHistoryHeartDisease, MedicalHistoryStroke, MedicalHistoryMentalIllness, MedicalHistoryDementia, MedicalHistoryNoneOfTheAbove:
+		return nil
+	default:
+		return fmt.Errorf("user: invalid enum value for medical_history field: %q", mh)
+	}
+}
+
+// MedicationStatus defines the type for the "medication_status" enum field.
+type MedicationStatus string
+
+// MedicationStatus values.
+const (
+	MedicationStatusCardiovascularDrugs MedicationStatus = "cardiovascular_drugs"
+	MedicationStatusPsychiatricDrugs    MedicationStatus = "psychiatric_drugs"
+	MedicationStatusOtherDrugs          MedicationStatus = "other_drugs"
+	MedicationStatusNoDrugs             MedicationStatus = "no_drugs"
+)
+
+func (ms MedicationStatus) String() string {
+	return string(ms)
+}
+
+// MedicationStatusValidator is a validator for the "medication_status" field enum values. It is called by the builders before save.
+func MedicationStatusValidator(ms MedicationStatus) error {
+	switch ms {
+	case MedicationStatusCardiovascularDrugs, MedicationStatusPsychiatricDrugs, MedicationStatusOtherDrugs, MedicationStatusNoDrugs:
+		return nil
+	default:
+		return fmt.Errorf("user: invalid enum value for medication_status field: %q", ms)
 	}
 }
 

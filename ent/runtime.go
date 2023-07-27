@@ -188,12 +188,4 @@ func init() {
 	userDescWeight := userFields[5].Descriptor()
 	// user.WeightValidator is a validator for the "weight" field. It is called by the builders before save.
 	user.WeightValidator = userDescWeight.Validators[0].(func(float64) error)
-	// userDescMedicalHistory is the schema descriptor for medical_history field.
-	userDescMedicalHistory := userFields[10].Descriptor()
-	// user.MedicalHistoryValidator is a validator for the "medical_history" field. It is called by the builders before save.
-	user.MedicalHistoryValidator = userDescMedicalHistory.Validators[0].(func(string) error)
-	// userDescMedicationStatus is the schema descriptor for medication_status field.
-	userDescMedicationStatus := userFields[11].Descriptor()
-	// user.MedicationStatusValidator is a validator for the "medication_status" field. It is called by the builders before save.
-	user.MedicationStatusValidator = userDescMedicationStatus.Validators[0].(func(string) error)
 }

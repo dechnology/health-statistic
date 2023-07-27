@@ -41,9 +41,9 @@ type User struct {
 	// Marriage holds the value of the "marriage" field.
 	Marriage user.Marriage `json:"marriage,omitempty"`
 	// MedicalHistory holds the value of the "medical_history" field.
-	MedicalHistory string `json:"medical_history,omitempty"`
+	MedicalHistory user.MedicalHistory `json:"medical_history,omitempty"`
 	// MedicationStatus holds the value of the "medication_status" field.
-	MedicationStatus string `json:"medication_status,omitempty"`
+	MedicationStatus user.MedicationStatus `json:"medication_status,omitempty"`
 	// DementedAmongDirectRelatives holds the value of the "demented_among_direct_relatives" field.
 	DementedAmongDirectRelatives bool `json:"demented_among_direct_relatives,omitempty"`
 	// HeadInjuryExperience holds the value of the "head_injury_experience" field.
@@ -205,13 +205,13 @@ func (u *User) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field medical_history", values[i])
 			} else if value.Valid {
-				u.MedicalHistory = value.String
+				u.MedicalHistory = user.MedicalHistory(value.String)
 			}
 		case user.FieldMedicationStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field medication_status", values[i])
 			} else if value.Valid {
-				u.MedicationStatus = value.String
+				u.MedicationStatus = user.MedicationStatus(value.String)
 			}
 		case user.FieldDementedAmongDirectRelatives:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -327,10 +327,10 @@ func (u *User) String() string {
 	builder.WriteString(fmt.Sprintf("%v", u.Marriage))
 	builder.WriteString(", ")
 	builder.WriteString("medical_history=")
-	builder.WriteString(u.MedicalHistory)
+	builder.WriteString(fmt.Sprintf("%v", u.MedicalHistory))
 	builder.WriteString(", ")
 	builder.WriteString("medication_status=")
-	builder.WriteString(u.MedicationStatus)
+	builder.WriteString(fmt.Sprintf("%v", u.MedicationStatus))
 	builder.WriteString(", ")
 	builder.WriteString("demented_among_direct_relatives=")
 	builder.WriteString(fmt.Sprintf("%v", u.DementedAmongDirectRelatives))

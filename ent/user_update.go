@@ -121,42 +121,14 @@ func (uu *UserUpdate) SetMarriage(u user.Marriage) *UserUpdate {
 }
 
 // SetMedicalHistory sets the "medical_history" field.
-func (uu *UserUpdate) SetMedicalHistory(s string) *UserUpdate {
-	uu.mutation.SetMedicalHistory(s)
-	return uu
-}
-
-// SetNillableMedicalHistory sets the "medical_history" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableMedicalHistory(s *string) *UserUpdate {
-	if s != nil {
-		uu.SetMedicalHistory(*s)
-	}
-	return uu
-}
-
-// ClearMedicalHistory clears the value of the "medical_history" field.
-func (uu *UserUpdate) ClearMedicalHistory() *UserUpdate {
-	uu.mutation.ClearMedicalHistory()
+func (uu *UserUpdate) SetMedicalHistory(uh user.MedicalHistory) *UserUpdate {
+	uu.mutation.SetMedicalHistory(uh)
 	return uu
 }
 
 // SetMedicationStatus sets the "medication_status" field.
-func (uu *UserUpdate) SetMedicationStatus(s string) *UserUpdate {
-	uu.mutation.SetMedicationStatus(s)
-	return uu
-}
-
-// SetNillableMedicationStatus sets the "medication_status" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableMedicationStatus(s *string) *UserUpdate {
-	if s != nil {
-		uu.SetMedicationStatus(*s)
-	}
-	return uu
-}
-
-// ClearMedicationStatus clears the value of the "medication_status" field.
-func (uu *UserUpdate) ClearMedicationStatus() *UserUpdate {
-	uu.mutation.ClearMedicationStatus()
+func (uu *UserUpdate) SetMedicationStatus(us user.MedicationStatus) *UserUpdate {
+	uu.mutation.SetMedicationStatus(us)
 	return uu
 }
 
@@ -489,16 +461,10 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.SetField(user.FieldMarriage, field.TypeEnum, value)
 	}
 	if value, ok := uu.mutation.MedicalHistory(); ok {
-		_spec.SetField(user.FieldMedicalHistory, field.TypeString, value)
-	}
-	if uu.mutation.MedicalHistoryCleared() {
-		_spec.ClearField(user.FieldMedicalHistory, field.TypeString)
+		_spec.SetField(user.FieldMedicalHistory, field.TypeEnum, value)
 	}
 	if value, ok := uu.mutation.MedicationStatus(); ok {
-		_spec.SetField(user.FieldMedicationStatus, field.TypeString, value)
-	}
-	if uu.mutation.MedicationStatusCleared() {
-		_spec.ClearField(user.FieldMedicationStatus, field.TypeString)
+		_spec.SetField(user.FieldMedicationStatus, field.TypeEnum, value)
 	}
 	if value, ok := uu.mutation.DementedAmongDirectRelatives(); ok {
 		_spec.SetField(user.FieldDementedAmongDirectRelatives, field.TypeBool, value)
@@ -799,42 +765,14 @@ func (uuo *UserUpdateOne) SetMarriage(u user.Marriage) *UserUpdateOne {
 }
 
 // SetMedicalHistory sets the "medical_history" field.
-func (uuo *UserUpdateOne) SetMedicalHistory(s string) *UserUpdateOne {
-	uuo.mutation.SetMedicalHistory(s)
-	return uuo
-}
-
-// SetNillableMedicalHistory sets the "medical_history" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableMedicalHistory(s *string) *UserUpdateOne {
-	if s != nil {
-		uuo.SetMedicalHistory(*s)
-	}
-	return uuo
-}
-
-// ClearMedicalHistory clears the value of the "medical_history" field.
-func (uuo *UserUpdateOne) ClearMedicalHistory() *UserUpdateOne {
-	uuo.mutation.ClearMedicalHistory()
+func (uuo *UserUpdateOne) SetMedicalHistory(uh user.MedicalHistory) *UserUpdateOne {
+	uuo.mutation.SetMedicalHistory(uh)
 	return uuo
 }
 
 // SetMedicationStatus sets the "medication_status" field.
-func (uuo *UserUpdateOne) SetMedicationStatus(s string) *UserUpdateOne {
-	uuo.mutation.SetMedicationStatus(s)
-	return uuo
-}
-
-// SetNillableMedicationStatus sets the "medication_status" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableMedicationStatus(s *string) *UserUpdateOne {
-	if s != nil {
-		uuo.SetMedicationStatus(*s)
-	}
-	return uuo
-}
-
-// ClearMedicationStatus clears the value of the "medication_status" field.
-func (uuo *UserUpdateOne) ClearMedicationStatus() *UserUpdateOne {
-	uuo.mutation.ClearMedicationStatus()
+func (uuo *UserUpdateOne) SetMedicationStatus(us user.MedicationStatus) *UserUpdateOne {
+	uuo.mutation.SetMedicationStatus(us)
 	return uuo
 }
 
@@ -1197,16 +1135,10 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		_spec.SetField(user.FieldMarriage, field.TypeEnum, value)
 	}
 	if value, ok := uuo.mutation.MedicalHistory(); ok {
-		_spec.SetField(user.FieldMedicalHistory, field.TypeString, value)
-	}
-	if uuo.mutation.MedicalHistoryCleared() {
-		_spec.ClearField(user.FieldMedicalHistory, field.TypeString)
+		_spec.SetField(user.FieldMedicalHistory, field.TypeEnum, value)
 	}
 	if value, ok := uuo.mutation.MedicationStatus(); ok {
-		_spec.SetField(user.FieldMedicationStatus, field.TypeString, value)
-	}
-	if uuo.mutation.MedicationStatusCleared() {
-		_spec.ClearField(user.FieldMedicationStatus, field.TypeString)
+		_spec.SetField(user.FieldMedicationStatus, field.TypeEnum, value)
 	}
 	if value, ok := uuo.mutation.DementedAmongDirectRelatives(); ok {
 		_spec.SetField(user.FieldDementedAmongDirectRelatives, field.TypeBool, value)
