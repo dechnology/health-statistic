@@ -23,7 +23,7 @@ func New(db *ent.Client) *gin.Engine {
 	r.Use(middlewares.CorsMiddleware())
 
 	v1 := r.Group("/api/v1")
-	// v1.Use(middlewares.Authenticate())
+	v1.Use(middlewares.Authenticate())
 	{
 		// Health check endpoint for ELB
 		v1.GET("/health_check", handlers.HealthCheck)
