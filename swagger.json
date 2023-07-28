@@ -704,7 +704,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "Users"
                 ],
                 "summary": "Get Users",
                 "responses": {
@@ -727,7 +727,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "Users"
                 ],
                 "summary": "Get User",
                 "parameters": [
@@ -756,7 +756,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "Users"
                 ],
                 "summary": "Update User",
                 "parameters": [
@@ -791,7 +791,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "Users"
                 ],
                 "summary": "Delete User",
                 "parameters": [
@@ -817,7 +817,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "Users"
                 ],
                 "summary": "Get All Notifications From an User",
                 "parameters": [
