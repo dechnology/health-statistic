@@ -44,14 +44,9 @@ func (h *Handler) GetQuestionnaireById(
 
 func (h *Handler) AppendQuestions(
 	ctx context.Context,
-	rawQuestionnaireId string,
+	questionnaireId uuid.UUID,
 	questions []types.BaseQuestion,
 ) error {
-	questionnaireId, err := uuid.Parse(rawQuestionnaireId)
-	if err != nil {
-		return err
-	}
-
 	n_questions, err := h.DB.Questionnaire.Query().QueryQuestions().Count(ctx)
 	if err != nil {
 		return err
@@ -207,8 +202,8 @@ func (h *Handler) GetQuestionnaire(c *gin.Context) {
 //	@Success				200				{object}	ent.Questionnaire
 //	@Router					/questionnaires [post]
 func (h *Handler) CreateQuestionnaire(c *gin.Context) {
-	var questionnaireBody types.BaseQuestionnaire
-	if err := c.ShouldBindJSON(&questionnaireBody); err != nil {
+	var body types.BaseQuestionnaire
+	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(
 			http.StatusBadRequest,
 			gin.H{"error": err.Error()},
@@ -216,7 +211,7 @@ func (h *Handler) CreateQuestionnaire(c *gin.Context) {
 		return
 	}
 
-	out, err := json.MarshalIndent(questionnaireBody, "", "  ")
+	out, err := json.MarshalIndent(body, "", "  ")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -224,7 +219,7 @@ func (h *Handler) CreateQuestionnaire(c *gin.Context) {
 
 	questionnaireNode, err := h.DB.Questionnaire.
 		Create().
-		SetName(questionnaireBody.Name).
+		SetName(body.Name).
 		Save(c.Request.Context())
 
 	if err != nil {
@@ -232,21 +227,14 @@ func (h *Handler) CreateQuestionnaire(c *gin.Context) {
 		return
 	}
 
-	for i, question := range questionnaireBody.Questions {
-		_, err := h.DB.Question.
-			Create().
-			SetBody(question.Body).
-			SetOrder(i).
-			SetQuestionnaire(questionnaireNode).
-			Save(c.Request.Context())
-
-		if err != nil {
-			c.JSON(
-				http.StatusInternalServerError,
-				gin.H{"err": err.Error()},
-			)
-			return
-		}
+	if err := h.AppendQuestions(
+		c.Request.Context(), questionnaireNode.ID, body.Questions,
+	); err != nil {
+		c.JSON(
+			http.StatusInternalServerError,
+			gin.H{"error": err.Error()},
+		)
+		return
 	}
 
 	c.JSON(http.StatusOK, questionnaireNode)
@@ -334,10 +322,11 @@ func (h *Handler) GetQuestionnaireResponses(c *gin.Context) {
 		return
 	}
 
-	responseNodes, err := h.DB.Questionnaire.Query().
-		Where(questionnaire.ID(id)).
-		QueryQuestionnaireResponses().
-		WithAnswers().
+	responseNodes, err := h.DB.QuestionnaireResponse.Query().
+		Where(questionnaireresponse.HasQuestionnaireWith(questionnaire.ID(id))).
+		WithAnswers(func(q *ent.AnswerQuery) {
+			q.WithChosen().All(c.Request.Context())
+		}).
 		All(c.Request.Context())
 	if err != nil {
 		c.JSON(

@@ -48,13 +48,13 @@ func CreateRegistrationQuestionnaire(
 		return fmt.Errorf("error marshaling to JSON: %v", err)
 	}
 
-	id, err := uuid.Parse(questionnaireData.ID)
+	questionnaireId, err := uuid.Parse(questionnaireData.ID)
 	if err != nil {
 		return fmt.Errorf("failed parsing id: %v", err)
 	}
 
 	_, err = db.Questionnaire.Create().
-		SetID(id).
+		SetID(questionnaireId).
 		SetName(questionnaireData.Name).
 		Save(ctx)
 	if err != nil {
@@ -68,7 +68,7 @@ func CreateRegistrationQuestionnaire(
 	h := handlers.Handler{DB: db}
 	if err := h.AppendQuestions(
 		ctx,
-		questionnaireData.ID,
+		questionnaireId,
 		questionnaireData.Questions,
 	); err != nil {
 		return fmt.Errorf(

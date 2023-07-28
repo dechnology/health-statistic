@@ -75,14 +75,6 @@ func New(db *ent.Client) *gin.Engine {
 			}
 		}
 
-		// TODO
-		notifications := v1.Group("/notifications")
-		{
-			notifications.GET("", h.GetNotifications)
-			notifications.GET("/:id", h.GetNotification)
-			notifications.DELETE("/:id", h.DeleteNotification)
-		}
-
 		readMyCards := middlewares.Authorize("read:mycards")
 		writeMyCards := middlewares.Authorize("write:mycards")
 		mycards := v1.Group("/mycards")

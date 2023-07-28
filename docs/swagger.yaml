@@ -340,45 +340,6 @@ definitions:
         example: 80.3
         type: number
     type: object
-  types.NotificationWithRecipient:
-    properties:
-      id:
-        description: ID of the ent.
-        type: string
-      message:
-        description: Message holds the value of the "message" field.
-        type: string
-      read_at:
-        description: ReadAt holds the value of the "read_at" field.
-        type: string
-      recipient:
-        $ref: '#/definitions/ent.User'
-      sent_at:
-        description: SentAt holds the value of the "sent_at" field.
-        type: string
-      type:
-        allOf:
-        - $ref: '#/definitions/notification.Type'
-        description: Type holds the value of the "type" field.
-    type: object
-  types.QuestionWithQuestionnaire:
-    properties:
-      body:
-        description: Body holds the value of the "body" field.
-        type: string
-      id:
-        description: ID of the ent.
-        type: string
-      order:
-        description: Order holds the value of the "order" field.
-        type: integer
-      questionnaire:
-        $ref: '#/definitions/ent.Questionnaire'
-      type:
-        allOf:
-        - $ref: '#/definitions/question.Type'
-        description: Type holds the value of the "type" field.
-    type: object
   types.QuestionnaireDetails:
     properties:
       created_at:
@@ -442,25 +403,6 @@ definitions:
       id:
         description: ID of the ent.
         type: string
-      user_id:
-        description: The user ID of the user who submit the response.
-        type: string
-    type: object
-  types.ResponseWithQuestionnaire:
-    properties:
-      answers:
-        description: The answers to all questions in a questionnaire.
-        items:
-          $ref: '#/definitions/types.BaseAnswer'
-        type: array
-      created_at:
-        description: CreatedAt holds the value of the "created_at" field.
-        type: string
-      id:
-        description: ID of the ent.
-        type: string
-      questionnaire:
-        $ref: '#/definitions/ent.Questionnaire'
       user_id:
         description: The user ID of the user who submit the response.
         type: string
@@ -746,55 +688,6 @@ paths:
       summary: Get MyCard
       tags:
       - MyCard
-  /notifications:
-    get:
-      description: |
-        Get all notifications from the database. For each notification, the user who received this notification is also included.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/types.NotificationWithRecipient'
-            type: array
-      summary: Get Notifications
-      tags:
-      - Notification
-  /notifications/{id}:
-    delete:
-      parameters:
-      - description: The notification's ID.
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      summary: Delete Notification
-      tags:
-      - Notification
-    get:
-      parameters:
-      - description: The notification's ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/types.NotificationWithRecipient'
-      summary: Get Notification
-      tags:
-      - Notification
   /prices:
     get:
       produces:
@@ -1004,58 +897,6 @@ paths:
       summary: Get Registration Questionnaire
       tags:
       - Questionnaire
-  /questions:
-    get:
-      description: |
-        Get all questions from the database. **This will NOT include questionnaires and responses.**
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/types.QuestionWithQuestionnaire'
-            type: array
-      summary: Get Questions
-      tags:
-      - Question
-  /questions/{id}:
-    delete:
-      description: Delete the question specified by the `id` path param.
-      parameters:
-      - description: The question's ID.
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      summary: Delete Question
-      tags:
-      - Question
-    get:
-      description: |
-        Get the question specified by the `id` path param.
-      parameters:
-      - description: The question's ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/types.QuestionWithQuestionnaire'
-      summary: Get Question
-      tags:
-      - Question
   /register:
     post:
       consumes:
@@ -1148,56 +989,6 @@ paths:
       summary: Register an User
       tags:
       - Registration
-  /responses:
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/types.ResponseWithQuestionnaire'
-            type: array
-      summary: Get Responses
-      tags:
-      - Response
-  /responses/{id}:
-    delete:
-      description: Delete the response specified by the `id` path param.
-      parameters:
-      - description: The response's ID.
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      summary: Delete Response
-      tags:
-      - Response
-    get:
-      description: |
-        Get the response specified by the `id` path param. **This will also includes the corresponding questionnaire.**
-      parameters:
-      - description: The response's ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/types.ResponseWithQuestionnaire'
-      summary: Get Response
-      tags:
-      - Response
   /user:
     get:
       produces:
