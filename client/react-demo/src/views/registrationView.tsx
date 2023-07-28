@@ -140,12 +140,18 @@ const RegistrationView = () => {
 
     console.dir(requestBody.current);
 
-    await axios.post(`${baseUrl}/register`, requestBody.current, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
+    const registerResponse = await axios.post(
+      `${baseUrl}/register`,
+      requestBody.current,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       },
-    });
+    );
+
+    console.log(registerResponse.data);
   };
 
   if (isLoading || !registrationAnswers)

@@ -659,6 +659,8 @@ info:
     - `/quesionnaires/{id}` [**GET**]
 
     - `/prices` [**GET**]
+
+    - `/prices/{id}` [**GET**]
   title: Web3 - 健康資料公鏈API開發文件
   version: "1.0"
 paths:

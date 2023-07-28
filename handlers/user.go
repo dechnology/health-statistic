@@ -28,7 +28,7 @@ func GetUserId(c *gin.Context) (*string, error) {
 //	@Success				200	{object}	[]ent.User
 //	@Router					/user [get]
 func (h *Handler) GetSelf(c *gin.Context) {
-	user_id, err := GetUserId(c)
+	userId, err := GetUserId(c)
 	if err != nil {
 		c.JSON(
 			http.StatusUnauthorized,
@@ -40,7 +40,7 @@ func (h *Handler) GetSelf(c *gin.Context) {
 	}
 
 	userNode, err := h.DB.User.Query().
-		Where(user.ID(*user_id)).
+		Where(user.ID(*userId)).
 		WithMycards().
 		WithPrices().
 		Only(c.Request.Context())

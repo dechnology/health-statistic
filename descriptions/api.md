@@ -58,3 +58,5 @@ The following endpoints are for reading public resources. Currently, they are **
 - `/quesionnaires/{id}` [**GET**]
 
 - `/prices` [**GET**]
+
+- `/prices/{id}` [**GET**]

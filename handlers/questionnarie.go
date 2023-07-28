@@ -9,6 +9,8 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent"
 	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/eesoymilk/health-statistic-api/ent/questionnaire"
+	"github.com/eesoymilk/health-statistic-api/ent/questionnaireresponse"
+	"github.com/eesoymilk/health-statistic-api/ent/user"
 	"github.com/eesoymilk/health-statistic-api/types"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -16,13 +18,21 @@ import (
 
 func (h *Handler) GetQuestionnaireById(
 	ctx context.Context,
-	id uuid.UUID,
+	userId string,
+	questionnaireId uuid.UUID,
 ) (*ent.Questionnaire, error) {
 	questionnaireNode, err := h.DB.Questionnaire.
 		Query().
-		Where(questionnaire.ID(id)).
-		WithQuestions(func(q *ent.QuestionQuery) {
-			q.WithChoices().All(ctx)
+		Where(questionnaire.ID(questionnaireId)).
+		WithQuestions(func(qq *ent.QuestionQuery) {
+			qq.WithChoices().All(ctx)
+		}).
+		WithQuestionnaireResponses(func(qrq *ent.QuestionnaireResponseQuery) {
+			qrq.Where(questionnaireresponse.HasUserWith(user.ID(userId))).
+				WithAnswers(func(aq *ent.AnswerQuery) {
+					aq.WithChosen().All(ctx)
+				}).
+				All(ctx)
 		}).
 		Only(ctx)
 	if err != nil {
@@ -80,15 +90,34 @@ func (h *Handler) AppendQuestions(
 //	@Success				200	{object}	[]types.QuestionnaireDetails
 //	@Router					/questionnaires [get]
 func (h *Handler) GetQuestionnaires(c *gin.Context) {
+	userId, err := GetUserId(c)
+	if err != nil {
+		c.JSON(
+			http.StatusUnauthorized,
+			gin.H{"error": err.Error()},
+		)
+		return
+	}
+
 	questionnaireNodes, err := h.DB.Questionnaire.
 		Query().
-		WithQuestions(func(q *ent.QuestionQuery) {
-			q.WithChoices().All(c.Request.Context())
+		WithQuestions(func(qq *ent.QuestionQuery) {
+			qq.WithChoices().All(c.Request.Context())
+		}).
+		WithQuestionnaireResponses(func(qrq *ent.QuestionnaireResponseQuery) {
+			qrq.Where(questionnaireresponse.HasUserWith(user.ID(*userId))).
+				WithAnswers(func(aq *ent.AnswerQuery) {
+					aq.WithChosen().All(c.Request.Context())
+				}).
+				All(c.Request.Context())
 		}).
 		All(c.Request.Context())
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(
+			http.StatusInternalServerError,
+			gin.H{"error": err.Error()},
+		)
 		return
 	}
 
@@ -102,8 +131,18 @@ func (h *Handler) GetQuestionnaires(c *gin.Context) {
 //	@Success				200	{object}	types.QuestionnaireWithQuestions
 //	@Router					/questionnaires/registration [get]
 func (h *Handler) GetRegistrationQuestionnaire(c *gin.Context) {
+	userId, err := GetUserId(c)
+	if err != nil {
+		c.JSON(
+			http.StatusUnauthorized,
+			gin.H{"error": err.Error()},
+		)
+		return
+	}
+
 	questionnaireNode, err := h.GetQuestionnaireById(
 		c.Request.Context(),
+		*userId,
 		h.RegistrationQuestionnaireId,
 	)
 	if err != nil {
@@ -125,7 +164,16 @@ func (h *Handler) GetRegistrationQuestionnaire(c *gin.Context) {
 //	@Success				200	{object}	types.QuestionnaireDetails
 //	@Router					/questionnaires/{id} [get]
 func (h *Handler) GetQuestionnaire(c *gin.Context) {
-	id, err := uuid.Parse(c.Param("id"))
+	userId, err := GetUserId(c)
+	if err != nil {
+		c.JSON(
+			http.StatusUnauthorized,
+			gin.H{"error": err.Error()},
+		)
+		return
+	}
+
+	questionnaireId, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(
 			http.StatusBadRequest,
@@ -136,7 +184,8 @@ func (h *Handler) GetQuestionnaire(c *gin.Context) {
 
 	questionnaireNode, err := h.GetQuestionnaireById(
 		c.Request.Context(),
-		id,
+		*userId,
+		questionnaireId,
 	)
 	if err != nil {
 		c.JSON(
