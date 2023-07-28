@@ -5,6 +5,7 @@ import QuestionnaireForm from '../components/questionnaireForm';
 import { Answer, Questionnaire } from '../types/questionnaire';
 import InfoQuestionnaire from '../utils/infoQuestionnaire';
 import { useAuth0 } from '@auth0/auth0-react';
+import * as jose from 'jose';
 
 const baseUrl = 'https://health-statistic.dechnology.com.tw/api/v1';
 
@@ -15,6 +16,7 @@ const fetchRegistrationQuestionnaire = async (): Promise<Questionnaire> => {
 
 const RegistrationView = () => {
   const { user, isAuthenticated, getAccessTokenSilently } = useAuth0();
+  const token = useRef<string | null>(null);
 
   const {
     isLoading,
@@ -38,6 +40,15 @@ const RegistrationView = () => {
   const requestBody = useRef<any>();
 
   useEffect(() => {
+    const getToken = async () => {
+      token.current = await getAccessTokenSilently();
+      console.log('token', token.current);
+      console.log('header', jose.decodeProtectedHeader(token.current));
+      console.log('claims', jose.decodeJwt(token.current));
+    };
+
+    getToken();
+
     if (!registrationQuestionnaire) return;
 
     const newRegitrationAnswers = registrationQuestionnaire.questions.map(

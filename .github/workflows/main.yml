@@ -21,7 +21,7 @@ env:
   POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
 
   AUTH0_ISSUER_URL: https://itri-dechnology.jp.auth0.com/
-  AUTH0_AUDIENCE: https://health-statistic.dechnology.com.tw
+  AUTH0_AUDIENCE: https://health-statistic.dechnology.com.tw/api/v1/
 
 jobs:
   build-and-push-images:

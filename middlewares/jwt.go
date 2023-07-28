@@ -2,10 +2,12 @@ package middlewares
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
@@ -17,47 +19,79 @@ import (
 
 // CustomClaims contains custom data we want from the token.
 type CustomClaims struct {
-	Name     string `json:"name"`
-	Username string `json:"username"`
-	Scope    string `json:"scope"`
-	// ShouldReject bool   `json:"shouldReject,omitempty"`
+	Scope       string   `json:"scope"`
+	Permissions []string `json:"permissions"`
 }
 
-// Validate errors out if `ShouldReject` is true.
-func (c *CustomClaims) Validate(ctx context.Context) error {
-	// if c.ShouldReject {
-	// 	return errors.New("should reject was set to true")
-	// }
+// Validate does nothing for this example, but we need
+// it to satisfy validator.CustomClaims interface.
+func (c CustomClaims) Validate(ctx context.Context) error {
 	return nil
 }
 
-// EnsureValidToken is a gin.HandlerFunc middleware
-// that will check the validity of our JWT.
-func EnsureValidToken() gin.HandlerFunc {
-	issuerURL, err := url.Parse(os.Getenv("AUTH0_ISSUER_URL"))
-	if err != nil {
-		log.Fatalf("Failed to parse the issuer url: %v", err)
+// CheckScope checks whether our claims have a specific scope.
+func (c CustomClaims) CheckScope(expectedScope string) bool {
+	result := strings.Split(c.Scope, " ")
+	for i := range result {
+		if result[i] == expectedScope {
+			return true
+		}
 	}
 
-	provider := jwks.NewCachingProvider(issuerURL, 5*time.Minute)
+	return false
+}
+
+func Authenticate() gin.HandlerFunc {
+	issuerUrl, err := url.Parse(os.Getenv("AUTH0_ISSUER_URL"))
+	if err != nil {
+		log.Fatalf("failed to parse Auth0 issuer url: %v", err)
+	}
+
+	provider := jwks.NewCachingProvider(issuerUrl, 5*time.Minute)
 
 	// Set up the validator.
 	jwtValidator, err := validator.New(
 		provider.KeyFunc,
 		validator.RS256,
-		issuerURL.String(),
+		issuerUrl.String(),
 		[]string{os.Getenv("AUTH0_AUDIENCE")},
-		validator.WithCustomClaims(func() validator.CustomClaims {
-			return &CustomClaims{}
-		}),
+		validator.WithCustomClaims(
+			func() validator.CustomClaims {
+				return &CustomClaims{}
+			},
+		),
 		validator.WithAllowedClockSkew(30*time.Second),
 	)
 	if err != nil {
 		log.Fatalf("failed to set up the validator: %v", err)
 	}
 
+	return func(c *gin.Context) {
+		tokenString := strings.TrimPrefix(
+			c.GetHeader("Authorization"), "Bearer ",
+		)
+		_, err := jwtValidator.ValidateToken(
+			c.Request.Context(),
+			tokenString,
+		)
+		if err != nil {
+			log.Printf("Encountered error while validating JWT: %v", err)
+			c.JSON(
+				http.StatusUnauthorized,
+				gin.H{"error": "Failed to validate JWT."},
+			)
+			c.Abort()
+			return
+		}
+		c.Next()
+	}
+
 	errorHandler := func(w http.ResponseWriter, r *http.Request, err error) {
 		log.Printf("Encountered error while validating JWT: %v", err)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"message":"Failed to validate JWT."}`))
 	}
 
 	middleware := jwtmiddleware.New(
@@ -66,22 +100,20 @@ func EnsureValidToken() gin.HandlerFunc {
 	)
 
 	return adapter.Wrap(middleware.CheckJWT)
+}
 
-	// return func(ctx *gin.Context) {
-	// 	encounteredError := true
-	// 	var handler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
-	// 		encounteredError = false
-	// 		ctx.Request = r
-	// 		ctx.Next()
-	// 	}
-
-	// 	middleware.CheckJWT(handler).ServeHTTP(ctx.Writer, ctx.Request)
-
-	// 	if encounteredError {
-	// 		ctx.AbortWithStatusJSON(
-	// 			http.StatusUnauthorized,
-	// 			map[string]string{"message": "JWT is invalid."},
-	// 		)
-	// 	}
-	// }
+func Authorize(scope string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		token := c.Request.Context().
+			Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+		claims := token.CustomClaims.(*CustomClaims)
+		if !claims.CheckScope(scope) {
+			c.JSON(http.StatusForbidden, gin.H{
+				"error": fmt.Sprintf("missing scope: %v", scope),
+			})
+			c.Abort() // Abort the request, as the user doesn't have the required scope
+			return
+		}
+		c.Next()
+	}
 }
