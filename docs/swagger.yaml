@@ -1195,7 +1195,7 @@ paths:
             type: array
       summary: Get Users
       tags:
-      - User
+      - Users
   /users/{id}:
     delete:
       parameters:
@@ -1211,7 +1211,7 @@ paths:
           description: OK
       summary: Delete User
       tags:
-      - User
+      - Users
     get:
       description: |
         Get the user specified by the `id` path param.
@@ -1230,7 +1230,7 @@ paths:
             $ref: '#/definitions/ent.User'
       summary: Get User
       tags:
-      - User
+      - Users
     put:
       consumes:
       - application/json
@@ -1255,7 +1255,7 @@ paths:
             $ref: '#/definitions/ent.User'
       summary: Update User
       tags:
-      - User
+      - Users
   /users/{id}/notifications:
     get:
       description: |
@@ -1279,7 +1279,7 @@ paths:
             type: array
       summary: Get All Notifications From an User
       tags:
-      - User
+      - Users
 schemes:
 - https
 swagger: "2.0"
