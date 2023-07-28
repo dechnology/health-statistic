@@ -27,13 +27,12 @@ func (QuestionnaireResponse) Fields() []ent.Field {
 func (QuestionnaireResponse) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("user", User.Type).
-			Annotations(entsql.OnDelete(entsql.Cascade)).
 			Ref("questionnaire_responses").
 			Unique(),
 		edge.From("questionnaire", Questionnaire.Type).
-			Annotations(entsql.OnDelete(entsql.Cascade)).
 			Ref("questionnaire_responses").
 			Unique(),
-		edge.To("answers", Answer.Type),
+		edge.To("answers", Answer.Type).
+			Annotations(entsql.OnDelete(entsql.Cascade)),
 	}
 }

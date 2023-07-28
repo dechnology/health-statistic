@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"entgo.io/ent"
-	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -34,12 +33,10 @@ func (Answer) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("chosen", Choice.Type),
 		edge.From("question", Question.Type).
-			Annotations(entsql.OnDelete(entsql.Cascade)).
 			Ref("answers").
 			Required().
 			Unique(),
 		edge.From("questionnaire_response", QuestionnaireResponse.Type).
-			Annotations(entsql.OnDelete(entsql.Cascade)).
 			Ref("answers").
 			Required().
 			Unique(),

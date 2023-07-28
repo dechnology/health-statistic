@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
@@ -105,8 +106,10 @@ func (User) Fields() []ent.Field {
 // Edges of the User.
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("questionnaire_responses", QuestionnaireResponse.Type),
-		edge.To("notifications", Notification.Type),
+		edge.To("questionnaire_responses", QuestionnaireResponse.Type).
+			Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("notifications", Notification.Type).
+			Annotations(entsql.OnDelete(entsql.SetNull)),
 		edge.To("prices", Price.Type),
 		edge.To("mycards", MyCard.Type).
 			Required(),

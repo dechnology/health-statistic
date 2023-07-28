@@ -36,7 +36,7 @@ var (
 				Symbol:     "answers_questionnaire_responses_answers",
 				Columns:    []*schema.Column{AnswersColumns[4]},
 				RefColumns: []*schema.Column{QuestionnaireResponsesColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -57,7 +57,7 @@ var (
 				Symbol:     "choices_questions_choices",
 				Columns:    []*schema.Column{ChoicesColumns[3]},
 				RefColumns: []*schema.Column{QuestionsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -200,7 +200,7 @@ var (
 				Symbol:     "questionnaire_responses_users_questionnaire_responses",
 				Columns:    []*schema.Column{QuestionnaireResponsesColumns[3]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
