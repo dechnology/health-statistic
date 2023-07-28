@@ -14,6 +14,7 @@ import (
 	"github.com/auth0/go-jwt-middleware/v2/jwks"
 	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"github.com/gin-gonic/gin"
+	adapter "github.com/gwatts/gin-adapter"
 )
 
 // CustomClaims contains custom data we want from the token.
@@ -65,43 +66,44 @@ func Authenticate() gin.HandlerFunc {
 		log.Fatalf("failed to set up the validator: %v", err)
 	}
 
-	return func(c *gin.Context) {
-		tokenString := strings.TrimPrefix(
-			c.GetHeader("Authorization"), "Bearer ",
-		)
-		log.Printf("token receieved: %v", tokenString)
+	// return func(c *gin.Context) {
+	// 	tokenString := strings.TrimPrefix(
+	// 		c.GetHeader("Authorization"), "Bearer ",
+	// 	)
+	// 	log.Printf("token receieved: %v", tokenString)
 
-		_, err := jwtValidator.ValidateToken(
-			c.Request.Context(),
-			tokenString,
-		)
-		if err != nil {
-			log.Printf("Encountered error while validating JWT: %v", err)
-			c.JSON(
-				http.StatusUnauthorized,
-				gin.H{"error": "Failed to validate JWT."},
-			)
-			c.Abort()
-			return
-		}
-		c.Next()
-	}
+	// 	_, err := jwtValidator.ValidateToken(
+	// 		c.Request.Context(),
+	// 		tokenString,
+	// 	)
+	// 	if err != nil {
+	// 		log.Printf("Encountered error while validating JWT: %v", err)
+	// 		c.JSON(
+	// 			http.StatusUnauthorized,
+	// 			gin.H{"error": "Failed to validate JWT."},
+	// 		)
+	// 		c.Abort()
+	// 		return
+	// 	}
 
-	// // Original non-gin's way
-	// errorHandler := func(w http.ResponseWriter, r *http.Request, err error) {
-	// 	log.Printf("Encountered error while validating JWT: %v", err)
-
-	// 	w.Header().Set("Content-Type", "application/json")
-	// 	w.WriteHeader(http.StatusUnauthorized)
-	// 	w.Write([]byte(`{"message":"Failed to validate JWT."}`))
+	// 	c.Next()
 	// }
 
-	// middleware := jwtmiddleware.New(
-	// 	jwtValidator.ValidateToken,
-	// 	jwtmiddleware.WithErrorHandler(errorHandler),
-	// )
+	// Original non-gin's way
+	errorHandler := func(w http.ResponseWriter, r *http.Request, err error) {
+		log.Printf("Encountered error while validating JWT: %v", err)
 
-	// return adapter.Wrap(middleware.CheckJWT)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"message":"Failed to validate JWT."}`))
+	}
+
+	middleware := jwtmiddleware.New(
+		jwtValidator.ValidateToken,
+		jwtmiddleware.WithErrorHandler(errorHandler),
+	)
+
+	return adapter.Wrap(middleware.CheckJWT)
 }
 
 func Authorize(scope string) gin.HandlerFunc {
