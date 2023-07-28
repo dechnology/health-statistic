@@ -47,6 +47,10 @@ func Authenticate() gin.HandlerFunc {
 		log.Fatalf("failed to parse Auth0 issuer url: %v", err)
 	}
 
+	audience := os.Getenv("AUTH0_AUDIENCE")
+
+	log.Printf("issuer: %v\naudience: %v", issuerUrl.String(), audience)
+
 	provider := jwks.NewCachingProvider(issuerUrl, 5*time.Minute)
 
 	// Set up the validator.
@@ -54,7 +58,7 @@ func Authenticate() gin.HandlerFunc {
 		provider.KeyFunc,
 		validator.RS256,
 		issuerUrl.String(),
-		[]string{os.Getenv("AUTH0_AUDIENCE")},
+		[]string{audience},
 		validator.WithCustomClaims(
 			func() validator.CustomClaims {
 				return &CustomClaims{}

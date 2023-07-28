@@ -10,7 +10,9 @@ import * as jose from 'jose';
 const baseUrl = 'https://health-statistic.dechnology.com.tw/api/v1';
 
 const fetchRegistrationQuestionnaire = async (): Promise<Questionnaire> => {
-  const res = await axios.get(`${baseUrl}/questionnaires/registration`);
+  const res = await axios.get(`${baseUrl}/questionnaires/registration`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   return res.data;
 };
 
