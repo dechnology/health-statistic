@@ -47,6 +47,7 @@ func New(db *ent.Client) *gin.Engine {
 		}
 
 		questionnaires := v1.Group("/questionnaires")
+		questionnaires.Use(middlewares.Authorize("read:public"))
 		{
 			questionnaires.GET("", h.GetQuestionnaires)
 			questionnaires.POST("", h.CreateQuestionnaire)

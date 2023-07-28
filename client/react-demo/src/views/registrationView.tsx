@@ -9,7 +9,9 @@ import * as jose from 'jose';
 
 const baseUrl = 'https://health-statistic.dechnology.com.tw/api/v1';
 
-const fetchRegistrationQuestionnaire = async (): Promise<Questionnaire> => {
+const getRegistrationQuestionnaire = async (
+  token: string | null,
+): Promise<Questionnaire> => {
   const res = await axios.get(`${baseUrl}/questionnaires/registration`, {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -24,10 +26,11 @@ const RegistrationView = () => {
     isLoading,
     error,
     data: registrationQuestionnaire,
-  } = useQuery<Questionnaire, Error>(
-    ['registrationQuestionnaire'],
-    fetchRegistrationQuestionnaire,
-  );
+  } = useQuery<Questionnaire, Error>({
+    queryKey: ['registrationQuestionnaire'],
+    queryFn: async () => getRegistrationQuestionnaire(token.current),
+    enabled: token !== null,
+  });
 
   const [infoAnswers, setInfoAnswers] = useState<Answer[]>(
     InfoQuestionnaire.questions.map((q) => ({

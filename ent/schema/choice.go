@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -29,10 +30,12 @@ func (Choice) Fields() []ent.Field {
 func (Choice) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("quesion", Question.Type).
+			Annotations(entsql.OnDelete(entsql.Cascade)).
 			Ref("choices").
 			Unique().
 			Required(),
 		edge.From("answer", Answer.Type).
+			Annotations(entsql.OnDelete(entsql.Cascade)).
 			Ref("chosen"),
 	}
 }

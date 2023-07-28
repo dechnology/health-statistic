@@ -161,7 +161,7 @@ var (
 				Symbol:     "questions_questionnaires_questions",
 				Columns:    []*schema.Column{QuestionsColumns[4]},
 				RefColumns: []*schema.Column{QuestionnairesColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -194,7 +194,7 @@ var (
 				Symbol:     "questionnaire_responses_questionnaires_questionnaire_responses",
 				Columns:    []*schema.Column{QuestionnaireResponsesColumns[2]},
 				RefColumns: []*schema.Column{QuestionnairesColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "questionnaire_responses_users_questionnaire_responses",
