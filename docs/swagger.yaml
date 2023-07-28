@@ -1180,6 +1180,20 @@ paths:
       summary: Get Response
       tags:
       - Response
+  /user:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/ent.User'
+            type: array
+      summary: Get Own User
+      tags:
+      - User
   /users:
     get:
       description: |

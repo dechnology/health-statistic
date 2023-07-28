@@ -26,7 +26,7 @@ func GetUserId(c *gin.Context) (*string, error) {
 //	@Tags					User
 //	@Produce				json
 //	@Success				200	{object}	[]ent.User
-//	@Router					/users [get]
+//	@Router					/user [get]
 func (h *Handler) GetSelf(c *gin.Context) {
 	user_id, err := GetUserId(c)
 	if err != nil {
