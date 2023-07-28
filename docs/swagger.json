@@ -4,7 +4,7 @@
     ],
     "swagger": "2.0",
     "info": {
-        "description": "This is the API documentation for 「健康資料公鏈」\n\n## Flow Diagram\n\n![flow_diagram](https://cdn.discordapp.com/attachments/874556062815100940/1132920083174408222/App-.drawio.png)\n\n---\n\n## Schema Overview\n\n### Quesionnaires\n\nFor the sake of scalibility, we make the questionnaire system a general one. That is, we can later create more questionnaires in our application. Upon initialization of our database, the registration questionnaire is created and assigned a fixed UUID.\n\n---\n\n## Client Endpoints\n\nFull descriptions of all endpoints are described below; however, more common endpoints for a client application are described here. For detailed types of params, body, or response, please refer to the full descriptiions below.\n\n### Registraion\n\nEndpoints required to register an user.\n\n- `/questionnaires/registration` [**GET**]\n\n  Before the user register, we need to have them fill in the registration questionnaire. This questionniare can be fetch using this endpoint. Note that this questionnaire correspond to question 16 to 30 since the answers to question 1 to 15 are part of the user data.\n\n- `/register` [**POST**]\n\n  The only endpoint to create an user, note that we will use the ID from Auth0 as the primary key in our database, for example: `auth0|888888888888888888888888`.\n\n### Utilities\n\nSome useful endpoints.\n\n- `/health_check` [**GET**]\n\n  This endpoint checks if the server is alive and the database is connected. It returns a code of 200 if ture.\n\n### Client's User Data\n\nA normal user has access to all resources owned by him/her-self. This is available via the `/user` endpoint.\nThis is not meant to be confused with the plural counterpart, `/users`, whose endpoints are only accessible for users with `read:users` or `write:users` scope. The server will look into your Auth0 token and get the corresponding user data.\n\n- `/user` [**GET**]\n\n- `/user/notifications` [**GET**]\n\n  **Not yet implemented**\n\n### Public Resources\n\nThe following endpoints are for reading public resources. Currently, they are **\"quesionnaires\"** and **\"prices\"**.\n\n- `/quesionnaires` [**GET**]\n\n- `/quesionnaires/{id}` [**GET**]\n\n- `/prices` [**GET**]\n\n- `/prices/{id}` [**GET**]\n",
+        "description": "This is the API documentation for 「健康資料公鏈」\r\n\r\n## Flow Diagram\r\n\r\n![flow_diagram](https://cdn.discordapp.com/attachments/874556062815100940/1132920083174408222/App-.drawio.png)\r\n\r\n---\r\n\r\n## Auth0 Setup\r\n\r\nThis API uses Auth0 as its authorization provider, and all endpoints are protected using Auth0 token.\r\nTherefore, all your requests must have **Authorization** header with a bearer token.\r\n\r\nUse the following parameters to login to our Auth0 services:\r\n\r\n- `domain`: `itri-dechnology.jp.auth0.com`\r\n\r\n- `clientId`: `holxN6SuSQtRV5oOSwOIXWYwJnvioObh`\r\n\r\n- `audience`: `https://health-statistic.dechnology.com.tw/api/v1/`\r\n\r\n**_Reference_**: [**Auth0 | Quickstart**](https://auth0.com/docs/quickstarts)\r\n\r\n## Schema Overview\r\n\r\n### Quesionnaires\r\n\r\nFor the sake of scalibility, we make the questionnaire system a general one. That is, we can later create more questionnaires in our application. Upon initialization of our database, the registration questionnaire is created and assigned a fixed UUID.\r\n\r\n---\r\n\r\n## Client Endpoints\r\n\r\nFull descriptions of all endpoints are described below; however, more common endpoints for a client application are described here. For detailed types of params, body, or response, please refer to the full descriptiions below.\r\n\r\n### Registraion\r\n\r\nEndpoints required to register an user.\r\n\r\n- `/questionnaires/registration` [**GET**]\r\n\r\n  Before the user register, we need to have them fill in the registration questionnaire. This questionniare can be fetch using this endpoint. Note that this questionnaire correspond to question 16 to 30 since the answers to question 1 to 15 are part of the user data.\r\n\r\n- `/register` [**POST**]\r\n\r\n  The only endpoint to create an user, note that we will use the ID from Auth0 as the primary key in our database, for example: `auth0|888888888888888888888888`.\r\n\r\n### Utilities\r\n\r\nSome useful endpoints.\r\n\r\n- `/health_check` [**GET**]\r\n\r\n  This endpoint checks if the server is alive and the database is connected. It returns a code of 200 if ture.\r\n\r\n### Client's User Data\r\n\r\nA normal user has access to all resources owned by him/her-self. This is available via the `/user` endpoint.\r\nThis is not meant to be confused with the plural counterpart, `/users`, whose endpoints are only accessible for users with `read:users` or `write:users` scope. The server will look into your Auth0 token and get the corresponding user data.\r\n\r\n- `/user` [**GET**]\r\n\r\n- `/user/notifications` [**GET**]\r\n\r\n  **Not yet implemented**\r\n\r\n### Public Resources\r\n\r\nThe following endpoints are for reading public resources. Currently, they are **\"quesionnaires\"** and **\"prices\"**.\r\n\r\n- `/quesionnaires` [**GET**]\r\n\r\n- `/quesionnaires/{id}` [**GET**]\r\n\r\n- `/prices` [**GET**]\r\n\r\n- `/prices/{id}` [**GET**]\r\n",
         "title": "Web3 - 健康資料公鏈API開發文件",
         "contact": {},
         "version": "1.0"
@@ -36,7 +36,7 @@
         },
         "/mycards": {
             "get": {
-                "description": "Get all MyCards from the database.\n",
+                "description": "Get all MyCards from the database.\r\n",
                 "produces": [
                     "application/json"
                 ],
@@ -245,7 +245,7 @@
         },
         "/questionnaires": {
             "get": {
-                "description": "Get all questionnaires from the database. This will include responses from yourself.\n",
+                "description": "Get all questionnaires from the database. This will include responses from yourself.\r\n",
                 "produces": [
                     "application/json"
                 ],
@@ -266,7 +266,7 @@
                 }
             },
             "post": {
-                "description": "Create a new questionnaire and optionally its questions.\n\n## Request Body\n\n- `name` *`string`* **Required**\n    The name of the questionnaire to be created.\n\n- `questions` *`array`* Optional\n    The initial questions in this questionnaire. This field may be empty and you can add questions later using post request to `quesionnaires/:id/new/question`.\n    \n    - `body` *`string`* **Required**\n        The body of one of the question in the questionnaire.\n    \n    - `type` *`string`* **Required**\n        The type of the question. For now, we accept all strings but in the future this field might be an enum.",
+                "description": "Create a new questionnaire and optionally its questions.\r\n\r\n## Request Body\r\n\r\n- `name` *`string`* **Required**\r\n    The name of the questionnaire to be created.\r\n\r\n- `questions` *`array`* Optional\r\n    The initial questions in this questionnaire. This field may be empty and you can add questions later using post request to `quesionnaires/:id/new/question`.\r\n    \r\n    - `body` *`string`* **Required**\r\n        The body of one of the question in the questionnaire.\r\n    \r\n    - `type` *`string`* **Required**\r\n        The type of the question. For now, we accept all strings but in the future this field might be an enum.",
                 "consumes": [
                     "application/json"
                 ],
@@ -320,7 +320,7 @@
         },
         "/questionnaires/{id}": {
             "get": {
-                "description": "Get the questionnaire specified by the `id` path param. This will include responses from yourself.\n",
+                "description": "Get the questionnaire specified by the `id` path param. This will include responses from yourself.\r\n",
                 "produces": [
                     "application/json"
                 ],
@@ -445,7 +445,7 @@
         },
         "/register": {
             "post": {
-                "description": "This is the ONLY way to create a new user. The registration questionnaire must be filled and the answers must be sent via this endpoint accordingly.\n\nWhile the initial questionnaire may have 30 questions, some answers are part of the user data like \"birth_year\", \"gender\", and so on. Therefore, we will use some of the data as inputs to create the user while other questions are combined and treated like a questionnaire called \"registration questionnaire\".\n\nHence, the user registration needs two things: user data and the response to the registration questionnaire. A user can only be register using this endpoint. Note that the ID field needs to be provided and it needs to match the Auth0 ID. This endpoint does 4 things in order: create a new user, respond to the registration questionnaire, assign one MyCard to this user, and send a notification via FCM.\n\n## Request Body\n\n- `response` _`object`_ **Required**\n  The response to the registration questionnaire.\n\n  - `questionnaire_id` _`string`_ **Required**\n    The ID of the registration questionnaire. This special questionnaire can be obtained via `questionnaires/registration [GET]` endpoint.\n\n  - `answers` _`array`_ **Required**\n    The answers of questions in the registration questionnaire. All questions must be answered.\n\n    - `question_id` _`string`_ **Required**\n      The ID of the question in the registration questionnaire.\n\n    - `body` _`string`_ **Required**\n      The answer to the question in the registration questionnaire.\n\n- `user` _`object`_ **Required**\n  The user to be created. A user must be created with the following 15 pieces of data provided. Note that the ID field also needs to be provided since we want to match the ID in our database with the one in Auth0.\n\n  - `id` _`string`_ **Required**\n    The user's Auth0 ID.\n\n  - `birth_year` _`string`_ **Required**\n    Part of the registration questionnaire.\n\n  - `height` _`float`_ **Required**\n    Part of the registration questionnaire.\n\n  - `weight` _`float`_ **Required**\n    Part of the registration questionnaire.\n\n  - `gender` _`string`_ **Required**\n    Part of the registration questionnaire.\n\n  - `education_level` _`string`_ **Required**\n    Part of the registration questionnaire.\n\n  - `occupation` _`string`_ **Required**\n    Part of the registration questionnaire.\n\n  - `marriage` _`string`_ **Required**\n    Part of the registration questionnaire.\n\n  - `medical_history` _`string`_ **Required**\n    Part of the registration questionnaire.\n\n  - `medication_status` _`string`_ **Required**\n    Part of the registration questionnaire.\n\n  - `demented_among_direct_relatives` _`bool`_ **Required**\n    Part of the registration questionnaire.\n\n  - `head_injury_experience` _`bool`_ **Required**\n    Part of the registration questionnaire.\n\n  - `ear_condition` _`string`_ **Required**\n    Part of the registration questionnaire.\n\n  - `eyesight_condition` _`string`_ **Required**\n    Part of the registration questionnaire.\n\n  - `smoking_habit` _`string`_ **Required**\n    Part of the registration questionnaire.\n",
+                "description": "This is the ONLY way to create a new user. The registration questionnaire must be filled and the answers must be sent via this endpoint accordingly.\r\n\r\nWhile the initial questionnaire may have 30 questions, some answers are part of the user data like \"birth_year\", \"gender\", and so on. Therefore, we will use some of the data as inputs to create the user while other questions are combined and treated like a questionnaire called \"registration questionnaire\".\r\n\r\nHence, the user registration needs two things: user data and the response to the registration questionnaire. A user can only be register using this endpoint. Note that the ID field needs to be provided and it needs to match the Auth0 ID. This endpoint does 4 things in order: create a new user, respond to the registration questionnaire, assign one MyCard to this user, and send a notification via FCM.\r\n\r\n## Request Body\r\n\r\n- `response` _`object`_ **Required**\r\n  The response to the registration questionnaire.\r\n\r\n  - `questionnaire_id` _`string`_ **Required**\r\n    The ID of the registration questionnaire. This special questionnaire can be obtained via `questionnaires/registration [GET]` endpoint.\r\n\r\n  - `answers` _`array`_ **Required**\r\n    The answers of questions in the registration questionnaire. All questions must be answered.\r\n\r\n    - `question_id` _`string`_ **Required**\r\n      The ID of the question in the registration questionnaire.\r\n\r\n    - `body` _`string`_ **Required**\r\n      The answer to the question in the registration questionnaire.\r\n\r\n- `user` _`object`_ **Required**\r\n  The user to be created. A user must be created with the following 15 pieces of data provided. Note that the ID field also needs to be provided since we want to match the ID in our database with the one in Auth0.\r\n\r\n  - `id` _`string`_ **Required**\r\n    The user's Auth0 ID.\r\n\r\n  - `birth_year` _`string`_ **Required**\r\n    Part of the registration questionnaire.\r\n\r\n  - `height` _`float`_ **Required**\r\n    Part of the registration questionnaire.\r\n\r\n  - `weight` _`float`_ **Required**\r\n    Part of the registration questionnaire.\r\n\r\n  - `gender` _`string`_ **Required**\r\n    Part of the registration questionnaire.\r\n\r\n  - `education_level` _`string`_ **Required**\r\n    Part of the registration questionnaire.\r\n\r\n  - `occupation` _`string`_ **Required**\r\n    Part of the registration questionnaire.\r\n\r\n  - `marriage` _`string`_ **Required**\r\n    Part of the registration questionnaire.\r\n\r\n  - `medical_history` _`string`_ **Required**\r\n    Part of the registration questionnaire.\r\n\r\n  - `medication_status` _`string`_ **Required**\r\n    Part of the registration questionnaire.\r\n\r\n  - `demented_among_direct_relatives` _`bool`_ **Required**\r\n    Part of the registration questionnaire.\r\n\r\n  - `head_injury_experience` _`bool`_ **Required**\r\n    Part of the registration questionnaire.\r\n\r\n  - `ear_condition` _`string`_ **Required**\r\n    Part of the registration questionnaire.\r\n\r\n  - `eyesight_condition` _`string`_ **Required**\r\n    Part of the registration questionnaire.\r\n\r\n  - `smoking_habit` _`string`_ **Required**\r\n    Part of the registration questionnaire.\r\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -501,7 +501,7 @@
         },
         "/users": {
             "get": {
-                "description": "Get all users from the database.\n",
+                "description": "Get all users from the database.\r\n",
                 "produces": [
                     "application/json"
                 ],
@@ -524,7 +524,7 @@
         },
         "/users/{id}": {
             "get": {
-                "description": "Get the user specified by the `id` path param.\n",
+                "description": "Get the user specified by the `id` path param.\r\n",
                 "produces": [
                     "application/json"
                 ],
@@ -614,7 +614,7 @@
         },
         "/users/{id}/notifications": {
             "get": {
-                "description": "Get all history notifications of an user.\n",
+                "description": "Get all history notifications of an user.\r\n",
                 "produces": [
                     "application/json"
                 ],

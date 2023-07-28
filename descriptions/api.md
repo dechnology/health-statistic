@@ -6,6 +6,21 @@ This is the API documentation for 「健康資料公鏈」
 
 ---
 
+## Auth0 Setup
+
+This API uses Auth0 as its authorization provider, and all endpoints are protected using Auth0 token.
+Therefore, all your requests must have **Authorization** header with a bearer token.
+
+Use the following parameters to login to our Auth0 services:
+
+- `domain`: `itri-dechnology.jp.auth0.com`
+
+- `clientId`: `holxN6SuSQtRV5oOSwOIXWYwJnvioObh`
+
+- `audience`: `https://health-statistic.dechnology.com.tw/api/v1/`
+
+**_Reference_**: [**Auth0 | Quickstart**](https://auth0.com/docs/quickstarts)
+
 ## Schema Overview
 
 ### Quesionnaires
