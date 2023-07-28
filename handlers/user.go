@@ -8,13 +8,55 @@ import (
 
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
+	"github.com/eesoymilk/health-statistic-api/middlewares"
 	"github.com/eesoymilk/health-statistic-api/types"
 	"github.com/gin-gonic/gin"
 )
 
+func GetUserId(c *gin.Context) (*string, error) {
+	token, err := middlewares.GetTokenInGin(c)
+	if err != nil {
+		return nil, err
+	}
+	return &token.RegisteredClaims.Subject, nil
+}
+
+//	@Summary				Get Own User
+//	@Description.markdown	user_self.get
+//	@Tags					User
+//	@Produce				json
+//	@Success				200	{object}	[]ent.User
+//	@Router					/users [get]
+func (h *Handler) GetSelf(c *gin.Context) {
+	user_id, err := GetUserId(c)
+	if err != nil {
+		c.JSON(
+			http.StatusUnauthorized,
+			gin.H{
+				"error": err.Error(),
+			},
+		)
+		return
+	}
+
+	userNode, err := h.DB.User.Query().
+		Where(user.ID(*user_id)).
+		WithMycards().
+		WithPrices().
+		Only(c.Request.Context())
+	if err != nil {
+		c.JSON(
+			http.StatusInternalServerError,
+			gin.H{"error": err.Error()},
+		)
+		return
+	}
+	c.JSON(http.StatusOK, userNode)
+}
+
 //	@Summary				Get Users
 //	@Description.markdown	users.get
-//	@Tags					User
+//	@Tags					Users
 //	@Produce				json
 //	@Success				200	{object}	[]ent.User
 //	@Router					/users [get]
@@ -32,7 +74,7 @@ func (h *Handler) GetUsers(c *gin.Context) {
 
 //	@Summary				Get User
 //	@Description.markdown	user.get
-//	@Tags					User
+//	@Tags					Users
 //	@Produce				json
 //	@Param					id	path		string	true	"The user's Auth0 ID"
 //	@Success				200	{object}	ent.User
@@ -52,7 +94,7 @@ func (h *Handler) GetUser(c *gin.Context) {
 
 //	@Summary				Update User
 //	@Description.markdown	user.put
-//	@Tags					User
+//	@Tags					Users
 //	@Accept					json
 //	@Produce				json
 //	@Param					id		path		string			true	"The user's Auth0 ID"
@@ -108,7 +150,7 @@ func (h *Handler) UpdateUser(c *gin.Context) {
 
 //	@Summary				Delete User
 //	@Description.markdown	user.delete
-//	@Tags					User
+//	@Tags					Users
 //	@Produce				json
 //	@Param					id	path	string	true	"The user's Auth0 ID"
 //	@Success				200
@@ -125,7 +167,7 @@ func (h *Handler) DeleteUser(c *gin.Context) {
 //
 //	@Description.markdown	user_notifications.get
 //
-//	@Tags					User
+//	@Tags					Users
 //	@Produce				json
 //	@Param					id	path		string	true	"The user's Auth0 ID"
 //	@Success				200	{object}	[]ent.Notifications

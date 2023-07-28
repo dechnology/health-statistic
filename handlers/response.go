@@ -15,13 +15,13 @@ import (
 func (h *Handler) RespondQuestionnaire(
 	ctx context.Context,
 	user_id string,
-	questionnaire_id uuid.UUID,
+	questionnaireId uuid.UUID,
 	answers []types.BaseAnswer,
 ) (*ent.QuestionnaireResponse, error) {
 	responseNode, err := h.DB.QuestionnaireResponse.
 		Create().
 		SetUserID(user_id).
-		SetQuestionnaireID(questionnaire_id).
+		SetQuestionnaireID(questionnaireId).
 		Save(ctx)
 
 	if err != nil {

@@ -33,52 +33,91 @@ func New(db *ent.Client) *gin.Engine {
 			register.POST("", h.Register)
 		}
 
+		user := v1.Group("/user")
+		{
+			user.GET("", h.GetSelf)
+			user.PUT("")
+			user.DELETE("")
+			user.GET("/notifications")
+		}
+
 		users := v1.Group("/users")
 		{
-			users.GET("", h.GetUsers)
+			users.GET(
+				"",
+				middlewares.Authorize("read:users"),
+				h.GetUsers,
+			)
 
 			id := users.Group("/:id")
 			{
-				id.GET("", h.GetUser)
-				id.PUT("", h.UpdateUser)
-				id.DELETE("", h.DeleteUser)
-				id.GET("/notifications", h.GetUserNotifications)
+				id.GET(
+					"",
+					middlewares.Authorize("read:current_user"),
+					h.GetUser,
+				)
+				id.PUT(
+					"",
+					middlewares.Authorize("write:current_user"),
+					h.UpdateUser,
+				)
+				id.DELETE(
+					"",
+					middlewares.Authorize("write:current_user"),
+					h.DeleteUser,
+				)
+				id.GET(
+					"/notifications",
+					middlewares.Authorize("read:current_user"),
+					h.GetUserNotifications,
+				)
 			}
 		}
 
 		questionnaires := v1.Group("/questionnaires")
-		questionnaires.Use(middlewares.Authorize("read:public"))
 		{
-			questionnaires.GET("", h.GetQuestionnaires)
-			questionnaires.POST("", h.CreateQuestionnaire)
+			questionnaires.GET(
+				"",
+				middlewares.Authorize("read:questionnaires"),
+				h.GetQuestionnaires,
+			)
 			questionnaires.GET(
 				"/registration",
+				middlewares.Authorize("read:questionnaires"),
 				h.GetRegistrationQuestionnaire,
+			)
+			questionnaires.POST(
+				"",
+				middlewares.Authorize("write:questionnaires"),
+				h.CreateQuestionnaire,
 			)
 
 			id := questionnaires.Group("/:id")
 			{
-				id.GET("", h.GetQuestionnaire)
-				id.DELETE("", h.DeleteQuestionnaire)
-				id.POST("/responses", h.CreateQuestionnaireResponse)
-				id.GET("/responses", h.GetQuestionnaireResponses)
+				id.GET(
+					"",
+					middlewares.Authorize("read:questionnaires"),
+					h.GetQuestionnaire,
+				)
+				id.DELETE(
+					"",
+					middlewares.Authorize("write:questionnaires"),
+					h.DeleteQuestionnaire,
+				)
+				id.POST(
+					"/responses",
+					middlewares.Authorize("write:responses"),
+					h.CreateQuestionnaireResponse,
+				)
+				id.GET(
+					"/responses",
+					middlewares.Authorize("read:responses"),
+					h.GetQuestionnaireResponses,
+				)
 			}
 		}
 
-		responses := v1.Group("/responses")
-		{
-			responses.GET("", h.GetResponses)
-			responses.GET("/:id", h.GetResponse)
-			responses.DELETE("/:id", h.DeleteResponse)
-		}
-
-		questions := v1.Group("/questions")
-		{
-			questions.GET("", h.GetQuestions)
-			questions.GET("/:id", h.GetQuestion)
-			questions.DELETE("/:id", h.DeleteQuestion)
-		}
-
+		// TODO
 		notifications := v1.Group("/notifications")
 		{
 			notifications.GET("", h.GetNotifications)
@@ -87,17 +126,43 @@ func New(db *ent.Client) *gin.Engine {
 		}
 
 		mycards := v1.Group("/mycards")
+		mycards.Use(middlewares.Authorize("read:mycards"))
 		{
-			mycards.GET("", h.GetMyCards)
-			mycards.GET("/:id", h.GetMyCard)
-			mycards.DELETE("/:id", h.DeleteMyCard)
+			mycards.GET(
+				"",
+				middlewares.Authorize("read:mycards"),
+				h.GetMyCards,
+			)
+			mycards.GET(
+				"/:id",
+				middlewares.Authorize("read:mycards"),
+				h.GetMyCard,
+			)
+			mycards.DELETE(
+				"/:id",
+				middlewares.Authorize("write:mycards"),
+				h.DeleteMyCard,
+			)
 		}
 
 		prices := v1.Group("/prices")
+		prices.Use(middlewares.Authorize("read:prices"))
 		{
-			prices.GET("", h.GetPrices)
-			prices.GET("/:id", h.GetPrice)
-			prices.DELETE("/:id", h.DeletePrice)
+			prices.GET(
+				"",
+				middlewares.Authorize("read:prices"),
+				h.GetPrices,
+			)
+			prices.GET(
+				"/:id",
+				middlewares.Authorize("read:prices"),
+				h.GetPrice,
+			)
+			prices.DELETE(
+				"/:id",
+				middlewares.Authorize("write:prices"),
+				h.DeletePrice,
+			)
 		}
 	}
 
