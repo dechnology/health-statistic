@@ -14,14 +14,10 @@ import (
 
 func (h *Handler) RespondQuestionnaire(
 	ctx context.Context,
-	user_id, raw_questionnaire_id string,
+	user_id string,
+	questionnaire_id uuid.UUID,
 	answers []types.BaseAnswer,
 ) (*ent.QuestionnaireResponse, error) {
-	questionnaire_id, err := uuid.Parse(raw_questionnaire_id)
-	if err != nil {
-		return nil, err
-	}
-
 	responseNode, err := h.DB.QuestionnaireResponse.
 		Create().
 		SetUserID(user_id).

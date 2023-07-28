@@ -235,6 +235,15 @@ func (h *Handler) DeleteQuestionnaire(c *gin.Context) {
 //	@Success				200			{object}	ent.QuestionnaireResponse
 //	@Router					/questionnaires/{id}/responses [post]
 func (h *Handler) CreateQuestionnaireResponse(c *gin.Context) {
+	questionnaireId, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(
+			http.StatusBadRequest,
+			gin.H{"error": err.Error()},
+		)
+		return
+	}
+
 	var body types.ResponseWithUserId
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -244,7 +253,7 @@ func (h *Handler) CreateQuestionnaireResponse(c *gin.Context) {
 	responseNode, err := h.RespondQuestionnaire(
 		c.Request.Context(),
 		body.UserId,
-		c.Param("id"),
+		questionnaireId,
 		body.Answers,
 	)
 	if err != nil {

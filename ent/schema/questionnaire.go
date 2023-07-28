@@ -19,6 +19,7 @@ type Questionnaire struct {
 func (Questionnaire) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).
+			Immutable().
 			Default(uuid.New).
 			Unique(),
 		field.String("name"),

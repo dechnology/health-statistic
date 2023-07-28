@@ -16,6 +16,7 @@ type Choice struct {
 func (Choice) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).
+			Immutable().
 			Unique().
 			Default(uuid.New),
 		field.Text("body").

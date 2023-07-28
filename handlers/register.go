@@ -76,8 +76,7 @@ func (h *Handler) Register(c *gin.Context) {
 	}
 
 	// STEP 2:	Respond to registration questionnaire
-	raw_questionnaire_id := body.Response.QuestionnaireId
-	if raw_questionnaire_id != "88888888-8888-4888-8888-888888888888" {
+	if body.Response.QuestionnaireId != h.RegistrationQuestionnaireId {
 		c.JSON(
 			http.StatusBadRequest,
 			gin.H{"error": "you should submit the registration questionnaire instead"},
@@ -87,7 +86,7 @@ func (h *Handler) Register(c *gin.Context) {
 	responseNode, err := h.RespondQuestionnaire(
 		c.Request.Context(),
 		userNode.ID,
-		raw_questionnaire_id,
+		body.Response.QuestionnaireId,
 		body.Response.Answers,
 	)
 	if err != nil {

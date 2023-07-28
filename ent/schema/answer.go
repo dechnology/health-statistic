@@ -18,6 +18,7 @@ type Answer struct {
 func (Answer) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).
+			Immutable().
 			Unique().
 			Default(uuid.New),
 		field.Time("created_at").

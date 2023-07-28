@@ -18,7 +18,10 @@ type QuestionnaireResponse struct {
 // Fields of the QuestionnaireResponse.
 func (QuestionnaireResponse) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("id", uuid.UUID{}).Default(uuid.New),
+		field.UUID("id", uuid.UUID{}).
+			Immutable().
+			Default(uuid.New).
+			Unique(),
 		field.Time("created_at").Default(time.Now),
 	}
 }

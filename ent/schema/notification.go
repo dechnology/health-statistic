@@ -15,7 +15,10 @@ type Notification struct {
 // Fields of the Notification.
 func (Notification) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("id", uuid.UUID{}).Default(uuid.New),
+		field.UUID("id", uuid.UUID{}).
+			Immutable().
+			Default(uuid.New).
+			Unique(),
 		field.Enum("type").
 			Values("normal", "mycard", "price"),
 		field.Time("sent_at").

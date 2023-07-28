@@ -17,7 +17,9 @@ type Question struct {
 func (Question) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).
-			Default(uuid.New),
+			Immutable().
+			Default(uuid.New).
+			Unique(),
 		field.Enum("type").
 			Values(
 				"short_answer",

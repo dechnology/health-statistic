@@ -85,7 +85,7 @@ var (
 	}
 	// NotificationsColumns holds the columns for the "notifications" table.
 	NotificationsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID},
+		{Name: "id", Type: field.TypeUUID, Unique: true},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"normal", "mycard", "price"}},
 		{Name: "sent_at", Type: field.TypeTime, Nullable: true},
 		{Name: "read_at", Type: field.TypeTime, Nullable: true},
@@ -145,7 +145,7 @@ var (
 	}
 	// QuestionsColumns holds the columns for the "questions" table.
 	QuestionsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID},
+		{Name: "id", Type: field.TypeUUID, Unique: true},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"short_answer", "single_choice", "multiple_choice"}},
 		{Name: "body", Type: field.TypeString, Size: 2147483647},
 		{Name: "order", Type: field.TypeInt},
@@ -179,7 +179,7 @@ var (
 	}
 	// QuestionnaireResponsesColumns holds the columns for the "questionnaire_responses" table.
 	QuestionnaireResponsesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID},
+		{Name: "id", Type: field.TypeUUID, Unique: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "questionnaire_questionnaire_responses", Type: field.TypeUUID, Nullable: true},
 		{Name: "user_questionnaire_responses", Type: field.TypeString, Nullable: true},

@@ -47,7 +47,7 @@ type ResponseWithUserId struct {
 }
 
 type ResponseWithQuestionnaireId struct {
-	QuestionnaireId string `json:"questionnaire_id"`
+	QuestionnaireId uuid.UUID `json:"questionnaire_id"`
 	BaseResponse
 }
 
