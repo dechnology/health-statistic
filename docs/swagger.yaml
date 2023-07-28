@@ -670,6 +670,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/handlers.HealthStatus'
+      security:
+      - BearerAuth: []
       summary: Health Check
       tags:
       - Health
@@ -1310,4 +1312,9 @@ paths:
       - Users
 schemes:
 - https
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

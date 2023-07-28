@@ -18,6 +18,11 @@ const docTemplate = `{
     "paths": {
         "/health_check": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "A health checking endpoint to make sure the server is not dead.",
                 "tags": [
                     "Health"
@@ -1702,6 +1707,13 @@ const docTemplate = `{
                 "SmokingHabitSometimes",
                 "SmokingHabitEveryday"
             ]
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`

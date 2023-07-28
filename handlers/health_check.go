@@ -18,6 +18,9 @@ var (
 //	@Summary		Health Check
 //	@Description	A health checking endpoint to make sure the server is not dead.
 //	@Tags			Health
+//
+//	@Security		BearerAuth
+//
 //	@Success		200	{object}	HealthStatus
 //	@Router			/health_check [get]
 func HealthCheck(c *gin.Context) {
