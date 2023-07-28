@@ -351,26 +351,10 @@ definitions:
       name:
         description: Name holds the value of the "name" field.
         type: string
-      questions:
-        items:
-          $ref: '#/definitions/ent.Question'
-        type: array
-      responses:
+      questionnaire_responses:
         items:
           $ref: '#/definitions/types.Response'
         type: array
-    type: object
-  types.QuestionnaireWithQuestions:
-    properties:
-      created_at:
-        description: CreatedAt holds the value of the "created_at" field.
-        type: string
-      id:
-        description: ID of the ent.
-        type: string
-      name:
-        description: Name holds the value of the "name" field.
-        type: string
       questions:
         items:
           $ref: '#/definitions/ent.Question'
@@ -758,7 +742,7 @@ paths:
   /questionnaires:
     get:
       description: |
-        Get all questionnaires from the database. For each questionnaire, all questions and responses of this questionnaire are also included.
+        Get all questionnaires from the database. This will include responses from yourself.
       produces:
       - application/json
       responses:
@@ -818,7 +802,7 @@ paths:
       - Questionnaire
     get:
       description: |
-        Get the questionnaire specified by the `id` path param. All questions and responses of the questionnaire are also included.
+        Get the questionnaire specified by the `id` path param. This will include responses from yourself.
       parameters:
       - description: The questionnaire's ID
         in: path
@@ -893,7 +877,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/types.QuestionnaireWithQuestions'
+            $ref: '#/definitions/types.QuestionnaireDetails'
       summary: Get Registration Questionnaire
       tags:
       - Questionnaire

@@ -11,7 +11,6 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent/migrate"
 	"github.com/eesoymilk/health-statistic-api/handlers"
 	"github.com/eesoymilk/health-statistic-api/types"
-	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 )
 
@@ -48,13 +47,8 @@ func CreateRegistrationQuestionnaire(
 		return fmt.Errorf("error marshaling to JSON: %v", err)
 	}
 
-	questionnaireId, err := uuid.Parse(questionnaireData.ID)
-	if err != nil {
-		return fmt.Errorf("failed parsing id: %v", err)
-	}
-
 	_, err = db.Questionnaire.Create().
-		SetID(questionnaireId).
+		SetID(questionnaireData.ID).
 		SetName(questionnaireData.Name).
 		Save(ctx)
 	if err != nil {
@@ -66,9 +60,10 @@ func CreateRegistrationQuestionnaire(
 	}
 
 	h := handlers.Handler{DB: db}
+
 	if err := h.AppendQuestions(
 		ctx,
-		questionnaireId,
+		questionnaireData.ID,
 		questionnaireData.Questions,
 	); err != nil {
 		return fmt.Errorf(

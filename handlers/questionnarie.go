@@ -123,7 +123,7 @@ func (h *Handler) GetQuestionnaires(c *gin.Context) {
 //	@Description.markdown	registration_questionnaire.get
 //	@Tags					Questionnaire
 //	@Produce				json
-//	@Success				200	{object}	types.QuestionnaireWithQuestions
+//	@Success				200	{object}	types.QuestionnaireDetails
 //	@Router					/questionnaires/registration [get]
 func (h *Handler) GetRegistrationQuestionnaire(c *gin.Context) {
 	userId, err := GetUserId(c)

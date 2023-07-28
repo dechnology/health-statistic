@@ -68,16 +68,11 @@ type QuestionWithQuestionnaire struct {
 
 type QuestionnaireWithId struct {
 	BaseQuestionnaire
-	ID string `json:"id"`
-}
-
-type QuestionnaireWithQuestions struct {
-	ent.Questionnaire
-	Questions []ent.Question `json:"questions"`
+	ID uuid.UUID `json:"id"`
 }
 
 type QuestionnaireDetails struct {
 	ent.Questionnaire
 	Questions []ent.Question `json:"questions"`
-	Responses []Response     `json:"responses"`
+	Responses []Response     `json:"questionnaire_responses"`
 }

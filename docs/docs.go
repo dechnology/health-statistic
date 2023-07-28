@@ -249,7 +249,7 @@ const docTemplate = `{
         },
         "/questionnaires": {
             "get": {
-                "description": "Get all questionnaires from the database. For each questionnaire, all questions and responses of this questionnaire are also included.\n",
+                "description": "Get all questionnaires from the database. This will include responses from yourself.\n",
                 "produces": [
                     "application/json"
                 ],
@@ -316,7 +316,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.QuestionnaireWithQuestions"
+                            "$ref": "#/definitions/types.QuestionnaireDetails"
                         }
                     }
                 }
@@ -324,7 +324,7 @@ const docTemplate = `{
         },
         "/questionnaires/{id}": {
             "get": {
-                "description": "Get the questionnaire specified by the ` + "`" + `id` + "`" + ` path param. All questions and responses of the questionnaire are also included.\n",
+                "description": "Get the questionnaire specified by the ` + "`" + `id` + "`" + ` path param. This will include responses from yourself.\n",
                 "produces": [
                     "application/json"
                 ],
@@ -1151,34 +1151,11 @@ const docTemplate = `{
                     "description": "Name holds the value of the \"name\" field.",
                     "type": "string"
                 },
-                "questions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/ent.Question"
-                    }
-                },
-                "responses": {
+                "questionnaire_responses": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/types.Response"
                     }
-                }
-            }
-        },
-        "types.QuestionnaireWithQuestions": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "description": "CreatedAt holds the value of the \"created_at\" field.",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "ID of the ent.",
-                    "type": "string"
-                },
-                "name": {
-                    "description": "Name holds the value of the \"name\" field.",
-                    "type": "string"
                 },
                 "questions": {
                     "type": "array",
