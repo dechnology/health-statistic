@@ -139,80 +139,6 @@
                 }
             }
         },
-        "/notifications": {
-            "get": {
-                "description": "Get all notifications from the database. For each notification, the user who received this notification is also included.\n",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Notification"
-                ],
-                "summary": "Get Notifications",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/types.NotificationWithRecipient"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/notifications/{id}": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Notification"
-                ],
-                "summary": "Get Notification",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The notification's ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.NotificationWithRecipient"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Notification"
-                ],
-                "summary": "Delete Notification",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The notification's ID.",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
-        },
         "/prices": {
             "get": {
                 "produces": [
@@ -517,82 +443,6 @@
                 }
             }
         },
-        "/questions": {
-            "get": {
-                "description": "Get all questions from the database. **This will NOT include questionnaires and responses.**\n",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Question"
-                ],
-                "summary": "Get Questions",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/types.QuestionWithQuestionnaire"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/questions/{id}": {
-            "get": {
-                "description": "Get the question specified by the `id` path param.\n",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Question"
-                ],
-                "summary": "Get Question",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The question's ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.QuestionWithQuestionnaire"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "Delete the question specified by the `id` path param.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Question"
-                ],
-                "summary": "Delete Question",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The question's ID.",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
-        },
         "/register": {
             "post": {
                 "description": "This is the ONLY way to create a new user. The registration questionnaire must be filled and the answers must be sent via this endpoint accordingly.\n\nWhile the initial questionnaire may have 30 questions, some answers are part of the user data like \"birth_year\", \"gender\", and so on. Therefore, we will use some of the data as inputs to create the user while other questions are combined and treated like a questionnaire called \"registration questionnaire\".\n\nHence, the user registration needs two things: user data and the response to the registration questionnaire. A user can only be register using this endpoint. Note that the ID field needs to be provided and it needs to match the Auth0 ID. This endpoint does 4 things in order: create a new user, respond to the registration questionnaire, assign one MyCard to this user, and send a notification via FCM.\n\n## Request Body\n\n- `response` _`object`_ **Required**\n  The response to the registration questionnaire.\n\n  - `questionnaire_id` _`string`_ **Required**\n    The ID of the registration questionnaire. This special questionnaire can be obtained via `questionnaires/registration [GET]` endpoint.\n\n  - `answers` _`array`_ **Required**\n    The answers of questions in the registration questionnaire. All questions must be answered.\n\n    - `question_id` _`string`_ **Required**\n      The ID of the question in the registration questionnaire.\n\n    - `body` _`string`_ **Required**\n      The answer to the question in the registration questionnaire.\n\n- `user` _`object`_ **Required**\n  The user to be created. A user must be created with the following 15 pieces of data provided. Note that the ID field also needs to be provided since we want to match the ID in our database with the one in Auth0.\n\n  - `id` _`string`_ **Required**\n    The user's Auth0 ID.\n\n  - `birth_year` _`string`_ **Required**\n    Part of the registration questionnaire.\n\n  - `height` _`float`_ **Required**\n    Part of the registration questionnaire.\n\n  - `weight` _`float`_ **Required**\n    Part of the registration questionnaire.\n\n  - `gender` _`string`_ **Required**\n    Part of the registration questionnaire.\n\n  - `education_level` _`string`_ **Required**\n    Part of the registration questionnaire.\n\n  - `occupation` _`string`_ **Required**\n    Part of the registration questionnaire.\n\n  - `marriage` _`string`_ **Required**\n    Part of the registration questionnaire.\n\n  - `medical_history` _`string`_ **Required**\n    Part of the registration questionnaire.\n\n  - `medication_status` _`string`_ **Required**\n    Part of the registration questionnaire.\n\n  - `demented_among_direct_relatives` _`bool`_ **Required**\n    Part of the registration questionnaire.\n\n  - `head_injury_experience` _`bool`_ **Required**\n    Part of the registration questionnaire.\n\n  - `ear_condition` _`string`_ **Required**\n    Part of the registration questionnaire.\n\n  - `eyesight_condition` _`string`_ **Required**\n    Part of the registration questionnaire.\n\n  - `smoking_habit` _`string`_ **Required**\n    Part of the registration questionnaire.\n",
@@ -623,81 +473,6 @@
                         "schema": {
                             "$ref": "#/definitions/types.RegisterResponse"
                         }
-                    }
-                }
-            }
-        },
-        "/responses": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Response"
-                ],
-                "summary": "Get Responses",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/types.ResponseWithQuestionnaire"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/responses/{id}": {
-            "get": {
-                "description": "Get the response specified by the `id` path param. **This will also includes the corresponding questionnaire.**\n",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Response"
-                ],
-                "summary": "Get Response",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The response's ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.ResponseWithQuestionnaire"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "Delete the response specified by the `id` path param.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Response"
-                ],
-                "summary": "Delete Response",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The response's ID.",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
                     }
                 }
             }
@@ -1357,66 +1132,6 @@
                 }
             }
         },
-        "types.NotificationWithRecipient": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "description": "ID of the ent.",
-                    "type": "string"
-                },
-                "message": {
-                    "description": "Message holds the value of the \"message\" field.",
-                    "type": "string"
-                },
-                "read_at": {
-                    "description": "ReadAt holds the value of the \"read_at\" field.",
-                    "type": "string"
-                },
-                "recipient": {
-                    "$ref": "#/definitions/ent.User"
-                },
-                "sent_at": {
-                    "description": "SentAt holds the value of the \"sent_at\" field.",
-                    "type": "string"
-                },
-                "type": {
-                    "description": "Type holds the value of the \"type\" field.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/notification.Type"
-                        }
-                    ]
-                }
-            }
-        },
-        "types.QuestionWithQuestionnaire": {
-            "type": "object",
-            "properties": {
-                "body": {
-                    "description": "Body holds the value of the \"body\" field.",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "ID of the ent.",
-                    "type": "string"
-                },
-                "order": {
-                    "description": "Order holds the value of the \"order\" field.",
-                    "type": "integer"
-                },
-                "questionnaire": {
-                    "$ref": "#/definitions/ent.Questionnaire"
-                },
-                "type": {
-                    "description": "Type holds the value of the \"type\" field.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/question.Type"
-                        }
-                    ]
-                }
-            }
-        },
         "types.QuestionnaireDetails": {
             "type": "object",
             "properties": {
@@ -1508,33 +1223,6 @@
                 "id": {
                     "description": "ID of the ent.",
                     "type": "string"
-                },
-                "user_id": {
-                    "description": "The user ID of the user who submit the response.",
-                    "type": "string"
-                }
-            }
-        },
-        "types.ResponseWithQuestionnaire": {
-            "type": "object",
-            "properties": {
-                "answers": {
-                    "description": "The answers to all questions in a questionnaire.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.BaseAnswer"
-                    }
-                },
-                "created_at": {
-                    "description": "CreatedAt holds the value of the \"created_at\" field.",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "ID of the ent.",
-                    "type": "string"
-                },
-                "questionnaire": {
-                    "$ref": "#/definitions/ent.Questionnaire"
                 },
                 "user_id": {
                     "description": "The user ID of the user who submit the response.",
