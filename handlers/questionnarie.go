@@ -249,7 +249,6 @@ func (h *Handler) CreateQuestionnaire(c *gin.Context) {
 //	@Router					/questionnaires/{id} [delete]
 func (h *Handler) DeleteQuestionnaire(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
-
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

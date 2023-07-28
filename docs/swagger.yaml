@@ -1002,7 +1002,7 @@ paths:
             type: array
       summary: Get Own User
       tags:
-      - User
+      - Self
   /users:
     get:
       description: |

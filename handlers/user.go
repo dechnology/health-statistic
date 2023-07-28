@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/eesoymilk/health-statistic-api/ent"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
 	"github.com/eesoymilk/health-statistic-api/middlewares"
@@ -21,9 +23,23 @@ func GetUserId(c *gin.Context) (*string, error) {
 	return &token.RegisteredClaims.Subject, nil
 }
 
+func (h *Handler) GetUserById(
+	ctx context.Context, userId string,
+) (*ent.User, error) {
+	userNode, err := h.DB.User.Query().
+		Where(user.ID(userId)).
+		WithMycards().
+		WithPrices().
+		Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return userNode, nil
+}
+
 //	@Summary				Get Own User
 //	@Description.markdown	user_self.get
-//	@Tags					User
+//	@Tags					Self
 //	@Produce				json
 //	@Success				200	{object}	[]ent.User
 //	@Router					/user [get]
@@ -39,11 +55,7 @@ func (h *Handler) GetSelf(c *gin.Context) {
 		return
 	}
 
-	userNode, err := h.DB.User.Query().
-		Where(user.ID(*userId)).
-		WithMycards().
-		WithPrices().
-		Only(c.Request.Context())
+	userNode, err := h.GetUserById(c.Request.Context(), *userId)
 	if err != nil {
 		c.JSON(
 			http.StatusInternalServerError,
@@ -80,16 +92,15 @@ func (h *Handler) GetUsers(c *gin.Context) {
 //	@Success				200	{object}	ent.User
 //	@Router					/users/{id} [get]
 func (h *Handler) GetUser(c *gin.Context) {
-	user, err := h.DB.User.Query().
-		Where(user.ID(c.Param("id"))).
-		WithMycards().
-		WithPrices().
-		Only(c.Request.Context())
+	userNode, err := h.GetUserById(c.Request.Context(), c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(
+			http.StatusInternalServerError,
+			gin.H{"error": err.Error()},
+		)
 		return
 	}
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, userNode)
 }
 
 //	@Summary				Update User
@@ -164,9 +175,7 @@ func (h *Handler) DeleteUser(c *gin.Context) {
 }
 
 //	@Summary				Get All Notifications From an User
-//
 //	@Description.markdown	user_notifications.get
-//
 //	@Tags					Users
 //	@Produce				json
 //	@Param					id	path		string	true	"The user's Auth0 ID"

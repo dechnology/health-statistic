@@ -487,7 +487,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "Self"
                 ],
                 "summary": "Get Own User",
                 "responses": {
