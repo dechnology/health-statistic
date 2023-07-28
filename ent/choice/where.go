@@ -201,7 +201,7 @@ func HasAnswer() predicate.Choice {
 	return predicate.Choice(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, AnswerTable, AnswerPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, AnswerTable, AnswerColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})

@@ -63,19 +63,23 @@ func (cc *ChoiceCreate) SetQuesion(q *Question) *ChoiceCreate {
 	return cc.SetQuesionID(q.ID)
 }
 
-// AddAnswerIDs adds the "answer" edge to the Answer entity by IDs.
-func (cc *ChoiceCreate) AddAnswerIDs(ids ...uuid.UUID) *ChoiceCreate {
-	cc.mutation.AddAnswerIDs(ids...)
+// SetAnswerID sets the "answer" edge to the Answer entity by ID.
+func (cc *ChoiceCreate) SetAnswerID(id uuid.UUID) *ChoiceCreate {
+	cc.mutation.SetAnswerID(id)
 	return cc
 }
 
-// AddAnswer adds the "answer" edges to the Answer entity.
-func (cc *ChoiceCreate) AddAnswer(a ...*Answer) *ChoiceCreate {
-	ids := make([]uuid.UUID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
+// SetNillableAnswerID sets the "answer" edge to the Answer entity by ID if the given value is not nil.
+func (cc *ChoiceCreate) SetNillableAnswerID(id *uuid.UUID) *ChoiceCreate {
+	if id != nil {
+		cc = cc.SetAnswerID(*id)
 	}
-	return cc.AddAnswerIDs(ids...)
+	return cc
+}
+
+// SetAnswer sets the "answer" edge to the Answer entity.
+func (cc *ChoiceCreate) SetAnswer(a *Answer) *ChoiceCreate {
+	return cc.SetAnswerID(a.ID)
 }
 
 // Mutation returns the ChoiceMutation object of the builder.
@@ -202,10 +206,10 @@ func (cc *ChoiceCreate) createSpec() (*Choice, *sqlgraph.CreateSpec) {
 	}
 	if nodes := cc.mutation.AnswerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   choice.AnswerTable,
-			Columns: choice.AnswerPrimaryKey,
+			Columns: []string{choice.AnswerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(answer.FieldID, field.TypeUUID),
@@ -214,6 +218,7 @@ func (cc *ChoiceCreate) createSpec() (*Choice, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_node.answer_chosen = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

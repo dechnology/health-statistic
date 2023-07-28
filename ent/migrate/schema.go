@@ -45,6 +45,7 @@ var (
 		{Name: "id", Type: field.TypeUUID, Unique: true},
 		{Name: "body", Type: field.TypeString, Size: 2147483647},
 		{Name: "order", Type: field.TypeInt},
+		{Name: "answer_chosen", Type: field.TypeUUID, Nullable: true},
 		{Name: "question_choices", Type: field.TypeUUID},
 	}
 	// ChoicesTable holds the schema information for the "choices" table.
@@ -54,8 +55,14 @@ var (
 		PrimaryKey: []*schema.Column{ChoicesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "choices_questions_choices",
+				Symbol:     "choices_answers_chosen",
 				Columns:    []*schema.Column{ChoicesColumns[3]},
+				RefColumns: []*schema.Column{AnswersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "choices_questions_choices",
+				Columns:    []*schema.Column{ChoicesColumns[4]},
 				RefColumns: []*schema.Column{QuestionsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -230,31 +237,6 @@ var (
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
-	// AnswerChosenColumns holds the columns for the "answer_chosen" table.
-	AnswerChosenColumns = []*schema.Column{
-		{Name: "answer_id", Type: field.TypeUUID},
-		{Name: "choice_id", Type: field.TypeUUID},
-	}
-	// AnswerChosenTable holds the schema information for the "answer_chosen" table.
-	AnswerChosenTable = &schema.Table{
-		Name:       "answer_chosen",
-		Columns:    AnswerChosenColumns,
-		PrimaryKey: []*schema.Column{AnswerChosenColumns[0], AnswerChosenColumns[1]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "answer_chosen_answer_id",
-				Columns:    []*schema.Column{AnswerChosenColumns[0]},
-				RefColumns: []*schema.Column{AnswersColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-			{
-				Symbol:     "answer_chosen_choice_id",
-				Columns:    []*schema.Column{AnswerChosenColumns[1]},
-				RefColumns: []*schema.Column{ChoicesColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-		},
-	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AnswersTable,
@@ -266,14 +248,14 @@ var (
 		QuestionnairesTable,
 		QuestionnaireResponsesTable,
 		UsersTable,
-		AnswerChosenTable,
 	}
 )
 
 func init() {
 	AnswersTable.ForeignKeys[0].RefTable = QuestionsTable
 	AnswersTable.ForeignKeys[1].RefTable = QuestionnaireResponsesTable
-	ChoicesTable.ForeignKeys[0].RefTable = QuestionsTable
+	ChoicesTable.ForeignKeys[0].RefTable = AnswersTable
+	ChoicesTable.ForeignKeys[1].RefTable = QuestionsTable
 	MyCardsTable.ForeignKeys[0].RefTable = UsersTable
 	NotificationsTable.ForeignKeys[0].RefTable = MyCardsTable
 	NotificationsTable.ForeignKeys[1].RefTable = PricesTable
@@ -282,6 +264,4 @@ func init() {
 	QuestionsTable.ForeignKeys[0].RefTable = QuestionnairesTable
 	QuestionnaireResponsesTable.ForeignKeys[0].RefTable = QuestionnairesTable
 	QuestionnaireResponsesTable.ForeignKeys[1].RefTable = UsersTable
-	AnswerChosenTable.ForeignKeys[0].RefTable = AnswersTable
-	AnswerChosenTable.ForeignKeys[1].RefTable = ChoicesTable
 }

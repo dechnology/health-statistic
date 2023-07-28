@@ -13,6 +13,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/eesoymilk/health-statistic-api/ent/answer"
 	"github.com/eesoymilk/health-statistic-api/ent/choice"
 	"github.com/eesoymilk/health-statistic-api/ent/question"
 	"github.com/google/uuid"
@@ -30,6 +31,7 @@ type Choice struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ChoiceQuery when eager-loading is set.
 	Edges            ChoiceEdges `json:"-"`
+	answer_chosen    *uuid.UUID
 	question_choices *uuid.UUID
 	selectValues     sql.SelectValues
 }
@@ -39,7 +41,7 @@ type ChoiceEdges struct {
 	// Quesion holds the value of the quesion edge.
 	Quesion *Question `json:"quesion,omitempty"`
 	// Answer holds the value of the answer edge.
-	Answer []*Answer `json:"answer,omitempty"`
+	Answer *Answer `json:"answer,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool
@@ -59,9 +61,13 @@ func (e ChoiceEdges) QuesionOrErr() (*Question, error) {
 }
 
 // AnswerOrErr returns the Answer value or an error if the edge
-// was not loaded in eager-loading.
-func (e ChoiceEdges) AnswerOrErr() ([]*Answer, error) {
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ChoiceEdges) AnswerOrErr() (*Answer, error) {
 	if e.loadedTypes[1] {
+		if e.Answer == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: answer.Label}
+		}
 		return e.Answer, nil
 	}
 	return nil, &NotLoadedError{edge: "answer"}
@@ -78,7 +84,9 @@ func (*Choice) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case choice.FieldID:
 			values[i] = new(uuid.UUID)
-		case choice.ForeignKeys[0]: // question_choices
+		case choice.ForeignKeys[0]: // answer_chosen
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case choice.ForeignKeys[1]: // question_choices
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
@@ -114,6 +122,13 @@ func (c *Choice) assignValues(columns []string, values []any) error {
 				c.Order = int(value.Int64)
 			}
 		case choice.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field answer_chosen", values[i])
+			} else if value.Valid {
+				c.answer_chosen = new(uuid.UUID)
+				*c.answer_chosen = *value.S.(*uuid.UUID)
+			}
+		case choice.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field question_choices", values[i])
 			} else if value.Valid {
