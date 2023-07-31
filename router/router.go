@@ -26,7 +26,7 @@ func New(db *ent.Client) *gin.Engine {
 	{
 		// Health check endpoint for ELB
 		// This endpoint does not require an Auth0 token
-		v1.GET("/health_check", handlers.HealthCheck)
+		v1.GET("/health_check", h.HealthCheck)
 
 		// All routes below require an Auth0 token
 		v1.Use(middlewares.Authenticate())

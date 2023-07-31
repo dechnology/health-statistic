@@ -12,6 +12,7 @@ type HealthStatus struct {
 }
 
 var (
+	failureMessage = "Hello from Dechnology! The database is disconnected!"
 	successMessage = "Hello from Dechnology! The server is functioning!"
 )
 
@@ -23,6 +24,15 @@ var (
 //
 //	@Success		200	{object}	HealthStatus
 //	@Router			/health_check [get]
-func HealthCheck(c *gin.Context) {
-	c.JSON(http.StatusOK, HealthStatus{Message: successMessage})
+func (h *Handler) HealthCheck(c *gin.Context) {
+	// if err := h.DB.SQLDB.Ping(); err != nil {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{
+	// 		"message": failureMessage,
+	// 	})
+	// 	return
+	// }
+	//
+	c.JSON(http.StatusOK, gin.H{
+		"message": successMessage,
+	})
 }

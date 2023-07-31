@@ -17,9 +17,8 @@ import (
 
 func main() {
 	opts := []entc.Option{
-		entc.Extensions(
-			&EncodeExtension{},
-		),
+		// entc.Dependency(entc.DependencyType(&sql.DB{})),
+		entc.Extensions(&EncodeExtension{}),
 	}
 	err := entc.Generate("./schema", &gen.Config{
 		Header: `
