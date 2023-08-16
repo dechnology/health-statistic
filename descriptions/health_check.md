@@ -1,1 +1,1 @@
-This endpoint **DO NOT** requires an Auth0 token.
+This endpoint **DO NOT** require an Auth0 token.

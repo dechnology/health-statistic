@@ -81,8 +81,8 @@ jobs:
           port: ${{ secrets.EC2_PORT }}
           script: |
             cd ~
-            mkdir source || true
-            cd source || exit 1
+            mkdir src || true
+            cd src || exit 1
 
             export POSTGRES_PORT=${{ env.POSTGRES_PORT }}
             export POSTGRES_USER=${{ env.POSTGRES_USER }}
@@ -96,7 +96,7 @@ jobs:
             git reset --hard
             git pull --force
 
-            sudo docker compose down
-            sudo docker system prune -f
-            sudo docker compose pull
-            sudo docker compose up -d
+            docker compose down
+            docker system prune -f
+            docker compose pull
+            docker compose up -d
