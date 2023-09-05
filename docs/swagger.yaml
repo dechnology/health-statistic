@@ -618,6 +618,41 @@ paths:
       summary: Health Check
       tags:
       - Health
+  /healthkit:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get HealthKitData
+      tags:
+      - HealthKit
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: The healthkit to be created
+        in: body
+        name: healthkit
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create HealthKitDatum
+      tags:
+      - HealthKit
   /mycards:
     get:
       description: |

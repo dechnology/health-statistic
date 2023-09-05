@@ -18,6 +18,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/eesoymilk/health-statistic-api/ent/answer"
 	"github.com/eesoymilk/health-statistic-api/ent/choice"
+	"github.com/eesoymilk/health-statistic-api/ent/healthkit"
 	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/price"
@@ -87,6 +88,7 @@ func checkColumn(table, column string) error {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			answer.Table:                answer.ValidColumn,
 			choice.Table:                choice.ValidColumn,
+			healthkit.Table:             healthkit.ValidColumn,
 			mycard.Table:                mycard.ValidColumn,
 			notification.Table:          notification.ValidColumn,
 			price.Table:                 price.ValidColumn,

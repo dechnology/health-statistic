@@ -61,6 +61,17 @@ var (
 			},
 		},
 	}
+	// HealthKitsColumns holds the columns for the "health_kits" table.
+	HealthKitsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "data", Type: field.TypeJSON},
+	}
+	// HealthKitsTable holds the schema information for the "health_kits" table.
+	HealthKitsTable = &schema.Table{
+		Name:       "health_kits",
+		Columns:    HealthKitsColumns,
+		PrimaryKey: []*schema.Column{HealthKitsColumns[0]},
+	}
 	// MyCardsColumns holds the columns for the "my_cards" table.
 	MyCardsColumns = []*schema.Column{
 		{Name: "card_number", Type: field.TypeString, Unique: true, Size: 12},
@@ -259,6 +270,7 @@ var (
 	Tables = []*schema.Table{
 		AnswersTable,
 		ChoicesTable,
+		HealthKitsTable,
 		MyCardsTable,
 		NotificationsTable,
 		PricesTable,

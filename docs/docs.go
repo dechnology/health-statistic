@@ -38,6 +38,59 @@ const docTemplate = `{
                 }
             }
         },
+        "/healthkit": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "HealthKit"
+                ],
+                "summary": "Get HealthKitData",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "HealthKit"
+                ],
+                "summary": "Create HealthKitDatum",
+                "parameters": [
+                    {
+                        "description": "The healthkit to be created",
+                        "name": "healthkit",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/mycards": {
             "get": {
                 "description": "Get all MyCards from the database.\n",

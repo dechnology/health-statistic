@@ -21,6 +21,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/eesoymilk/health-statistic-api/ent/answer"
 	"github.com/eesoymilk/health-statistic-api/ent/choice"
+	"github.com/eesoymilk/health-statistic-api/ent/healthkit"
 	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/price"
@@ -39,6 +40,8 @@ type Client struct {
 	Answer *AnswerClient
 	// Choice is the client for interacting with the Choice builders.
 	Choice *ChoiceClient
+	// HealthKit is the client for interacting with the HealthKit builders.
+	HealthKit *HealthKitClient
 	// MyCard is the client for interacting with the MyCard builders.
 	MyCard *MyCardClient
 	// Notification is the client for interacting with the Notification builders.
@@ -68,6 +71,7 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Answer = NewAnswerClient(c.config)
 	c.Choice = NewChoiceClient(c.config)
+	c.HealthKit = NewHealthKitClient(c.config)
 	c.MyCard = NewMyCardClient(c.config)
 	c.Notification = NewNotificationClient(c.config)
 	c.Price = NewPriceClient(c.config)
@@ -159,6 +163,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		config:                cfg,
 		Answer:                NewAnswerClient(cfg),
 		Choice:                NewChoiceClient(cfg),
+		HealthKit:             NewHealthKitClient(cfg),
 		MyCard:                NewMyCardClient(cfg),
 		Notification:          NewNotificationClient(cfg),
 		Price:                 NewPriceClient(cfg),
@@ -187,6 +192,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		config:                cfg,
 		Answer:                NewAnswerClient(cfg),
 		Choice:                NewChoiceClient(cfg),
+		HealthKit:             NewHealthKitClient(cfg),
 		MyCard:                NewMyCardClient(cfg),
 		Notification:          NewNotificationClient(cfg),
 		Price:                 NewPriceClient(cfg),
@@ -223,7 +229,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Answer, c.Choice, c.MyCard, c.Notification, c.Price, c.Question,
+		c.Answer, c.Choice, c.HealthKit, c.MyCard, c.Notification, c.Price, c.Question,
 		c.Questionnaire, c.QuestionnaireResponse, c.User,
 	} {
 		n.Use(hooks...)
@@ -234,7 +240,7 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Answer, c.Choice, c.MyCard, c.Notification, c.Price, c.Question,
+		c.Answer, c.Choice, c.HealthKit, c.MyCard, c.Notification, c.Price, c.Question,
 		c.Questionnaire, c.QuestionnaireResponse, c.User,
 	} {
 		n.Intercept(interceptors...)
@@ -248,6 +254,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Answer.mutate(ctx, m)
 	case *ChoiceMutation:
 		return c.Choice.mutate(ctx, m)
+	case *HealthKitMutation:
+		return c.HealthKit.mutate(ctx, m)
 	case *MyCardMutation:
 		return c.MyCard.mutate(ctx, m)
 	case *NotificationMutation:
@@ -580,6 +588,124 @@ func (c *ChoiceClient) mutate(ctx context.Context, m *ChoiceMutation) (Value, er
 		return (&ChoiceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Choice mutation op: %q", m.Op())
+	}
+}
+
+// HealthKitClient is a client for the HealthKit schema.
+type HealthKitClient struct {
+	config
+}
+
+// NewHealthKitClient returns a client for the HealthKit from the given config.
+func NewHealthKitClient(c config) *HealthKitClient {
+	return &HealthKitClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `healthkit.Hooks(f(g(h())))`.
+func (c *HealthKitClient) Use(hooks ...Hook) {
+	c.hooks.HealthKit = append(c.hooks.HealthKit, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `healthkit.Intercept(f(g(h())))`.
+func (c *HealthKitClient) Intercept(interceptors ...Interceptor) {
+	c.inters.HealthKit = append(c.inters.HealthKit, interceptors...)
+}
+
+// Create returns a builder for creating a HealthKit entity.
+func (c *HealthKitClient) Create() *HealthKitCreate {
+	mutation := newHealthKitMutation(c.config, OpCreate)
+	return &HealthKitCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of HealthKit entities.
+func (c *HealthKitClient) CreateBulk(builders ...*HealthKitCreate) *HealthKitCreateBulk {
+	return &HealthKitCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for HealthKit.
+func (c *HealthKitClient) Update() *HealthKitUpdate {
+	mutation := newHealthKitMutation(c.config, OpUpdate)
+	return &HealthKitUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *HealthKitClient) UpdateOne(hk *HealthKit) *HealthKitUpdateOne {
+	mutation := newHealthKitMutation(c.config, OpUpdateOne, withHealthKit(hk))
+	return &HealthKitUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *HealthKitClient) UpdateOneID(id int) *HealthKitUpdateOne {
+	mutation := newHealthKitMutation(c.config, OpUpdateOne, withHealthKitID(id))
+	return &HealthKitUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for HealthKit.
+func (c *HealthKitClient) Delete() *HealthKitDelete {
+	mutation := newHealthKitMutation(c.config, OpDelete)
+	return &HealthKitDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *HealthKitClient) DeleteOne(hk *HealthKit) *HealthKitDeleteOne {
+	return c.DeleteOneID(hk.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *HealthKitClient) DeleteOneID(id int) *HealthKitDeleteOne {
+	builder := c.Delete().Where(healthkit.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &HealthKitDeleteOne{builder}
+}
+
+// Query returns a query builder for HealthKit.
+func (c *HealthKitClient) Query() *HealthKitQuery {
+	return &HealthKitQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeHealthKit},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a HealthKit entity by its id.
+func (c *HealthKitClient) Get(ctx context.Context, id int) (*HealthKit, error) {
+	return c.Query().Where(healthkit.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *HealthKitClient) GetX(ctx context.Context, id int) *HealthKit {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *HealthKitClient) Hooks() []Hook {
+	return c.hooks.HealthKit
+}
+
+// Interceptors returns the client interceptors.
+func (c *HealthKitClient) Interceptors() []Interceptor {
+	return c.inters.HealthKit
+}
+
+func (c *HealthKitClient) mutate(ctx context.Context, m *HealthKitMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&HealthKitCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&HealthKitUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&HealthKitUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&HealthKitDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown HealthKit mutation op: %q", m.Op())
 	}
 }
 
@@ -1716,11 +1842,11 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Answer, Choice, MyCard, Notification, Price, Question, Questionnaire,
+		Answer, Choice, HealthKit, MyCard, Notification, Price, Question, Questionnaire,
 		QuestionnaireResponse, User []ent.Hook
 	}
 	inters struct {
-		Answer, Choice, MyCard, Notification, Price, Question, Questionnaire,
+		Answer, Choice, HealthKit, MyCard, Notification, Price, Question, Questionnaire,
 		QuestionnaireResponse, User []ent.Interceptor
 	}
 )

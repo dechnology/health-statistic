@@ -36,6 +36,12 @@ func New(db *ent.Client) *gin.Engine {
 			register.POST("", h.Register)
 		}
 
+		healthkit := v1.Group("/healthkit")
+		{
+			healthkit.GET("", h.GetHealthKitData)
+			healthkit.POST("", h.CreateHealthKitData)
+		}
+
 		user := v1.Group("/user")
 		{
 			user.GET("", h.GetSelf)

@@ -13,14 +13,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// @Summary				Register an User
-// @Description.markdown	register.post
-// @Tags					Registration
-// @Accept					json
-// @Produce				json
-// @Param					user	body		types.RegisterData	true	"The registration data."
-// @Success				200		{object}	types.RegisterResponse
-// @Router					/register [post]
+//	@Summary				Register an User
+//	@Description.markdown	register.post
+//	@Tags					Registration
+//	@Accept					json
+//	@Produce				json
+//	@Param					user	body		types.RegisterData	true	"The registration data."
+//	@Success				200		{object}	types.RegisterResponse
+//	@Router					/register [post]
 func (h *Handler) Register(c *gin.Context) {
 
 	// STEP 0:	Check if a MyCard is available
