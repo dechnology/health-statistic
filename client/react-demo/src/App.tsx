@@ -11,7 +11,9 @@ function App() {
   return (
     <>
       <NavBar />
-      {isAuthenticated ? <RegisterView /> : <div>Log In First</div>}
+      <div className=" bg-slate-50">
+        {isAuthenticated ? <RegisterView /> : <div>Log In First</div>}
+      </div>
     </>
   );
 }

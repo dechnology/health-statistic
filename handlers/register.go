@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -12,17 +13,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//	@Summary				Register an User
-//	@Description.markdown	register.post
-//	@Tags					Registration
-//	@Accept					json
-//	@Produce				json
-//	@Param					user	body		types.RegisterData	true	"The registration data."
-//	@Success				200		{object}	types.RegisterResponse
-//	@Router					/register [post]
+// @Summary				Register an User
+// @Description.markdown	register.post
+// @Tags					Registration
+// @Accept					json
+// @Produce				json
+// @Param					user	body		types.RegisterData	true	"The registration data."
+// @Success				200		{object}	types.RegisterResponse
+// @Router					/register [post]
 func (h *Handler) Register(c *gin.Context) {
 
 	// STEP 0:	Check if a MyCard is available
+	fmt.Print("Step 0\n")
 	myCardNode, err := h.DB.MyCard.Query().
 		Where(mycard.Not(mycard.HasRecipient())).
 		First(c.Request.Context())
@@ -35,6 +37,7 @@ func (h *Handler) Register(c *gin.Context) {
 	}
 
 	// STEP 1:	Create a new user
+	fmt.Print("Step 1\n")
 	var body types.RegisterData
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -76,6 +79,7 @@ func (h *Handler) Register(c *gin.Context) {
 	}
 
 	// STEP 2:	Respond to registration questionnaire
+	fmt.Print("Step 2\n")
 	if body.Response.QuestionnaireId != h.RegistrationQuestionnaireId {
 		c.JSON(
 			http.StatusBadRequest,

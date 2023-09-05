@@ -206,10 +206,10 @@ func (au *AnswerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if au.mutation.ChosenCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   answer.ChosenTable,
-			Columns: []string{answer.ChosenColumn},
+			Columns: answer.ChosenPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(choice.FieldID, field.TypeUUID),
@@ -219,10 +219,10 @@ func (au *AnswerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if nodes := au.mutation.RemovedChosenIDs(); len(nodes) > 0 && !au.mutation.ChosenCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   answer.ChosenTable,
-			Columns: []string{answer.ChosenColumn},
+			Columns: answer.ChosenPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(choice.FieldID, field.TypeUUID),
@@ -235,10 +235,10 @@ func (au *AnswerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if nodes := au.mutation.ChosenIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   answer.ChosenTable,
-			Columns: []string{answer.ChosenColumn},
+			Columns: answer.ChosenPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(choice.FieldID, field.TypeUUID),
@@ -527,10 +527,10 @@ func (auo *AnswerUpdateOne) sqlSave(ctx context.Context) (_node *Answer, err err
 	}
 	if auo.mutation.ChosenCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   answer.ChosenTable,
-			Columns: []string{answer.ChosenColumn},
+			Columns: answer.ChosenPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(choice.FieldID, field.TypeUUID),
@@ -540,10 +540,10 @@ func (auo *AnswerUpdateOne) sqlSave(ctx context.Context) (_node *Answer, err err
 	}
 	if nodes := auo.mutation.RemovedChosenIDs(); len(nodes) > 0 && !auo.mutation.ChosenCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   answer.ChosenTable,
-			Columns: []string{answer.ChosenColumn},
+			Columns: answer.ChosenPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(choice.FieldID, field.TypeUUID),
@@ -556,10 +556,10 @@ func (auo *AnswerUpdateOne) sqlSave(ctx context.Context) (_node *Answer, err err
 	}
 	if nodes := auo.mutation.ChosenIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   answer.ChosenTable,
-			Columns: []string{answer.ChosenColumn},
+			Columns: answer.ChosenPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(choice.FieldID, field.TypeUUID),

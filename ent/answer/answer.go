@@ -31,13 +31,11 @@ const (
 	EdgeQuestionnaireResponse = "questionnaire_response"
 	// Table holds the table name of the answer in the database.
 	Table = "answers"
-	// ChosenTable is the table that holds the chosen relation/edge.
-	ChosenTable = "choices"
+	// ChosenTable is the table that holds the chosen relation/edge. The primary key declared below.
+	ChosenTable = "answer_chosen"
 	// ChosenInverseTable is the table name for the Choice entity.
 	// It exists in this package in order to avoid circular dependency with the "choice" package.
 	ChosenInverseTable = "choices"
-	// ChosenColumn is the table column denoting the chosen relation/edge.
-	ChosenColumn = "answer_chosen"
 	// QuestionTable is the table that holds the question relation/edge.
 	QuestionTable = "answers"
 	// QuestionInverseTable is the table name for the Question entity.
@@ -67,6 +65,12 @@ var ForeignKeys = []string{
 	"question_answers",
 	"questionnaire_response_answers",
 }
+
+var (
+	// ChosenPrimaryKey and ChosenColumn2 are the table columns denoting the
+	// primary key for the chosen relation (M2M).
+	ChosenPrimaryKey = []string{"answer_id", "choice_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -139,7 +143,7 @@ func newChosenStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ChosenInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, ChosenTable, ChosenColumn),
+		sqlgraph.Edge(sqlgraph.M2M, false, ChosenTable, ChosenPrimaryKey...),
 	)
 }
 func newQuestionStep() *sqlgraph.Step {

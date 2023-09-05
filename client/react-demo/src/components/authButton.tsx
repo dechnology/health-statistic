@@ -6,6 +6,7 @@ const AuthButton = () => {
   if (isAuthenticated) {
     return (
       <button
+        className="hover:bg-sky-500 px-5 transition-all"
         onClick={() =>
           logout({ logoutParams: { returnTo: window.location.origin } })
         }
@@ -15,7 +16,14 @@ const AuthButton = () => {
     );
   }
 
-  return <button onClick={() => loginWithRedirect()}>Log In</button>;
+  return (
+    <button
+      className="hover:bg-sky-500 px-5 transition-all"
+      onClick={() => loginWithRedirect()}
+    >
+      Log In
+    </button>
+  );
 };
 
 export default AuthButton;

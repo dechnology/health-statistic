@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -103,7 +104,7 @@ func (cq *ChoiceQuery) QueryAnswer() *AnswerQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(choice.Table, choice.FieldID, selector),
 			sqlgraph.To(answer.Table, answer.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, choice.AnswerTable, choice.AnswerColumn),
+			sqlgraph.Edge(sqlgraph.M2M, true, choice.AnswerTable, choice.AnswerPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
 		return fromU, nil
@@ -417,7 +418,7 @@ func (cq *ChoiceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Choic
 			cq.withAnswer != nil,
 		}
 	)
-	if cq.withQuesion != nil || cq.withAnswer != nil {
+	if cq.withQuesion != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -448,8 +449,9 @@ func (cq *ChoiceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Choic
 		}
 	}
 	if query := cq.withAnswer; query != nil {
-		if err := cq.loadAnswer(ctx, query, nodes, nil,
-			func(n *Choice, e *Answer) { n.Edges.Answer = e }); err != nil {
+		if err := cq.loadAnswer(ctx, query, nodes,
+			func(n *Choice) { n.Edges.Answer = []*Answer{} },
+			func(n *Choice, e *Answer) { n.Edges.Answer = append(n.Edges.Answer, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -489,33 +491,62 @@ func (cq *ChoiceQuery) loadQuesion(ctx context.Context, query *QuestionQuery, no
 	return nil
 }
 func (cq *ChoiceQuery) loadAnswer(ctx context.Context, query *AnswerQuery, nodes []*Choice, init func(*Choice), assign func(*Choice, *Answer)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*Choice)
-	for i := range nodes {
-		if nodes[i].answer_chosen == nil {
-			continue
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[uuid.UUID]*Choice)
+	nids := make(map[uuid.UUID]map[*Choice]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
 		}
-		fk := *nodes[i].answer_chosen
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
-	if len(ids) == 0 {
-		return nil
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(choice.AnswerTable)
+		s.Join(joinT).On(s.C(answer.FieldID), joinT.C(choice.AnswerPrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(choice.AnswerPrimaryKey[1]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(choice.AnswerPrimaryKey[1]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
 	}
-	query.Where(answer.IDIn(ids...))
-	neighbors, err := query.All(ctx)
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(uuid.UUID)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := *values[0].(*uuid.UUID)
+				inValue := *values[1].(*uuid.UUID)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Choice]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*Answer](ctx, query, qr, query.inters)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
+		nodes, ok := nids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "answer_chosen" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected "answer" node returned %v`, n.ID)
 		}
-		for i := range nodes {
-			assign(nodes[i], n)
+		for kn := range nodes {
+			assign(kn, n)
 		}
 	}
 	return nil

@@ -679,7 +679,8 @@ type ChoiceMutation struct {
 	clearedFields  map[string]struct{}
 	quesion        *uuid.UUID
 	clearedquesion bool
-	answer         *uuid.UUID
+	answer         map[uuid.UUID]struct{}
+	removedanswer  map[uuid.UUID]struct{}
 	clearedanswer  bool
 	done           bool
 	oldValue       func(context.Context) (*Choice, error)
@@ -921,9 +922,14 @@ func (m *ChoiceMutation) ResetQuesion() {
 	m.clearedquesion = false
 }
 
-// SetAnswerID sets the "answer" edge to the Answer entity by id.
-func (m *ChoiceMutation) SetAnswerID(id uuid.UUID) {
-	m.answer = &id
+// AddAnswerIDs adds the "answer" edge to the Answer entity by ids.
+func (m *ChoiceMutation) AddAnswerIDs(ids ...uuid.UUID) {
+	if m.answer == nil {
+		m.answer = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.answer[ids[i]] = struct{}{}
+	}
 }
 
 // ClearAnswer clears the "answer" edge to the Answer entity.
@@ -936,20 +942,29 @@ func (m *ChoiceMutation) AnswerCleared() bool {
 	return m.clearedanswer
 }
 
-// AnswerID returns the "answer" edge ID in the mutation.
-func (m *ChoiceMutation) AnswerID() (id uuid.UUID, exists bool) {
-	if m.answer != nil {
-		return *m.answer, true
+// RemoveAnswerIDs removes the "answer" edge to the Answer entity by IDs.
+func (m *ChoiceMutation) RemoveAnswerIDs(ids ...uuid.UUID) {
+	if m.removedanswer == nil {
+		m.removedanswer = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.answer, ids[i])
+		m.removedanswer[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAnswer returns the removed IDs of the "answer" edge to the Answer entity.
+func (m *ChoiceMutation) RemovedAnswerIDs() (ids []uuid.UUID) {
+	for id := range m.removedanswer {
+		ids = append(ids, id)
 	}
 	return
 }
 
 // AnswerIDs returns the "answer" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// AnswerID instead. It exists only for internal usage by the builders.
 func (m *ChoiceMutation) AnswerIDs() (ids []uuid.UUID) {
-	if id := m.answer; id != nil {
-		ids = append(ids, *id)
+	for id := range m.answer {
+		ids = append(ids, id)
 	}
 	return
 }
@@ -958,6 +973,7 @@ func (m *ChoiceMutation) AnswerIDs() (ids []uuid.UUID) {
 func (m *ChoiceMutation) ResetAnswer() {
 	m.answer = nil
 	m.clearedanswer = false
+	m.removedanswer = nil
 }
 
 // Where appends a list predicates to the ChoiceMutation builder.
@@ -1144,9 +1160,11 @@ func (m *ChoiceMutation) AddedIDs(name string) []ent.Value {
 			return []ent.Value{*id}
 		}
 	case choice.EdgeAnswer:
-		if id := m.answer; id != nil {
-			return []ent.Value{*id}
+		ids := make([]ent.Value, 0, len(m.answer))
+		for id := range m.answer {
+			ids = append(ids, id)
 		}
+		return ids
 	}
 	return nil
 }
@@ -1154,12 +1172,23 @@ func (m *ChoiceMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ChoiceMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 2)
+	if m.removedanswer != nil {
+		edges = append(edges, choice.EdgeAnswer)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *ChoiceMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case choice.EdgeAnswer:
+		ids := make([]ent.Value, 0, len(m.removedanswer))
+		for id := range m.removedanswer {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
@@ -1193,9 +1222,6 @@ func (m *ChoiceMutation) ClearEdge(name string) error {
 	switch name {
 	case choice.EdgeQuesion:
 		m.ClearQuesion()
-		return nil
-	case choice.EdgeAnswer:
-		m.ClearAnswer()
 		return nil
 	}
 	return fmt.Errorf("unknown Choice unique edge %s", name)

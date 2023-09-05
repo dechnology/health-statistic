@@ -7,7 +7,8 @@ import InfoQuestionnaire from '../utils/infoQuestionnaire';
 import { useAuth0 } from '@auth0/auth0-react';
 import * as jose from 'jose';
 
-const baseUrl = 'https://health-statistic.dechnology.com.tw/api/v1';
+// const baseUrl = 'https://health-statistic.dechnology.com.tw/api/v1';
+const baseUrl = 'http://localhost:8080/api/v1';
 
 const getRegistrationQuestionnaire = async (
   token: string | null,
@@ -159,20 +160,27 @@ const RegistrationView = () => {
   if (error) return <div>Error: {error.message}</div>;
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h1 className="text-xl">Registration</h1>
-      <QuestionnaireForm
-        quesionnaire={InfoQuestionnaire}
-        answers={infoAnswers}
-        handleAnswersChange={handleInfoAnswersChange}
-      />
-      <QuestionnaireForm
-        quesionnaire={registrationQuestionnaire}
-        answers={registrationAnswers}
-        handleAnswersChange={handleRegistrationAnswersChange}
-      />
-      <button type="submit">Submit</button>
-    </form>
+    <div className="w-[1000px] mx-auto">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-4">
+        <h1 className="text-4xl font-bold font-serif mb-4">Registration</h1>
+        <QuestionnaireForm
+          quesionnaire={InfoQuestionnaire}
+          answers={infoAnswers}
+          handleAnswersChange={handleInfoAnswersChange}
+        />
+        <QuestionnaireForm
+          quesionnaire={registrationQuestionnaire}
+          answers={registrationAnswers}
+          handleAnswersChange={handleRegistrationAnswersChange}
+        />
+        <button
+          type="submit"
+          className="border border-solid rounded-md p-4 bg-sky-500 text-white font-bold text-xl hover:bg-sky-600 transition-all"
+        >
+          Submit
+        </button>
+      </form>
+    </div>
   );
 };
 
