@@ -956,8 +956,8 @@ paths:
             - `question_id` _`string`_ **Required**
               The ID of the question in the registration questionnaire.
 
-            - `body` _`string`_ **Required**
-              The answer to the question in the registration questionnaire.
+            - `choise_ids` _`string[]`_ **Required**
+              The ID of the choise chosen for this question in the registration questionnaire. Note that though all questions in the registration questionnaire are single choise question, you are required to send in array format.
 
         - `user` _`object`_ **Required**
           The user to be created. A user must be created with the following 15 pieces of data provided. Note that the ID field also needs to be provided since we want to match the ID in our database with the one in Auth0.
