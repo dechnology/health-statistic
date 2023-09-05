@@ -34,7 +34,7 @@ func (Choice) Edges() []ent.Edge {
 			Unique().
 			Required(),
 		edge.From("answer", Answer.Type).
-			Ref("chosen").
-			Unique(),
+			Ref("chosen"),
+		// Unique(),
 	}
 }
