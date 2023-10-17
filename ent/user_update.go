@@ -15,6 +15,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/eesoymilk/health-statistic-api/ent/healthkit"
 	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
@@ -222,6 +223,21 @@ func (uu *UserUpdate) AddMycards(m ...*MyCard) *UserUpdate {
 	return uu.AddMycardIDs(ids...)
 }
 
+// AddHealthkitIDs adds the "healthkit" edge to the HealthKit entity by IDs.
+func (uu *UserUpdate) AddHealthkitIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddHealthkitIDs(ids...)
+	return uu
+}
+
+// AddHealthkit adds the "healthkit" edges to the HealthKit entity.
+func (uu *UserUpdate) AddHealthkit(h ...*HealthKit) *UserUpdate {
+	ids := make([]int, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return uu.AddHealthkitIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -309,6 +325,27 @@ func (uu *UserUpdate) RemoveMycards(m ...*MyCard) *UserUpdate {
 		ids[i] = m[i].ID
 	}
 	return uu.RemoveMycardIDs(ids...)
+}
+
+// ClearHealthkit clears all "healthkit" edges to the HealthKit entity.
+func (uu *UserUpdate) ClearHealthkit() *UserUpdate {
+	uu.mutation.ClearHealthkit()
+	return uu
+}
+
+// RemoveHealthkitIDs removes the "healthkit" edge to HealthKit entities by IDs.
+func (uu *UserUpdate) RemoveHealthkitIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveHealthkitIDs(ids...)
+	return uu
+}
+
+// RemoveHealthkit removes "healthkit" edges to HealthKit entities.
+func (uu *UserUpdate) RemoveHealthkit(h ...*HealthKit) *UserUpdate {
+	ids := make([]int, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return uu.RemoveHealthkitIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -661,6 +698,51 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.HealthkitCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.HealthkitTable,
+			Columns: []string{user.HealthkitColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedHealthkitIDs(); len(nodes) > 0 && !uu.mutation.HealthkitCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.HealthkitTable,
+			Columns: []string{user.HealthkitColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.HealthkitIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.HealthkitTable,
+			Columns: []string{user.HealthkitColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -866,6 +948,21 @@ func (uuo *UserUpdateOne) AddMycards(m ...*MyCard) *UserUpdateOne {
 	return uuo.AddMycardIDs(ids...)
 }
 
+// AddHealthkitIDs adds the "healthkit" edge to the HealthKit entity by IDs.
+func (uuo *UserUpdateOne) AddHealthkitIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddHealthkitIDs(ids...)
+	return uuo
+}
+
+// AddHealthkit adds the "healthkit" edges to the HealthKit entity.
+func (uuo *UserUpdateOne) AddHealthkit(h ...*HealthKit) *UserUpdateOne {
+	ids := make([]int, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return uuo.AddHealthkitIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -953,6 +1050,27 @@ func (uuo *UserUpdateOne) RemoveMycards(m ...*MyCard) *UserUpdateOne {
 		ids[i] = m[i].ID
 	}
 	return uuo.RemoveMycardIDs(ids...)
+}
+
+// ClearHealthkit clears all "healthkit" edges to the HealthKit entity.
+func (uuo *UserUpdateOne) ClearHealthkit() *UserUpdateOne {
+	uuo.mutation.ClearHealthkit()
+	return uuo
+}
+
+// RemoveHealthkitIDs removes the "healthkit" edge to HealthKit entities by IDs.
+func (uuo *UserUpdateOne) RemoveHealthkitIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveHealthkitIDs(ids...)
+	return uuo
+}
+
+// RemoveHealthkit removes "healthkit" edges to HealthKit entities.
+func (uuo *UserUpdateOne) RemoveHealthkit(h ...*HealthKit) *UserUpdateOne {
+	ids := make([]int, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return uuo.RemoveHealthkitIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -1328,6 +1446,51 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(mycard.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.HealthkitCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.HealthkitTable,
+			Columns: []string{user.HealthkitColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedHealthkitIDs(); len(nodes) > 0 && !uuo.mutation.HealthkitCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.HealthkitTable,
+			Columns: []string{user.HealthkitColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.HealthkitIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.HealthkitTable,
+			Columns: []string{user.HealthkitColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

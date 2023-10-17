@@ -684,6 +684,22 @@ func (c *HealthKitClient) GetX(ctx context.Context, id int) *HealthKit {
 	return obj
 }
 
+// QueryUser queries the user edge of a HealthKit.
+func (c *HealthKitClient) QueryUser(hk *HealthKit) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := hk.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(healthkit.Table, healthkit.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, healthkit.UserTable, healthkit.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(hk.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *HealthKitClient) Hooks() []Hook {
 	return c.hooks.HealthKit
@@ -1807,6 +1823,22 @@ func (c *UserClient) QueryMycards(u *User) *MyCardQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(mycard.Table, mycard.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.MycardsTable, user.MycardsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryHealthkit queries the healthkit edge of a User.
+func (c *UserClient) QueryHealthkit(u *User) *HealthKitQuery {
+	query := (&HealthKitClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(healthkit.Table, healthkit.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.HealthkitTable, user.HealthkitColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

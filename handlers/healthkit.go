@@ -42,6 +42,13 @@ func (h *Handler) CreateHealthKitData(c *gin.Context) {
 		return
 	}
 
+	// Check if user_id exists in the JSON body
+	userID, exists := body["user_id"]
+	if !exists || userID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "user_id is required"})
+		return
+	}
+
 	out, err := json.MarshalIndent(body, "", "  ")
 	if err != nil {
 		log.Fatal(err)
@@ -53,6 +60,7 @@ func (h *Handler) CreateHealthKitData(c *gin.Context) {
 	healthkitNode, err := h.DB.HealthKit.
 		Create().
 		SetData(body).
+		SetUserID(userID.(string)). // Setting the userID
 		Save(c.Request.Context())
 
 	if err != nil {

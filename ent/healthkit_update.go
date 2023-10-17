@@ -16,6 +16,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/eesoymilk/health-statistic-api/ent/healthkit"
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
+	"github.com/eesoymilk/health-statistic-api/ent/user"
 )
 
 // HealthKitUpdate is the builder for updating HealthKit entities.
@@ -37,9 +38,34 @@ func (hku *HealthKitUpdate) SetData(m map[string]interface{}) *HealthKitUpdate {
 	return hku
 }
 
+// SetUserID sets the "user" edge to the User entity by ID.
+func (hku *HealthKitUpdate) SetUserID(id string) *HealthKitUpdate {
+	hku.mutation.SetUserID(id)
+	return hku
+}
+
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (hku *HealthKitUpdate) SetNillableUserID(id *string) *HealthKitUpdate {
+	if id != nil {
+		hku = hku.SetUserID(*id)
+	}
+	return hku
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (hku *HealthKitUpdate) SetUser(u *User) *HealthKitUpdate {
+	return hku.SetUserID(u.ID)
+}
+
 // Mutation returns the HealthKitMutation object of the builder.
 func (hku *HealthKitUpdate) Mutation() *HealthKitMutation {
 	return hku.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (hku *HealthKitUpdate) ClearUser() *HealthKitUpdate {
+	hku.mutation.ClearUser()
+	return hku
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -81,6 +107,35 @@ func (hku *HealthKitUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := hku.mutation.Data(); ok {
 		_spec.SetField(healthkit.FieldData, field.TypeJSON, value)
 	}
+	if hku.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   healthkit.UserTable,
+			Columns: []string{healthkit.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := hku.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   healthkit.UserTable,
+			Columns: []string{healthkit.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, hku.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{healthkit.Label}
@@ -107,9 +162,34 @@ func (hkuo *HealthKitUpdateOne) SetData(m map[string]interface{}) *HealthKitUpda
 	return hkuo
 }
 
+// SetUserID sets the "user" edge to the User entity by ID.
+func (hkuo *HealthKitUpdateOne) SetUserID(id string) *HealthKitUpdateOne {
+	hkuo.mutation.SetUserID(id)
+	return hkuo
+}
+
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (hkuo *HealthKitUpdateOne) SetNillableUserID(id *string) *HealthKitUpdateOne {
+	if id != nil {
+		hkuo = hkuo.SetUserID(*id)
+	}
+	return hkuo
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (hkuo *HealthKitUpdateOne) SetUser(u *User) *HealthKitUpdateOne {
+	return hkuo.SetUserID(u.ID)
+}
+
 // Mutation returns the HealthKitMutation object of the builder.
 func (hkuo *HealthKitUpdateOne) Mutation() *HealthKitMutation {
 	return hkuo.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (hkuo *HealthKitUpdateOne) ClearUser() *HealthKitUpdateOne {
+	hkuo.mutation.ClearUser()
+	return hkuo
 }
 
 // Where appends a list predicates to the HealthKitUpdate builder.
@@ -180,6 +260,35 @@ func (hkuo *HealthKitUpdateOne) sqlSave(ctx context.Context) (_node *HealthKit, 
 	}
 	if value, ok := hkuo.mutation.Data(); ok {
 		_spec.SetField(healthkit.FieldData, field.TypeJSON, value)
+	}
+	if hkuo.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   healthkit.UserTable,
+			Columns: []string{healthkit.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := hkuo.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   healthkit.UserTable,
+			Columns: []string{healthkit.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &HealthKit{config: hkuo.config}
 	_spec.Assign = _node.assignValues

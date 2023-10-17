@@ -65,12 +65,21 @@ var (
 	HealthKitsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "data", Type: field.TypeJSON},
+		{Name: "user_healthkit", Type: field.TypeString, Nullable: true},
 	}
 	// HealthKitsTable holds the schema information for the "health_kits" table.
 	HealthKitsTable = &schema.Table{
 		Name:       "health_kits",
 		Columns:    HealthKitsColumns,
 		PrimaryKey: []*schema.Column{HealthKitsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "health_kits_users_healthkit",
+				Columns:    []*schema.Column{HealthKitsColumns[2]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// MyCardsColumns holds the columns for the "my_cards" table.
 	MyCardsColumns = []*schema.Column{
@@ -286,6 +295,7 @@ func init() {
 	AnswersTable.ForeignKeys[0].RefTable = QuestionsTable
 	AnswersTable.ForeignKeys[1].RefTable = QuestionnaireResponsesTable
 	ChoicesTable.ForeignKeys[0].RefTable = QuestionsTable
+	HealthKitsTable.ForeignKeys[0].RefTable = UsersTable
 	MyCardsTable.ForeignKeys[0].RefTable = UsersTable
 	NotificationsTable.ForeignKeys[0].RefTable = MyCardsTable
 	NotificationsTable.ForeignKeys[1].RefTable = PricesTable

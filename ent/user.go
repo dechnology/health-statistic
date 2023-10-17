@@ -70,9 +70,11 @@ type UserEdges struct {
 	Prices []*Price `json:"prices,omitempty"`
 	// Mycards holds the value of the mycards edge.
 	Mycards []*MyCard `json:"mycards,omitempty"`
+	// Healthkit holds the value of the healthkit edge.
+	Healthkit []*HealthKit `json:"healthkit,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // QuestionnaireResponsesOrErr returns the QuestionnaireResponses value or an error if the edge
@@ -109,6 +111,15 @@ func (e UserEdges) MycardsOrErr() ([]*MyCard, error) {
 		return e.Mycards, nil
 	}
 	return nil, &NotLoadedError{edge: "mycards"}
+}
+
+// HealthkitOrErr returns the Healthkit value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) HealthkitOrErr() ([]*HealthKit, error) {
+	if e.loadedTypes[4] {
+		return e.Healthkit, nil
+	}
+	return nil, &NotLoadedError{edge: "healthkit"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -274,6 +285,11 @@ func (u *User) QueryPrices() *PriceQuery {
 // QueryMycards queries the "mycards" edge of the User entity.
 func (u *User) QueryMycards() *MyCardQuery {
 	return NewUserClient(u.config).QueryMycards(u)
+}
+
+// QueryHealthkit queries the "healthkit" edge of the User entity.
+func (u *User) QueryHealthkit() *HealthKitQuery {
+	return NewUserClient(u.config).QueryHealthkit(u)
 }
 
 // Update returns a builder for updating this User.

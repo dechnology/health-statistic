@@ -113,5 +113,6 @@ func (User) Edges() []ent.Edge {
 		edge.To("prices", Price.Type),
 		edge.To("mycards", MyCard.Type).
 			Required(),
+		edge.To("healthkit", HealthKit.Type),
 	}
 }

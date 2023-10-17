@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/eesoymilk/health-statistic-api/ent/healthkit"
+	"github.com/eesoymilk/health-statistic-api/ent/user"
 )
 
 // HealthKitCreate is the builder for creating a HealthKit entity.
@@ -27,6 +28,25 @@ type HealthKitCreate struct {
 func (hkc *HealthKitCreate) SetData(m map[string]interface{}) *HealthKitCreate {
 	hkc.mutation.SetData(m)
 	return hkc
+}
+
+// SetUserID sets the "user" edge to the User entity by ID.
+func (hkc *HealthKitCreate) SetUserID(id string) *HealthKitCreate {
+	hkc.mutation.SetUserID(id)
+	return hkc
+}
+
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (hkc *HealthKitCreate) SetNillableUserID(id *string) *HealthKitCreate {
+	if id != nil {
+		hkc = hkc.SetUserID(*id)
+	}
+	return hkc
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (hkc *HealthKitCreate) SetUser(u *User) *HealthKitCreate {
+	return hkc.SetUserID(u.ID)
 }
 
 // Mutation returns the HealthKitMutation object of the builder.
@@ -95,6 +115,23 @@ func (hkc *HealthKitCreate) createSpec() (*HealthKit, *sqlgraph.CreateSpec) {
 	if value, ok := hkc.mutation.Data(); ok {
 		_spec.SetField(healthkit.FieldData, field.TypeJSON, value)
 		_node.Data = value
+	}
+	if nodes := hkc.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   healthkit.UserTable,
+			Columns: []string{healthkit.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.user_healthkit = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

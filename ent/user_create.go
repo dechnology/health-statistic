@@ -14,6 +14,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/eesoymilk/health-statistic-api/ent/healthkit"
 	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/price"
@@ -205,6 +206,21 @@ func (uc *UserCreate) AddMycards(m ...*MyCard) *UserCreate {
 		ids[i] = m[i].ID
 	}
 	return uc.AddMycardIDs(ids...)
+}
+
+// AddHealthkitIDs adds the "healthkit" edge to the HealthKit entity by IDs.
+func (uc *UserCreate) AddHealthkitIDs(ids ...int) *UserCreate {
+	uc.mutation.AddHealthkitIDs(ids...)
+	return uc
+}
+
+// AddHealthkit adds the "healthkit" edges to the HealthKit entity.
+func (uc *UserCreate) AddHealthkit(h ...*HealthKit) *UserCreate {
+	ids := make([]int, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return uc.AddHealthkitIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -521,6 +537,22 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(mycard.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.HealthkitIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.HealthkitTable,
+			Columns: []string{user.HealthkitColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

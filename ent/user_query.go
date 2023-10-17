@@ -15,6 +15,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/eesoymilk/health-statistic-api/ent/healthkit"
 	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
@@ -34,6 +35,7 @@ type UserQuery struct {
 	withNotifications          *NotificationQuery
 	withPrices                 *PriceQuery
 	withMycards                *MyCardQuery
+	withHealthkit              *HealthKitQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -151,6 +153,28 @@ func (uq *UserQuery) QueryMycards() *MyCardQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(mycard.Table, mycard.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.MycardsTable, user.MycardsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryHealthkit chains the current query on the "healthkit" edge.
+func (uq *UserQuery) QueryHealthkit() *HealthKitQuery {
+	query := (&HealthKitClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(healthkit.Table, healthkit.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.HealthkitTable, user.HealthkitColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -354,6 +378,7 @@ func (uq *UserQuery) Clone() *UserQuery {
 		withNotifications:          uq.withNotifications.Clone(),
 		withPrices:                 uq.withPrices.Clone(),
 		withMycards:                uq.withMycards.Clone(),
+		withHealthkit:              uq.withHealthkit.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -401,6 +426,17 @@ func (uq *UserQuery) WithMycards(opts ...func(*MyCardQuery)) *UserQuery {
 		opt(query)
 	}
 	uq.withMycards = query
+	return uq
+}
+
+// WithHealthkit tells the query-builder to eager-load the nodes that are connected to
+// the "healthkit" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithHealthkit(opts ...func(*HealthKitQuery)) *UserQuery {
+	query := (&HealthKitClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withHealthkit = query
 	return uq
 }
 
@@ -482,11 +518,12 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			uq.withQuestionnaireResponses != nil,
 			uq.withNotifications != nil,
 			uq.withPrices != nil,
 			uq.withMycards != nil,
+			uq.withHealthkit != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -534,6 +571,13 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadMycards(ctx, query, nodes,
 			func(n *User) { n.Edges.Mycards = []*MyCard{} },
 			func(n *User, e *MyCard) { n.Edges.Mycards = append(n.Edges.Mycards, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withHealthkit; query != nil {
+		if err := uq.loadHealthkit(ctx, query, nodes,
+			func(n *User) { n.Edges.Healthkit = []*HealthKit{} },
+			func(n *User, e *HealthKit) { n.Edges.Healthkit = append(n.Edges.Healthkit, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -659,6 +703,37 @@ func (uq *UserQuery) loadMycards(ctx context.Context, query *MyCardQuery, nodes 
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "user_mycards" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadHealthkit(ctx context.Context, query *HealthKitQuery, nodes []*User, init func(*User), assign func(*User, *HealthKit)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.HealthKit(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.HealthkitColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.user_healthkit
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "user_healthkit" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_healthkit" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

@@ -1251,6 +1251,8 @@ type HealthKitMutation struct {
 	id            *int
 	data          *map[string]interface{}
 	clearedFields map[string]struct{}
+	user          *string
+	cleareduser   bool
 	done          bool
 	oldValue      func(context.Context) (*HealthKit, error)
 	predicates    []predicate.HealthKit
@@ -1390,6 +1392,45 @@ func (m *HealthKitMutation) ResetData() {
 	m.data = nil
 }
 
+// SetUserID sets the "user" edge to the User entity by id.
+func (m *HealthKitMutation) SetUserID(id string) {
+	m.user = &id
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *HealthKitMutation) ClearUser() {
+	m.cleareduser = true
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *HealthKitMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserID returns the "user" edge ID in the mutation.
+func (m *HealthKitMutation) UserID() (id string, exists bool) {
+	if m.user != nil {
+		return *m.user, true
+	}
+	return
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *HealthKitMutation) UserIDs() (ids []string) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *HealthKitMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
 // Where appends a list predicates to the HealthKitMutation builder.
 func (m *HealthKitMutation) Where(ps ...predicate.HealthKit) {
 	m.predicates = append(m.predicates, ps...)
@@ -1523,19 +1564,28 @@ func (m *HealthKitMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *HealthKitMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.user != nil {
+		edges = append(edges, healthkit.EdgeUser)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *HealthKitMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case healthkit.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *HealthKitMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
 	return edges
 }
 
@@ -1547,25 +1597,42 @@ func (m *HealthKitMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *HealthKitMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.cleareduser {
+		edges = append(edges, healthkit.EdgeUser)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *HealthKitMutation) EdgeCleared(name string) bool {
+	switch name {
+	case healthkit.EdgeUser:
+		return m.cleareduser
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *HealthKitMutation) ClearEdge(name string) error {
+	switch name {
+	case healthkit.EdgeUser:
+		m.ClearUser()
+		return nil
+	}
 	return fmt.Errorf("unknown HealthKit unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *HealthKitMutation) ResetEdge(name string) error {
+	switch name {
+	case healthkit.EdgeUser:
+		m.ResetUser()
+		return nil
+	}
 	return fmt.Errorf("unknown HealthKit edge %s", name)
 }
 
@@ -5425,6 +5492,9 @@ type UserMutation struct {
 	mycards                         map[string]struct{}
 	removedmycards                  map[string]struct{}
 	clearedmycards                  bool
+	healthkit                       map[int]struct{}
+	removedhealthkit                map[int]struct{}
+	clearedhealthkit                bool
 	done                            bool
 	oldValue                        func(context.Context) (*User, error)
 	predicates                      []predicate.User
@@ -6386,6 +6456,60 @@ func (m *UserMutation) ResetMycards() {
 	m.removedmycards = nil
 }
 
+// AddHealthkitIDs adds the "healthkit" edge to the HealthKit entity by ids.
+func (m *UserMutation) AddHealthkitIDs(ids ...int) {
+	if m.healthkit == nil {
+		m.healthkit = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.healthkit[ids[i]] = struct{}{}
+	}
+}
+
+// ClearHealthkit clears the "healthkit" edge to the HealthKit entity.
+func (m *UserMutation) ClearHealthkit() {
+	m.clearedhealthkit = true
+}
+
+// HealthkitCleared reports if the "healthkit" edge to the HealthKit entity was cleared.
+func (m *UserMutation) HealthkitCleared() bool {
+	return m.clearedhealthkit
+}
+
+// RemoveHealthkitIDs removes the "healthkit" edge to the HealthKit entity by IDs.
+func (m *UserMutation) RemoveHealthkitIDs(ids ...int) {
+	if m.removedhealthkit == nil {
+		m.removedhealthkit = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.healthkit, ids[i])
+		m.removedhealthkit[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedHealthkit returns the removed IDs of the "healthkit" edge to the HealthKit entity.
+func (m *UserMutation) RemovedHealthkitIDs() (ids []int) {
+	for id := range m.removedhealthkit {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// HealthkitIDs returns the "healthkit" edge IDs in the mutation.
+func (m *UserMutation) HealthkitIDs() (ids []int) {
+	for id := range m.healthkit {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetHealthkit resets all changes to the "healthkit" edge.
+func (m *UserMutation) ResetHealthkit() {
+	m.healthkit = nil
+	m.clearedhealthkit = false
+	m.removedhealthkit = nil
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -6813,7 +6937,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.questionnaire_responses != nil {
 		edges = append(edges, user.EdgeQuestionnaireResponses)
 	}
@@ -6825,6 +6949,9 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.mycards != nil {
 		edges = append(edges, user.EdgeMycards)
+	}
+	if m.healthkit != nil {
+		edges = append(edges, user.EdgeHealthkit)
 	}
 	return edges
 }
@@ -6857,13 +6984,19 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeHealthkit:
+		ids := make([]ent.Value, 0, len(m.healthkit))
+		for id := range m.healthkit {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.removedquestionnaire_responses != nil {
 		edges = append(edges, user.EdgeQuestionnaireResponses)
 	}
@@ -6875,6 +7008,9 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedmycards != nil {
 		edges = append(edges, user.EdgeMycards)
+	}
+	if m.removedhealthkit != nil {
+		edges = append(edges, user.EdgeHealthkit)
 	}
 	return edges
 }
@@ -6907,13 +7043,19 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeHealthkit:
+		ids := make([]ent.Value, 0, len(m.removedhealthkit))
+		for id := range m.removedhealthkit {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.clearedquestionnaire_responses {
 		edges = append(edges, user.EdgeQuestionnaireResponses)
 	}
@@ -6925,6 +7067,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	}
 	if m.clearedmycards {
 		edges = append(edges, user.EdgeMycards)
+	}
+	if m.clearedhealthkit {
+		edges = append(edges, user.EdgeHealthkit)
 	}
 	return edges
 }
@@ -6941,6 +7086,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedprices
 	case user.EdgeMycards:
 		return m.clearedmycards
+	case user.EdgeHealthkit:
+		return m.clearedhealthkit
 	}
 	return false
 }
@@ -6968,6 +7115,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeMycards:
 		m.ResetMycards()
+		return nil
+	case user.EdgeHealthkit:
+		m.ResetHealthkit()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

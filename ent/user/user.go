@@ -59,6 +59,8 @@ const (
 	EdgePrices = "prices"
 	// EdgeMycards holds the string denoting the mycards edge name in mutations.
 	EdgeMycards = "mycards"
+	// EdgeHealthkit holds the string denoting the healthkit edge name in mutations.
+	EdgeHealthkit = "healthkit"
 	// MyCardFieldID holds the string denoting the ID field of the MyCard.
 	MyCardFieldID = "card_number"
 	// Table holds the table name of the user in the database.
@@ -91,6 +93,13 @@ const (
 	MycardsInverseTable = "my_cards"
 	// MycardsColumn is the table column denoting the mycards relation/edge.
 	MycardsColumn = "user_mycards"
+	// HealthkitTable is the table that holds the healthkit relation/edge.
+	HealthkitTable = "health_kits"
+	// HealthkitInverseTable is the table name for the HealthKit entity.
+	// It exists in this package in order to avoid circular dependency with the "healthkit" package.
+	HealthkitInverseTable = "health_kits"
+	// HealthkitColumn is the table column denoting the healthkit relation/edge.
+	HealthkitColumn = "user_healthkit"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -513,6 +522,20 @@ func ByMycards(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newMycardsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByHealthkitCount orders the results by healthkit count.
+func ByHealthkitCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newHealthkitStep(), opts...)
+	}
+}
+
+// ByHealthkit orders the results by healthkit terms.
+func ByHealthkit(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newHealthkitStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newQuestionnaireResponsesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -539,5 +562,12 @@ func newMycardsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(MycardsInverseTable, MyCardFieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, MycardsTable, MycardsColumn),
+	)
+}
+func newHealthkitStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(HealthkitInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, HealthkitTable, HealthkitColumn),
 	)
 }

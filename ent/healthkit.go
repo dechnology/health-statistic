@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/eesoymilk/health-statistic-api/ent/healthkit"
+	"github.com/eesoymilk/health-statistic-api/ent/user"
 )
 
 // HealthKit is the model entity for the HealthKit schema.
@@ -22,8 +23,34 @@ type HealthKit struct {
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// Data holds the value of the "data" field.
-	Data         map[string]interface{} `json:"data,omitempty"`
-	selectValues sql.SelectValues
+	Data map[string]interface{} `json:"data,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the HealthKitQuery when eager-loading is set.
+	Edges          HealthKitEdges `json:"-"`
+	user_healthkit *string
+	selectValues   sql.SelectValues
+}
+
+// HealthKitEdges holds the relations/edges for other nodes in the graph.
+type HealthKitEdges struct {
+	// User holds the value of the user edge.
+	User *User `json:"user,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// UserOrErr returns the User value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e HealthKitEdges) UserOrErr() (*User, error) {
+	if e.loadedTypes[0] {
+		if e.User == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.User, nil
+	}
+	return nil, &NotLoadedError{edge: "user"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -35,6 +62,8 @@ func (*HealthKit) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case healthkit.FieldID:
 			values[i] = new(sql.NullInt64)
+		case healthkit.ForeignKeys[0]: // user_healthkit
+			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -64,6 +93,13 @@ func (hk *HealthKit) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field data: %w", err)
 				}
 			}
+		case healthkit.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field user_healthkit", values[i])
+			} else if value.Valid {
+				hk.user_healthkit = new(string)
+				*hk.user_healthkit = value.String
+			}
 		default:
 			hk.selectValues.Set(columns[i], values[i])
 		}
@@ -75,6 +111,11 @@ func (hk *HealthKit) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (hk *HealthKit) Value(name string) (ent.Value, error) {
 	return hk.selectValues.Get(name)
+}
+
+// QueryUser queries the "user" edge of the HealthKit entity.
+func (hk *HealthKit) QueryUser() *UserQuery {
+	return NewHealthKitClient(hk.config).QueryUser(hk)
 }
 
 // Update returns a builder for updating this HealthKit.
@@ -104,6 +145,18 @@ func (hk *HealthKit) String() string {
 	builder.WriteString(fmt.Sprintf("%v", hk.Data))
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// MarshalJSON implements the json.Marshaler interface.
+func (hk *HealthKit) MarshalJSON() ([]byte, error) {
+	type Alias HealthKit
+	return json.Marshal(&struct {
+		*Alias
+		HealthKitEdges
+	}{
+		Alias:          (*Alias)(hk),
+		HealthKitEdges: hk.Edges,
+	})
 }
 
 // HealthKits is a parsable slice of HealthKit.
