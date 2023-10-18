@@ -1,9 +1,9 @@
-FROM postgres:latest
+FROM postgres:15.4
 
 RUN localedef -i zh_TW -c -f UTF-8 -A /usr/share/locale/locale.alias zh_TW.UTF-8
 ENV LANG zh_TW.utf8
 
 # Set the timezone.
-ENV TZ=Asia/Taipei
+ENV TZ=Asia/Taipei\q
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
