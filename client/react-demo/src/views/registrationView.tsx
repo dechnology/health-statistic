@@ -7,8 +7,8 @@ import InfoQuestionnaire from '../utils/infoQuestionnaire';
 import { useAuth0 } from '@auth0/auth0-react';
 import * as jose from 'jose';
 
-// const baseUrl = 'https://health-statistic.dechnology.com.tw/api/v1';
-const baseUrl = 'http://localhost:8080/api/v1';
+const baseUrl = 'https://health-statistic.dechnology.com.tw/api/v1';
+// const baseUrl = 'http://localhost:8080/api/v1';
 
 const getRegistrationQuestionnaire = async (
   token: string | null,
