@@ -10,6 +10,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -32,9 +33,28 @@ func (hku *HealthKitUpdate) Where(ps ...predicate.HealthKit) *HealthKitUpdate {
 	return hku
 }
 
-// SetData sets the "data" field.
-func (hku *HealthKitUpdate) SetData(m map[string]interface{}) *HealthKitUpdate {
-	hku.mutation.SetData(m)
+// SetStartDate sets the "start_date" field.
+func (hku *HealthKitUpdate) SetStartDate(t time.Time) *HealthKitUpdate {
+	hku.mutation.SetStartDate(t)
+	return hku
+}
+
+// SetEndDate sets the "end_date" field.
+func (hku *HealthKitUpdate) SetEndDate(t time.Time) *HealthKitUpdate {
+	hku.mutation.SetEndDate(t)
+	return hku
+}
+
+// SetStepCount sets the "step_count" field.
+func (hku *HealthKitUpdate) SetStepCount(f float64) *HealthKitUpdate {
+	hku.mutation.ResetStepCount()
+	hku.mutation.SetStepCount(f)
+	return hku
+}
+
+// AddStepCount adds f to the "step_count" field.
+func (hku *HealthKitUpdate) AddStepCount(f float64) *HealthKitUpdate {
+	hku.mutation.AddStepCount(f)
 	return hku
 }
 
@@ -95,8 +115,21 @@ func (hku *HealthKitUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (hku *HealthKitUpdate) check() error {
+	if v, ok := hku.mutation.StepCount(); ok {
+		if err := healthkit.StepCountValidator(v); err != nil {
+			return &ValidationError{Name: "step_count", err: fmt.Errorf(`ent: validator failed for field "HealthKit.step_count": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (hku *HealthKitUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := sqlgraph.NewUpdateSpec(healthkit.Table, healthkit.Columns, sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeInt))
+	if err := hku.check(); err != nil {
+		return n, err
+	}
+	_spec := sqlgraph.NewUpdateSpec(healthkit.Table, healthkit.Columns, sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeUUID))
 	if ps := hku.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -104,8 +137,17 @@ func (hku *HealthKitUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := hku.mutation.Data(); ok {
-		_spec.SetField(healthkit.FieldData, field.TypeJSON, value)
+	if value, ok := hku.mutation.StartDate(); ok {
+		_spec.SetField(healthkit.FieldStartDate, field.TypeTime, value)
+	}
+	if value, ok := hku.mutation.EndDate(); ok {
+		_spec.SetField(healthkit.FieldEndDate, field.TypeTime, value)
+	}
+	if value, ok := hku.mutation.StepCount(); ok {
+		_spec.SetField(healthkit.FieldStepCount, field.TypeFloat64, value)
+	}
+	if value, ok := hku.mutation.AddedStepCount(); ok {
+		_spec.AddField(healthkit.FieldStepCount, field.TypeFloat64, value)
 	}
 	if hku.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -156,9 +198,28 @@ type HealthKitUpdateOne struct {
 	mutation *HealthKitMutation
 }
 
-// SetData sets the "data" field.
-func (hkuo *HealthKitUpdateOne) SetData(m map[string]interface{}) *HealthKitUpdateOne {
-	hkuo.mutation.SetData(m)
+// SetStartDate sets the "start_date" field.
+func (hkuo *HealthKitUpdateOne) SetStartDate(t time.Time) *HealthKitUpdateOne {
+	hkuo.mutation.SetStartDate(t)
+	return hkuo
+}
+
+// SetEndDate sets the "end_date" field.
+func (hkuo *HealthKitUpdateOne) SetEndDate(t time.Time) *HealthKitUpdateOne {
+	hkuo.mutation.SetEndDate(t)
+	return hkuo
+}
+
+// SetStepCount sets the "step_count" field.
+func (hkuo *HealthKitUpdateOne) SetStepCount(f float64) *HealthKitUpdateOne {
+	hkuo.mutation.ResetStepCount()
+	hkuo.mutation.SetStepCount(f)
+	return hkuo
+}
+
+// AddStepCount adds f to the "step_count" field.
+func (hkuo *HealthKitUpdateOne) AddStepCount(f float64) *HealthKitUpdateOne {
+	hkuo.mutation.AddStepCount(f)
 	return hkuo
 }
 
@@ -232,8 +293,21 @@ func (hkuo *HealthKitUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (hkuo *HealthKitUpdateOne) check() error {
+	if v, ok := hkuo.mutation.StepCount(); ok {
+		if err := healthkit.StepCountValidator(v); err != nil {
+			return &ValidationError{Name: "step_count", err: fmt.Errorf(`ent: validator failed for field "HealthKit.step_count": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (hkuo *HealthKitUpdateOne) sqlSave(ctx context.Context) (_node *HealthKit, err error) {
-	_spec := sqlgraph.NewUpdateSpec(healthkit.Table, healthkit.Columns, sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeInt))
+	if err := hkuo.check(); err != nil {
+		return _node, err
+	}
+	_spec := sqlgraph.NewUpdateSpec(healthkit.Table, healthkit.Columns, sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeUUID))
 	id, ok := hkuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "HealthKit.id" for update`)}
@@ -258,8 +332,17 @@ func (hkuo *HealthKitUpdateOne) sqlSave(ctx context.Context) (_node *HealthKit, 
 			}
 		}
 	}
-	if value, ok := hkuo.mutation.Data(); ok {
-		_spec.SetField(healthkit.FieldData, field.TypeJSON, value)
+	if value, ok := hkuo.mutation.StartDate(); ok {
+		_spec.SetField(healthkit.FieldStartDate, field.TypeTime, value)
+	}
+	if value, ok := hkuo.mutation.EndDate(); ok {
+		_spec.SetField(healthkit.FieldEndDate, field.TypeTime, value)
+	}
+	if value, ok := hkuo.mutation.StepCount(); ok {
+		_spec.SetField(healthkit.FieldStepCount, field.TypeFloat64, value)
+	}
+	if value, ok := hkuo.mutation.AddedStepCount(); ok {
+		_spec.AddField(healthkit.FieldStepCount, field.TypeFloat64, value)
 	}
 	if hkuo.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

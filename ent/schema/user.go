@@ -111,8 +111,8 @@ func (User) Edges() []ent.Edge {
 		edge.To("notifications", Notification.Type).
 			Annotations(entsql.OnDelete(entsql.SetNull)),
 		edge.To("prices", Price.Type),
-		edge.To("mycards", MyCard.Type).
-			Required(),
+		edge.To("mycards", MyCard.Type).Required(),
 		edge.To("healthkit", HealthKit.Type),
+		edge.To("deegoo", Deegoo.Type),
 	}
 }

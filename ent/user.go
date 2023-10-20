@@ -72,9 +72,11 @@ type UserEdges struct {
 	Mycards []*MyCard `json:"mycards,omitempty"`
 	// Healthkit holds the value of the healthkit edge.
 	Healthkit []*HealthKit `json:"healthkit,omitempty"`
+	// Deegoo holds the value of the deegoo edge.
+	Deegoo []*Deegoo `json:"deegoo,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [6]bool
 }
 
 // QuestionnaireResponsesOrErr returns the QuestionnaireResponses value or an error if the edge
@@ -120,6 +122,15 @@ func (e UserEdges) HealthkitOrErr() ([]*HealthKit, error) {
 		return e.Healthkit, nil
 	}
 	return nil, &NotLoadedError{edge: "healthkit"}
+}
+
+// DeegooOrErr returns the Deegoo value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) DeegooOrErr() ([]*Deegoo, error) {
+	if e.loadedTypes[5] {
+		return e.Deegoo, nil
+	}
+	return nil, &NotLoadedError{edge: "deegoo"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -290,6 +301,11 @@ func (u *User) QueryMycards() *MyCardQuery {
 // QueryHealthkit queries the "healthkit" edge of the User entity.
 func (u *User) QueryHealthkit() *HealthKitQuery {
 	return NewUserClient(u.config).QueryHealthkit(u)
+}
+
+// QueryDeegoo queries the "deegoo" edge of the User entity.
+func (u *User) QueryDeegoo() *DeegooQuery {
+	return NewUserClient(u.config).QueryDeegoo(u)
 }
 
 // Update returns a builder for updating this User.

@@ -61,6 +61,8 @@ const (
 	EdgeMycards = "mycards"
 	// EdgeHealthkit holds the string denoting the healthkit edge name in mutations.
 	EdgeHealthkit = "healthkit"
+	// EdgeDeegoo holds the string denoting the deegoo edge name in mutations.
+	EdgeDeegoo = "deegoo"
 	// MyCardFieldID holds the string denoting the ID field of the MyCard.
 	MyCardFieldID = "card_number"
 	// Table holds the table name of the user in the database.
@@ -100,6 +102,13 @@ const (
 	HealthkitInverseTable = "health_kits"
 	// HealthkitColumn is the table column denoting the healthkit relation/edge.
 	HealthkitColumn = "user_healthkit"
+	// DeegooTable is the table that holds the deegoo relation/edge.
+	DeegooTable = "deegoos"
+	// DeegooInverseTable is the table name for the Deegoo entity.
+	// It exists in this package in order to avoid circular dependency with the "deegoo" package.
+	DeegooInverseTable = "deegoos"
+	// DeegooColumn is the table column denoting the deegoo relation/edge.
+	DeegooColumn = "user_deegoo"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -536,6 +545,20 @@ func ByHealthkit(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newHealthkitStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByDeegooCount orders the results by deegoo count.
+func ByDeegooCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDeegooStep(), opts...)
+	}
+}
+
+// ByDeegoo orders the results by deegoo terms.
+func ByDeegoo(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDeegooStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newQuestionnaireResponsesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -569,5 +592,12 @@ func newHealthkitStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(HealthkitInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, HealthkitTable, HealthkitColumn),
+	)
+}
+func newDeegooStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DeegooInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DeegooTable, DeegooColumn),
 	)
 }

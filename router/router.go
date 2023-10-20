@@ -20,6 +20,7 @@ func New(db *ent.Client) *gin.Engine {
 		),
 	}
 
+	// adminAuth := middlewares.Authorize("admin")
 	r.Use(middlewares.CorsMiddleware())
 
 	v1 := r.Group("/api/v1")
@@ -39,15 +40,23 @@ func New(db *ent.Client) *gin.Engine {
 		healthkit := v1.Group("/healthkit")
 		{
 			healthkit.GET("", h.GetHealthKitData)
-			healthkit.POST("", h.CreateHealthKitData)
 		}
 
 		user := v1.Group("/user")
 		{
 			user.GET("", h.GetSelf)
-			user.PUT("")
-			user.DELETE("")
-			user.GET("/notifications")
+			user.POST("/healthkit", h.CreateUserHealthKitData)
+
+			// TODO
+			// user.PUT("")
+			// user.DELETE("")
+			// user.GET("/notifications")
+		}
+
+		deegoo := v1.Group("/deegoo")
+		// deegoo.Use(adminAuth)
+		{
+			deegoo.POST("", h.SubmitDeegoo)
 		}
 
 		readUsers := middlewares.Authorize("read:users")
@@ -94,10 +103,8 @@ func New(db *ent.Client) *gin.Engine {
 			mycards.DELETE("/:id", writeMyCards, h.DeleteMyCard)
 		}
 
-		// readPrices := middlewares.Authorize("read:prices")
 		writePrices := middlewares.Authorize("write:prices")
 		prices := v1.Group("/prices")
-		// prices.Use(readPrices)
 		{
 			prices.GET("", h.GetPrices)
 			prices.GET("/:id", h.GetPrice)

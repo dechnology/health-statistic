@@ -17,6 +17,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/eesoymilk/health-statistic-api/ent/answer"
 	"github.com/eesoymilk/health-statistic-api/ent/choice"
+	"github.com/eesoymilk/health-statistic-api/ent/deegoo"
 	"github.com/eesoymilk/health-statistic-api/ent/healthkit"
 	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
@@ -40,6 +41,7 @@ const (
 	// Node types.
 	TypeAnswer                = "Answer"
 	TypeChoice                = "Choice"
+	TypeDeegoo                = "Deegoo"
 	TypeHealthKit             = "HealthKit"
 	TypeMyCard                = "MyCard"
 	TypeNotification          = "Notification"
@@ -1243,13 +1245,853 @@ func (m *ChoiceMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Choice edge %s", name)
 }
 
+// DeegooMutation represents an operation that mutates the Deegoo nodes in the graph.
+type DeegooMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *uuid.UUID
+	perception    *int8
+	addperception *int8
+	focus         *int8
+	addfocus      *int8
+	execution     *int8
+	addexecution  *int8
+	memory        *int8
+	addmemory     *int8
+	language      *int8
+	addlanguage   *int8
+	created_at    *time.Time
+	clearedFields map[string]struct{}
+	user          *string
+	cleareduser   bool
+	done          bool
+	oldValue      func(context.Context) (*Deegoo, error)
+	predicates    []predicate.Deegoo
+}
+
+var _ ent.Mutation = (*DeegooMutation)(nil)
+
+// deegooOption allows management of the mutation configuration using functional options.
+type deegooOption func(*DeegooMutation)
+
+// newDeegooMutation creates new mutation for the Deegoo entity.
+func newDeegooMutation(c config, op Op, opts ...deegooOption) *DeegooMutation {
+	m := &DeegooMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeDeegoo,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withDeegooID sets the ID field of the mutation.
+func withDeegooID(id uuid.UUID) deegooOption {
+	return func(m *DeegooMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Deegoo
+		)
+		m.oldValue = func(ctx context.Context) (*Deegoo, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Deegoo.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withDeegoo sets the old Deegoo of the mutation.
+func withDeegoo(node *Deegoo) deegooOption {
+	return func(m *DeegooMutation) {
+		m.oldValue = func(context.Context) (*Deegoo, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m DeegooMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m DeegooMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Deegoo entities.
+func (m *DeegooMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *DeegooMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *DeegooMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Deegoo.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetPerception sets the "perception" field.
+func (m *DeegooMutation) SetPerception(i int8) {
+	m.perception = &i
+	m.addperception = nil
+}
+
+// Perception returns the value of the "perception" field in the mutation.
+func (m *DeegooMutation) Perception() (r int8, exists bool) {
+	v := m.perception
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPerception returns the old "perception" field's value of the Deegoo entity.
+// If the Deegoo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DeegooMutation) OldPerception(ctx context.Context) (v int8, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPerception is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPerception requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPerception: %w", err)
+	}
+	return oldValue.Perception, nil
+}
+
+// AddPerception adds i to the "perception" field.
+func (m *DeegooMutation) AddPerception(i int8) {
+	if m.addperception != nil {
+		*m.addperception += i
+	} else {
+		m.addperception = &i
+	}
+}
+
+// AddedPerception returns the value that was added to the "perception" field in this mutation.
+func (m *DeegooMutation) AddedPerception() (r int8, exists bool) {
+	v := m.addperception
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPerception resets all changes to the "perception" field.
+func (m *DeegooMutation) ResetPerception() {
+	m.perception = nil
+	m.addperception = nil
+}
+
+// SetFocus sets the "focus" field.
+func (m *DeegooMutation) SetFocus(i int8) {
+	m.focus = &i
+	m.addfocus = nil
+}
+
+// Focus returns the value of the "focus" field in the mutation.
+func (m *DeegooMutation) Focus() (r int8, exists bool) {
+	v := m.focus
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFocus returns the old "focus" field's value of the Deegoo entity.
+// If the Deegoo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DeegooMutation) OldFocus(ctx context.Context) (v int8, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFocus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFocus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFocus: %w", err)
+	}
+	return oldValue.Focus, nil
+}
+
+// AddFocus adds i to the "focus" field.
+func (m *DeegooMutation) AddFocus(i int8) {
+	if m.addfocus != nil {
+		*m.addfocus += i
+	} else {
+		m.addfocus = &i
+	}
+}
+
+// AddedFocus returns the value that was added to the "focus" field in this mutation.
+func (m *DeegooMutation) AddedFocus() (r int8, exists bool) {
+	v := m.addfocus
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetFocus resets all changes to the "focus" field.
+func (m *DeegooMutation) ResetFocus() {
+	m.focus = nil
+	m.addfocus = nil
+}
+
+// SetExecution sets the "execution" field.
+func (m *DeegooMutation) SetExecution(i int8) {
+	m.execution = &i
+	m.addexecution = nil
+}
+
+// Execution returns the value of the "execution" field in the mutation.
+func (m *DeegooMutation) Execution() (r int8, exists bool) {
+	v := m.execution
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExecution returns the old "execution" field's value of the Deegoo entity.
+// If the Deegoo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DeegooMutation) OldExecution(ctx context.Context) (v int8, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExecution is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExecution requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExecution: %w", err)
+	}
+	return oldValue.Execution, nil
+}
+
+// AddExecution adds i to the "execution" field.
+func (m *DeegooMutation) AddExecution(i int8) {
+	if m.addexecution != nil {
+		*m.addexecution += i
+	} else {
+		m.addexecution = &i
+	}
+}
+
+// AddedExecution returns the value that was added to the "execution" field in this mutation.
+func (m *DeegooMutation) AddedExecution() (r int8, exists bool) {
+	v := m.addexecution
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetExecution resets all changes to the "execution" field.
+func (m *DeegooMutation) ResetExecution() {
+	m.execution = nil
+	m.addexecution = nil
+}
+
+// SetMemory sets the "memory" field.
+func (m *DeegooMutation) SetMemory(i int8) {
+	m.memory = &i
+	m.addmemory = nil
+}
+
+// Memory returns the value of the "memory" field in the mutation.
+func (m *DeegooMutation) Memory() (r int8, exists bool) {
+	v := m.memory
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMemory returns the old "memory" field's value of the Deegoo entity.
+// If the Deegoo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DeegooMutation) OldMemory(ctx context.Context) (v int8, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMemory is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMemory requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMemory: %w", err)
+	}
+	return oldValue.Memory, nil
+}
+
+// AddMemory adds i to the "memory" field.
+func (m *DeegooMutation) AddMemory(i int8) {
+	if m.addmemory != nil {
+		*m.addmemory += i
+	} else {
+		m.addmemory = &i
+	}
+}
+
+// AddedMemory returns the value that was added to the "memory" field in this mutation.
+func (m *DeegooMutation) AddedMemory() (r int8, exists bool) {
+	v := m.addmemory
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMemory resets all changes to the "memory" field.
+func (m *DeegooMutation) ResetMemory() {
+	m.memory = nil
+	m.addmemory = nil
+}
+
+// SetLanguage sets the "language" field.
+func (m *DeegooMutation) SetLanguage(i int8) {
+	m.language = &i
+	m.addlanguage = nil
+}
+
+// Language returns the value of the "language" field in the mutation.
+func (m *DeegooMutation) Language() (r int8, exists bool) {
+	v := m.language
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLanguage returns the old "language" field's value of the Deegoo entity.
+// If the Deegoo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DeegooMutation) OldLanguage(ctx context.Context) (v int8, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLanguage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLanguage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLanguage: %w", err)
+	}
+	return oldValue.Language, nil
+}
+
+// AddLanguage adds i to the "language" field.
+func (m *DeegooMutation) AddLanguage(i int8) {
+	if m.addlanguage != nil {
+		*m.addlanguage += i
+	} else {
+		m.addlanguage = &i
+	}
+}
+
+// AddedLanguage returns the value that was added to the "language" field in this mutation.
+func (m *DeegooMutation) AddedLanguage() (r int8, exists bool) {
+	v := m.addlanguage
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLanguage resets all changes to the "language" field.
+func (m *DeegooMutation) ResetLanguage() {
+	m.language = nil
+	m.addlanguage = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *DeegooMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *DeegooMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Deegoo entity.
+// If the Deegoo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DeegooMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *DeegooMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUserID sets the "user" edge to the User entity by id.
+func (m *DeegooMutation) SetUserID(id string) {
+	m.user = &id
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *DeegooMutation) ClearUser() {
+	m.cleareduser = true
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *DeegooMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserID returns the "user" edge ID in the mutation.
+func (m *DeegooMutation) UserID() (id string, exists bool) {
+	if m.user != nil {
+		return *m.user, true
+	}
+	return
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *DeegooMutation) UserIDs() (ids []string) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *DeegooMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// Where appends a list predicates to the DeegooMutation builder.
+func (m *DeegooMutation) Where(ps ...predicate.Deegoo) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the DeegooMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *DeegooMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Deegoo, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *DeegooMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *DeegooMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Deegoo).
+func (m *DeegooMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *DeegooMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.perception != nil {
+		fields = append(fields, deegoo.FieldPerception)
+	}
+	if m.focus != nil {
+		fields = append(fields, deegoo.FieldFocus)
+	}
+	if m.execution != nil {
+		fields = append(fields, deegoo.FieldExecution)
+	}
+	if m.memory != nil {
+		fields = append(fields, deegoo.FieldMemory)
+	}
+	if m.language != nil {
+		fields = append(fields, deegoo.FieldLanguage)
+	}
+	if m.created_at != nil {
+		fields = append(fields, deegoo.FieldCreatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *DeegooMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case deegoo.FieldPerception:
+		return m.Perception()
+	case deegoo.FieldFocus:
+		return m.Focus()
+	case deegoo.FieldExecution:
+		return m.Execution()
+	case deegoo.FieldMemory:
+		return m.Memory()
+	case deegoo.FieldLanguage:
+		return m.Language()
+	case deegoo.FieldCreatedAt:
+		return m.CreatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *DeegooMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case deegoo.FieldPerception:
+		return m.OldPerception(ctx)
+	case deegoo.FieldFocus:
+		return m.OldFocus(ctx)
+	case deegoo.FieldExecution:
+		return m.OldExecution(ctx)
+	case deegoo.FieldMemory:
+		return m.OldMemory(ctx)
+	case deegoo.FieldLanguage:
+		return m.OldLanguage(ctx)
+	case deegoo.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown Deegoo field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DeegooMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case deegoo.FieldPerception:
+		v, ok := value.(int8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPerception(v)
+		return nil
+	case deegoo.FieldFocus:
+		v, ok := value.(int8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFocus(v)
+		return nil
+	case deegoo.FieldExecution:
+		v, ok := value.(int8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExecution(v)
+		return nil
+	case deegoo.FieldMemory:
+		v, ok := value.(int8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMemory(v)
+		return nil
+	case deegoo.FieldLanguage:
+		v, ok := value.(int8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLanguage(v)
+		return nil
+	case deegoo.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Deegoo field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *DeegooMutation) AddedFields() []string {
+	var fields []string
+	if m.addperception != nil {
+		fields = append(fields, deegoo.FieldPerception)
+	}
+	if m.addfocus != nil {
+		fields = append(fields, deegoo.FieldFocus)
+	}
+	if m.addexecution != nil {
+		fields = append(fields, deegoo.FieldExecution)
+	}
+	if m.addmemory != nil {
+		fields = append(fields, deegoo.FieldMemory)
+	}
+	if m.addlanguage != nil {
+		fields = append(fields, deegoo.FieldLanguage)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *DeegooMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case deegoo.FieldPerception:
+		return m.AddedPerception()
+	case deegoo.FieldFocus:
+		return m.AddedFocus()
+	case deegoo.FieldExecution:
+		return m.AddedExecution()
+	case deegoo.FieldMemory:
+		return m.AddedMemory()
+	case deegoo.FieldLanguage:
+		return m.AddedLanguage()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DeegooMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case deegoo.FieldPerception:
+		v, ok := value.(int8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPerception(v)
+		return nil
+	case deegoo.FieldFocus:
+		v, ok := value.(int8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFocus(v)
+		return nil
+	case deegoo.FieldExecution:
+		v, ok := value.(int8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddExecution(v)
+		return nil
+	case deegoo.FieldMemory:
+		v, ok := value.(int8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMemory(v)
+		return nil
+	case deegoo.FieldLanguage:
+		v, ok := value.(int8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLanguage(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Deegoo numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *DeegooMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *DeegooMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *DeegooMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Deegoo nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *DeegooMutation) ResetField(name string) error {
+	switch name {
+	case deegoo.FieldPerception:
+		m.ResetPerception()
+		return nil
+	case deegoo.FieldFocus:
+		m.ResetFocus()
+		return nil
+	case deegoo.FieldExecution:
+		m.ResetExecution()
+		return nil
+	case deegoo.FieldMemory:
+		m.ResetMemory()
+		return nil
+	case deegoo.FieldLanguage:
+		m.ResetLanguage()
+		return nil
+	case deegoo.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown Deegoo field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *DeegooMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.user != nil {
+		edges = append(edges, deegoo.EdgeUser)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *DeegooMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case deegoo.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *DeegooMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *DeegooMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *DeegooMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleareduser {
+		edges = append(edges, deegoo.EdgeUser)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *DeegooMutation) EdgeCleared(name string) bool {
+	switch name {
+	case deegoo.EdgeUser:
+		return m.cleareduser
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *DeegooMutation) ClearEdge(name string) error {
+	switch name {
+	case deegoo.EdgeUser:
+		m.ClearUser()
+		return nil
+	}
+	return fmt.Errorf("unknown Deegoo unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *DeegooMutation) ResetEdge(name string) error {
+	switch name {
+	case deegoo.EdgeUser:
+		m.ResetUser()
+		return nil
+	}
+	return fmt.Errorf("unknown Deegoo edge %s", name)
+}
+
 // HealthKitMutation represents an operation that mutates the HealthKit nodes in the graph.
 type HealthKitMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *int
-	data          *map[string]interface{}
+	id            *uuid.UUID
+	start_date    *time.Time
+	end_date      *time.Time
+	step_count    *float64
+	addstep_count *float64
 	clearedFields map[string]struct{}
 	user          *string
 	cleareduser   bool
@@ -1278,7 +2120,7 @@ func newHealthKitMutation(c config, op Op, opts ...healthkitOption) *HealthKitMu
 }
 
 // withHealthKitID sets the ID field of the mutation.
-func withHealthKitID(id int) healthkitOption {
+func withHealthKitID(id uuid.UUID) healthkitOption {
 	return func(m *HealthKitMutation) {
 		var (
 			err   error
@@ -1328,9 +2170,15 @@ func (m HealthKitMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of HealthKit entities.
+func (m *HealthKitMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *HealthKitMutation) ID() (id int, exists bool) {
+func (m *HealthKitMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -1341,12 +2189,12 @@ func (m *HealthKitMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *HealthKitMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *HealthKitMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []uuid.UUID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -1356,40 +2204,132 @@ func (m *HealthKitMutation) IDs(ctx context.Context) ([]int, error) {
 	}
 }
 
-// SetData sets the "data" field.
-func (m *HealthKitMutation) SetData(value map[string]interface{}) {
-	m.data = &value
+// SetStartDate sets the "start_date" field.
+func (m *HealthKitMutation) SetStartDate(t time.Time) {
+	m.start_date = &t
 }
 
-// Data returns the value of the "data" field in the mutation.
-func (m *HealthKitMutation) Data() (r map[string]interface{}, exists bool) {
-	v := m.data
+// StartDate returns the value of the "start_date" field in the mutation.
+func (m *HealthKitMutation) StartDate() (r time.Time, exists bool) {
+	v := m.start_date
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldData returns the old "data" field's value of the HealthKit entity.
+// OldStartDate returns the old "start_date" field's value of the HealthKit entity.
 // If the HealthKit object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *HealthKitMutation) OldData(ctx context.Context) (v map[string]interface{}, err error) {
+func (m *HealthKitMutation) OldStartDate(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldData is only allowed on UpdateOne operations")
+		return v, errors.New("OldStartDate is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldData requires an ID field in the mutation")
+		return v, errors.New("OldStartDate requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldData: %w", err)
+		return v, fmt.Errorf("querying old value for OldStartDate: %w", err)
 	}
-	return oldValue.Data, nil
+	return oldValue.StartDate, nil
 }
 
-// ResetData resets all changes to the "data" field.
-func (m *HealthKitMutation) ResetData() {
-	m.data = nil
+// ResetStartDate resets all changes to the "start_date" field.
+func (m *HealthKitMutation) ResetStartDate() {
+	m.start_date = nil
+}
+
+// SetEndDate sets the "end_date" field.
+func (m *HealthKitMutation) SetEndDate(t time.Time) {
+	m.end_date = &t
+}
+
+// EndDate returns the value of the "end_date" field in the mutation.
+func (m *HealthKitMutation) EndDate() (r time.Time, exists bool) {
+	v := m.end_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEndDate returns the old "end_date" field's value of the HealthKit entity.
+// If the HealthKit object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HealthKitMutation) OldEndDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEndDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEndDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEndDate: %w", err)
+	}
+	return oldValue.EndDate, nil
+}
+
+// ResetEndDate resets all changes to the "end_date" field.
+func (m *HealthKitMutation) ResetEndDate() {
+	m.end_date = nil
+}
+
+// SetStepCount sets the "step_count" field.
+func (m *HealthKitMutation) SetStepCount(f float64) {
+	m.step_count = &f
+	m.addstep_count = nil
+}
+
+// StepCount returns the value of the "step_count" field in the mutation.
+func (m *HealthKitMutation) StepCount() (r float64, exists bool) {
+	v := m.step_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStepCount returns the old "step_count" field's value of the HealthKit entity.
+// If the HealthKit object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HealthKitMutation) OldStepCount(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStepCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStepCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStepCount: %w", err)
+	}
+	return oldValue.StepCount, nil
+}
+
+// AddStepCount adds f to the "step_count" field.
+func (m *HealthKitMutation) AddStepCount(f float64) {
+	if m.addstep_count != nil {
+		*m.addstep_count += f
+	} else {
+		m.addstep_count = &f
+	}
+}
+
+// AddedStepCount returns the value that was added to the "step_count" field in this mutation.
+func (m *HealthKitMutation) AddedStepCount() (r float64, exists bool) {
+	v := m.addstep_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetStepCount resets all changes to the "step_count" field.
+func (m *HealthKitMutation) ResetStepCount() {
+	m.step_count = nil
+	m.addstep_count = nil
 }
 
 // SetUserID sets the "user" edge to the User entity by id.
@@ -1465,9 +2405,15 @@ func (m *HealthKitMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *HealthKitMutation) Fields() []string {
-	fields := make([]string, 0, 1)
-	if m.data != nil {
-		fields = append(fields, healthkit.FieldData)
+	fields := make([]string, 0, 3)
+	if m.start_date != nil {
+		fields = append(fields, healthkit.FieldStartDate)
+	}
+	if m.end_date != nil {
+		fields = append(fields, healthkit.FieldEndDate)
+	}
+	if m.step_count != nil {
+		fields = append(fields, healthkit.FieldStepCount)
 	}
 	return fields
 }
@@ -1477,8 +2423,12 @@ func (m *HealthKitMutation) Fields() []string {
 // schema.
 func (m *HealthKitMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case healthkit.FieldData:
-		return m.Data()
+	case healthkit.FieldStartDate:
+		return m.StartDate()
+	case healthkit.FieldEndDate:
+		return m.EndDate()
+	case healthkit.FieldStepCount:
+		return m.StepCount()
 	}
 	return nil, false
 }
@@ -1488,8 +2438,12 @@ func (m *HealthKitMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *HealthKitMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case healthkit.FieldData:
-		return m.OldData(ctx)
+	case healthkit.FieldStartDate:
+		return m.OldStartDate(ctx)
+	case healthkit.FieldEndDate:
+		return m.OldEndDate(ctx)
+	case healthkit.FieldStepCount:
+		return m.OldStepCount(ctx)
 	}
 	return nil, fmt.Errorf("unknown HealthKit field %s", name)
 }
@@ -1499,12 +2453,26 @@ func (m *HealthKitMutation) OldField(ctx context.Context, name string) (ent.Valu
 // type.
 func (m *HealthKitMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case healthkit.FieldData:
-		v, ok := value.(map[string]interface{})
+	case healthkit.FieldStartDate:
+		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetData(v)
+		m.SetStartDate(v)
+		return nil
+	case healthkit.FieldEndDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEndDate(v)
+		return nil
+	case healthkit.FieldStepCount:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStepCount(v)
 		return nil
 	}
 	return fmt.Errorf("unknown HealthKit field %s", name)
@@ -1513,13 +2481,21 @@ func (m *HealthKitMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *HealthKitMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addstep_count != nil {
+		fields = append(fields, healthkit.FieldStepCount)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *HealthKitMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case healthkit.FieldStepCount:
+		return m.AddedStepCount()
+	}
 	return nil, false
 }
 
@@ -1528,6 +2504,13 @@ func (m *HealthKitMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *HealthKitMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case healthkit.FieldStepCount:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStepCount(v)
+		return nil
 	}
 	return fmt.Errorf("unknown HealthKit numeric field %s", name)
 }
@@ -1555,8 +2538,14 @@ func (m *HealthKitMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *HealthKitMutation) ResetField(name string) error {
 	switch name {
-	case healthkit.FieldData:
-		m.ResetData()
+	case healthkit.FieldStartDate:
+		m.ResetStartDate()
+		return nil
+	case healthkit.FieldEndDate:
+		m.ResetEndDate()
+		return nil
+	case healthkit.FieldStepCount:
+		m.ResetStepCount()
 		return nil
 	}
 	return fmt.Errorf("unknown HealthKit field %s", name)
@@ -5492,9 +6481,12 @@ type UserMutation struct {
 	mycards                         map[string]struct{}
 	removedmycards                  map[string]struct{}
 	clearedmycards                  bool
-	healthkit                       map[int]struct{}
-	removedhealthkit                map[int]struct{}
+	healthkit                       map[uuid.UUID]struct{}
+	removedhealthkit                map[uuid.UUID]struct{}
 	clearedhealthkit                bool
+	deegoo                          map[uuid.UUID]struct{}
+	removeddeegoo                   map[uuid.UUID]struct{}
+	cleareddeegoo                   bool
 	done                            bool
 	oldValue                        func(context.Context) (*User, error)
 	predicates                      []predicate.User
@@ -6457,9 +7449,9 @@ func (m *UserMutation) ResetMycards() {
 }
 
 // AddHealthkitIDs adds the "healthkit" edge to the HealthKit entity by ids.
-func (m *UserMutation) AddHealthkitIDs(ids ...int) {
+func (m *UserMutation) AddHealthkitIDs(ids ...uuid.UUID) {
 	if m.healthkit == nil {
-		m.healthkit = make(map[int]struct{})
+		m.healthkit = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		m.healthkit[ids[i]] = struct{}{}
@@ -6477,9 +7469,9 @@ func (m *UserMutation) HealthkitCleared() bool {
 }
 
 // RemoveHealthkitIDs removes the "healthkit" edge to the HealthKit entity by IDs.
-func (m *UserMutation) RemoveHealthkitIDs(ids ...int) {
+func (m *UserMutation) RemoveHealthkitIDs(ids ...uuid.UUID) {
 	if m.removedhealthkit == nil {
-		m.removedhealthkit = make(map[int]struct{})
+		m.removedhealthkit = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		delete(m.healthkit, ids[i])
@@ -6488,7 +7480,7 @@ func (m *UserMutation) RemoveHealthkitIDs(ids ...int) {
 }
 
 // RemovedHealthkit returns the removed IDs of the "healthkit" edge to the HealthKit entity.
-func (m *UserMutation) RemovedHealthkitIDs() (ids []int) {
+func (m *UserMutation) RemovedHealthkitIDs() (ids []uuid.UUID) {
 	for id := range m.removedhealthkit {
 		ids = append(ids, id)
 	}
@@ -6496,7 +7488,7 @@ func (m *UserMutation) RemovedHealthkitIDs() (ids []int) {
 }
 
 // HealthkitIDs returns the "healthkit" edge IDs in the mutation.
-func (m *UserMutation) HealthkitIDs() (ids []int) {
+func (m *UserMutation) HealthkitIDs() (ids []uuid.UUID) {
 	for id := range m.healthkit {
 		ids = append(ids, id)
 	}
@@ -6508,6 +7500,60 @@ func (m *UserMutation) ResetHealthkit() {
 	m.healthkit = nil
 	m.clearedhealthkit = false
 	m.removedhealthkit = nil
+}
+
+// AddDeegooIDs adds the "deegoo" edge to the Deegoo entity by ids.
+func (m *UserMutation) AddDeegooIDs(ids ...uuid.UUID) {
+	if m.deegoo == nil {
+		m.deegoo = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.deegoo[ids[i]] = struct{}{}
+	}
+}
+
+// ClearDeegoo clears the "deegoo" edge to the Deegoo entity.
+func (m *UserMutation) ClearDeegoo() {
+	m.cleareddeegoo = true
+}
+
+// DeegooCleared reports if the "deegoo" edge to the Deegoo entity was cleared.
+func (m *UserMutation) DeegooCleared() bool {
+	return m.cleareddeegoo
+}
+
+// RemoveDeegooIDs removes the "deegoo" edge to the Deegoo entity by IDs.
+func (m *UserMutation) RemoveDeegooIDs(ids ...uuid.UUID) {
+	if m.removeddeegoo == nil {
+		m.removeddeegoo = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.deegoo, ids[i])
+		m.removeddeegoo[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedDeegoo returns the removed IDs of the "deegoo" edge to the Deegoo entity.
+func (m *UserMutation) RemovedDeegooIDs() (ids []uuid.UUID) {
+	for id := range m.removeddeegoo {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// DeegooIDs returns the "deegoo" edge IDs in the mutation.
+func (m *UserMutation) DeegooIDs() (ids []uuid.UUID) {
+	for id := range m.deegoo {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetDeegoo resets all changes to the "deegoo" edge.
+func (m *UserMutation) ResetDeegoo() {
+	m.deegoo = nil
+	m.cleareddeegoo = false
+	m.removeddeegoo = nil
 }
 
 // Where appends a list predicates to the UserMutation builder.
@@ -6937,7 +7983,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.questionnaire_responses != nil {
 		edges = append(edges, user.EdgeQuestionnaireResponses)
 	}
@@ -6952,6 +7998,9 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.healthkit != nil {
 		edges = append(edges, user.EdgeHealthkit)
+	}
+	if m.deegoo != nil {
+		edges = append(edges, user.EdgeDeegoo)
 	}
 	return edges
 }
@@ -6990,13 +8039,19 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeDeegoo:
+		ids := make([]ent.Value, 0, len(m.deegoo))
+		for id := range m.deegoo {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.removedquestionnaire_responses != nil {
 		edges = append(edges, user.EdgeQuestionnaireResponses)
 	}
@@ -7011,6 +8066,9 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedhealthkit != nil {
 		edges = append(edges, user.EdgeHealthkit)
+	}
+	if m.removeddeegoo != nil {
+		edges = append(edges, user.EdgeDeegoo)
 	}
 	return edges
 }
@@ -7049,13 +8107,19 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeDeegoo:
+		ids := make([]ent.Value, 0, len(m.removeddeegoo))
+		for id := range m.removeddeegoo {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.clearedquestionnaire_responses {
 		edges = append(edges, user.EdgeQuestionnaireResponses)
 	}
@@ -7070,6 +8134,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	}
 	if m.clearedhealthkit {
 		edges = append(edges, user.EdgeHealthkit)
+	}
+	if m.cleareddeegoo {
+		edges = append(edges, user.EdgeDeegoo)
 	}
 	return edges
 }
@@ -7088,6 +8155,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedmycards
 	case user.EdgeHealthkit:
 		return m.clearedhealthkit
+	case user.EdgeDeegoo:
+		return m.cleareddeegoo
 	}
 	return false
 }
@@ -7118,6 +8187,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeHealthkit:
 		m.ResetHealthkit()
+		return nil
+	case user.EdgeDeegoo:
+		m.ResetDeegoo()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

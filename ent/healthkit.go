@@ -10,20 +10,26 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/eesoymilk/health-statistic-api/ent/healthkit"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
+	"github.com/google/uuid"
 )
 
 // HealthKit is the model entity for the HealthKit schema.
 type HealthKit struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
-	// Data holds the value of the "data" field.
-	Data map[string]interface{} `json:"data,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
+	// StartDate holds the value of the "start_date" field.
+	StartDate time.Time `json:"start_date,omitempty"`
+	// EndDate holds the value of the "end_date" field.
+	EndDate time.Time `json:"end_date,omitempty"`
+	// StepCount holds the value of the "step_count" field.
+	StepCount float64 `json:"step_count,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the HealthKitQuery when eager-loading is set.
 	Edges          HealthKitEdges `json:"-"`
@@ -58,10 +64,12 @@ func (*HealthKit) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case healthkit.FieldData:
-			values[i] = new([]byte)
+		case healthkit.FieldStepCount:
+			values[i] = new(sql.NullFloat64)
+		case healthkit.FieldStartDate, healthkit.FieldEndDate:
+			values[i] = new(sql.NullTime)
 		case healthkit.FieldID:
-			values[i] = new(sql.NullInt64)
+			values[i] = new(uuid.UUID)
 		case healthkit.ForeignKeys[0]: // user_healthkit
 			values[i] = new(sql.NullString)
 		default:
@@ -80,18 +88,28 @@ func (hk *HealthKit) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case healthkit.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value != nil {
+				hk.ID = *value
 			}
-			hk.ID = int(value.Int64)
-		case healthkit.FieldData:
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field data", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &hk.Data); err != nil {
-					return fmt.Errorf("unmarshal field data: %w", err)
-				}
+		case healthkit.FieldStartDate:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field start_date", values[i])
+			} else if value.Valid {
+				hk.StartDate = value.Time
+			}
+		case healthkit.FieldEndDate:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field end_date", values[i])
+			} else if value.Valid {
+				hk.EndDate = value.Time
+			}
+		case healthkit.FieldStepCount:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field step_count", values[i])
+			} else if value.Valid {
+				hk.StepCount = value.Float64
 			}
 		case healthkit.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -141,8 +159,14 @@ func (hk *HealthKit) String() string {
 	var builder strings.Builder
 	builder.WriteString("HealthKit(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", hk.ID))
-	builder.WriteString("data=")
-	builder.WriteString(fmt.Sprintf("%v", hk.Data))
+	builder.WriteString("start_date=")
+	builder.WriteString(hk.StartDate.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("end_date=")
+	builder.WriteString(hk.EndDate.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("step_count=")
+	builder.WriteString(fmt.Sprintf("%v", hk.StepCount))
 	builder.WriteByte(')')
 	return builder.String()
 }

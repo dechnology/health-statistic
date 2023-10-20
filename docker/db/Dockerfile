@@ -1,4 +1,4 @@
-FROM postgres:15.4
+FROM postgres:14.9
 
 RUN localedef -i zh_TW -c -f UTF-8 -A /usr/share/locale/locale.alias zh_TW.UTF-8
 ENV LANG zh_TW.utf8

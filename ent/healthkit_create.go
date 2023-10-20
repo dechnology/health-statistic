@@ -10,11 +10,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/eesoymilk/health-statistic-api/ent/healthkit"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
+	"github.com/google/uuid"
 )
 
 // HealthKitCreate is the builder for creating a HealthKit entity.
@@ -24,9 +26,35 @@ type HealthKitCreate struct {
 	hooks    []Hook
 }
 
-// SetData sets the "data" field.
-func (hkc *HealthKitCreate) SetData(m map[string]interface{}) *HealthKitCreate {
-	hkc.mutation.SetData(m)
+// SetStartDate sets the "start_date" field.
+func (hkc *HealthKitCreate) SetStartDate(t time.Time) *HealthKitCreate {
+	hkc.mutation.SetStartDate(t)
+	return hkc
+}
+
+// SetEndDate sets the "end_date" field.
+func (hkc *HealthKitCreate) SetEndDate(t time.Time) *HealthKitCreate {
+	hkc.mutation.SetEndDate(t)
+	return hkc
+}
+
+// SetStepCount sets the "step_count" field.
+func (hkc *HealthKitCreate) SetStepCount(f float64) *HealthKitCreate {
+	hkc.mutation.SetStepCount(f)
+	return hkc
+}
+
+// SetID sets the "id" field.
+func (hkc *HealthKitCreate) SetID(u uuid.UUID) *HealthKitCreate {
+	hkc.mutation.SetID(u)
+	return hkc
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (hkc *HealthKitCreate) SetNillableID(u *uuid.UUID) *HealthKitCreate {
+	if u != nil {
+		hkc.SetID(*u)
+	}
 	return hkc
 }
 
@@ -56,6 +84,7 @@ func (hkc *HealthKitCreate) Mutation() *HealthKitMutation {
 
 // Save creates the HealthKit in the database.
 func (hkc *HealthKitCreate) Save(ctx context.Context) (*HealthKit, error) {
+	hkc.defaults()
 	return withHooks(ctx, hkc.sqlSave, hkc.mutation, hkc.hooks)
 }
 
@@ -81,10 +110,29 @@ func (hkc *HealthKitCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (hkc *HealthKitCreate) defaults() {
+	if _, ok := hkc.mutation.ID(); !ok {
+		v := healthkit.DefaultID()
+		hkc.mutation.SetID(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (hkc *HealthKitCreate) check() error {
-	if _, ok := hkc.mutation.Data(); !ok {
-		return &ValidationError{Name: "data", err: errors.New(`ent: missing required field "HealthKit.data"`)}
+	if _, ok := hkc.mutation.StartDate(); !ok {
+		return &ValidationError{Name: "start_date", err: errors.New(`ent: missing required field "HealthKit.start_date"`)}
+	}
+	if _, ok := hkc.mutation.EndDate(); !ok {
+		return &ValidationError{Name: "end_date", err: errors.New(`ent: missing required field "HealthKit.end_date"`)}
+	}
+	if _, ok := hkc.mutation.StepCount(); !ok {
+		return &ValidationError{Name: "step_count", err: errors.New(`ent: missing required field "HealthKit.step_count"`)}
+	}
+	if v, ok := hkc.mutation.StepCount(); ok {
+		if err := healthkit.StepCountValidator(v); err != nil {
+			return &ValidationError{Name: "step_count", err: fmt.Errorf(`ent: validator failed for field "HealthKit.step_count": %w`, err)}
+		}
 	}
 	return nil
 }
@@ -100,8 +148,13 @@ func (hkc *HealthKitCreate) sqlSave(ctx context.Context) (*HealthKit, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
+	}
 	hkc.mutation.id = &_node.ID
 	hkc.mutation.done = true
 	return _node, nil
@@ -110,11 +163,23 @@ func (hkc *HealthKitCreate) sqlSave(ctx context.Context) (*HealthKit, error) {
 func (hkc *HealthKitCreate) createSpec() (*HealthKit, *sqlgraph.CreateSpec) {
 	var (
 		_node = &HealthKit{config: hkc.config}
-		_spec = sqlgraph.NewCreateSpec(healthkit.Table, sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(healthkit.Table, sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeUUID))
 	)
-	if value, ok := hkc.mutation.Data(); ok {
-		_spec.SetField(healthkit.FieldData, field.TypeJSON, value)
-		_node.Data = value
+	if id, ok := hkc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = &id
+	}
+	if value, ok := hkc.mutation.StartDate(); ok {
+		_spec.SetField(healthkit.FieldStartDate, field.TypeTime, value)
+		_node.StartDate = value
+	}
+	if value, ok := hkc.mutation.EndDate(); ok {
+		_spec.SetField(healthkit.FieldEndDate, field.TypeTime, value)
+		_node.EndDate = value
+	}
+	if value, ok := hkc.mutation.StepCount(); ok {
+		_spec.SetField(healthkit.FieldStepCount, field.TypeFloat64, value)
+		_node.StepCount = value
 	}
 	if nodes := hkc.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -150,6 +215,7 @@ func (hkcb *HealthKitCreateBulk) Save(ctx context.Context) ([]*HealthKit, error)
 	for i := range hkcb.builders {
 		func(i int, root context.Context) {
 			builder := hkcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*HealthKitMutation)
 				if !ok {
@@ -176,10 +242,6 @@ func (hkcb *HealthKitCreateBulk) Save(ctx context.Context) ([]*HealthKit, error)
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})

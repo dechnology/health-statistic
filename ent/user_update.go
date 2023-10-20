@@ -15,6 +15,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/eesoymilk/health-statistic-api/ent/deegoo"
 	"github.com/eesoymilk/health-statistic-api/ent/healthkit"
 	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
@@ -224,18 +225,33 @@ func (uu *UserUpdate) AddMycards(m ...*MyCard) *UserUpdate {
 }
 
 // AddHealthkitIDs adds the "healthkit" edge to the HealthKit entity by IDs.
-func (uu *UserUpdate) AddHealthkitIDs(ids ...int) *UserUpdate {
+func (uu *UserUpdate) AddHealthkitIDs(ids ...uuid.UUID) *UserUpdate {
 	uu.mutation.AddHealthkitIDs(ids...)
 	return uu
 }
 
 // AddHealthkit adds the "healthkit" edges to the HealthKit entity.
 func (uu *UserUpdate) AddHealthkit(h ...*HealthKit) *UserUpdate {
-	ids := make([]int, len(h))
+	ids := make([]uuid.UUID, len(h))
 	for i := range h {
 		ids[i] = h[i].ID
 	}
 	return uu.AddHealthkitIDs(ids...)
+}
+
+// AddDeegooIDs adds the "deegoo" edge to the Deegoo entity by IDs.
+func (uu *UserUpdate) AddDeegooIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddDeegooIDs(ids...)
+	return uu
+}
+
+// AddDeegoo adds the "deegoo" edges to the Deegoo entity.
+func (uu *UserUpdate) AddDeegoo(d ...*Deegoo) *UserUpdate {
+	ids := make([]uuid.UUID, len(d))
+	for i := range d {
+		ids[i] = d[i].ID
+	}
+	return uu.AddDeegooIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -334,18 +350,39 @@ func (uu *UserUpdate) ClearHealthkit() *UserUpdate {
 }
 
 // RemoveHealthkitIDs removes the "healthkit" edge to HealthKit entities by IDs.
-func (uu *UserUpdate) RemoveHealthkitIDs(ids ...int) *UserUpdate {
+func (uu *UserUpdate) RemoveHealthkitIDs(ids ...uuid.UUID) *UserUpdate {
 	uu.mutation.RemoveHealthkitIDs(ids...)
 	return uu
 }
 
 // RemoveHealthkit removes "healthkit" edges to HealthKit entities.
 func (uu *UserUpdate) RemoveHealthkit(h ...*HealthKit) *UserUpdate {
-	ids := make([]int, len(h))
+	ids := make([]uuid.UUID, len(h))
 	for i := range h {
 		ids[i] = h[i].ID
 	}
 	return uu.RemoveHealthkitIDs(ids...)
+}
+
+// ClearDeegoo clears all "deegoo" edges to the Deegoo entity.
+func (uu *UserUpdate) ClearDeegoo() *UserUpdate {
+	uu.mutation.ClearDeegoo()
+	return uu
+}
+
+// RemoveDeegooIDs removes the "deegoo" edge to Deegoo entities by IDs.
+func (uu *UserUpdate) RemoveDeegooIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveDeegooIDs(ids...)
+	return uu
+}
+
+// RemoveDeegoo removes "deegoo" edges to Deegoo entities.
+func (uu *UserUpdate) RemoveDeegoo(d ...*Deegoo) *UserUpdate {
+	ids := make([]uuid.UUID, len(d))
+	for i := range d {
+		ids[i] = d[i].ID
+	}
+	return uu.RemoveDeegooIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -706,7 +743,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{user.HealthkitColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -719,7 +756,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{user.HealthkitColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -735,7 +772,52 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{user.HealthkitColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.DeegooCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DeegooTable,
+			Columns: []string{user.DeegooColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(deegoo.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedDeegooIDs(); len(nodes) > 0 && !uu.mutation.DeegooCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DeegooTable,
+			Columns: []string{user.DeegooColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(deegoo.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.DeegooIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DeegooTable,
+			Columns: []string{user.DeegooColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(deegoo.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -949,18 +1031,33 @@ func (uuo *UserUpdateOne) AddMycards(m ...*MyCard) *UserUpdateOne {
 }
 
 // AddHealthkitIDs adds the "healthkit" edge to the HealthKit entity by IDs.
-func (uuo *UserUpdateOne) AddHealthkitIDs(ids ...int) *UserUpdateOne {
+func (uuo *UserUpdateOne) AddHealthkitIDs(ids ...uuid.UUID) *UserUpdateOne {
 	uuo.mutation.AddHealthkitIDs(ids...)
 	return uuo
 }
 
 // AddHealthkit adds the "healthkit" edges to the HealthKit entity.
 func (uuo *UserUpdateOne) AddHealthkit(h ...*HealthKit) *UserUpdateOne {
-	ids := make([]int, len(h))
+	ids := make([]uuid.UUID, len(h))
 	for i := range h {
 		ids[i] = h[i].ID
 	}
 	return uuo.AddHealthkitIDs(ids...)
+}
+
+// AddDeegooIDs adds the "deegoo" edge to the Deegoo entity by IDs.
+func (uuo *UserUpdateOne) AddDeegooIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddDeegooIDs(ids...)
+	return uuo
+}
+
+// AddDeegoo adds the "deegoo" edges to the Deegoo entity.
+func (uuo *UserUpdateOne) AddDeegoo(d ...*Deegoo) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(d))
+	for i := range d {
+		ids[i] = d[i].ID
+	}
+	return uuo.AddDeegooIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -1059,18 +1156,39 @@ func (uuo *UserUpdateOne) ClearHealthkit() *UserUpdateOne {
 }
 
 // RemoveHealthkitIDs removes the "healthkit" edge to HealthKit entities by IDs.
-func (uuo *UserUpdateOne) RemoveHealthkitIDs(ids ...int) *UserUpdateOne {
+func (uuo *UserUpdateOne) RemoveHealthkitIDs(ids ...uuid.UUID) *UserUpdateOne {
 	uuo.mutation.RemoveHealthkitIDs(ids...)
 	return uuo
 }
 
 // RemoveHealthkit removes "healthkit" edges to HealthKit entities.
 func (uuo *UserUpdateOne) RemoveHealthkit(h ...*HealthKit) *UserUpdateOne {
-	ids := make([]int, len(h))
+	ids := make([]uuid.UUID, len(h))
 	for i := range h {
 		ids[i] = h[i].ID
 	}
 	return uuo.RemoveHealthkitIDs(ids...)
+}
+
+// ClearDeegoo clears all "deegoo" edges to the Deegoo entity.
+func (uuo *UserUpdateOne) ClearDeegoo() *UserUpdateOne {
+	uuo.mutation.ClearDeegoo()
+	return uuo
+}
+
+// RemoveDeegooIDs removes the "deegoo" edge to Deegoo entities by IDs.
+func (uuo *UserUpdateOne) RemoveDeegooIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveDeegooIDs(ids...)
+	return uuo
+}
+
+// RemoveDeegoo removes "deegoo" edges to Deegoo entities.
+func (uuo *UserUpdateOne) RemoveDeegoo(d ...*Deegoo) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(d))
+	for i := range d {
+		ids[i] = d[i].ID
+	}
+	return uuo.RemoveDeegooIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -1461,7 +1579,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: []string{user.HealthkitColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1474,7 +1592,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: []string{user.HealthkitColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1490,7 +1608,52 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: []string{user.HealthkitColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.DeegooCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DeegooTable,
+			Columns: []string{user.DeegooColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(deegoo.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedDeegooIDs(); len(nodes) > 0 && !uuo.mutation.DeegooCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DeegooTable,
+			Columns: []string{user.DeegooColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(deegoo.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.DeegooIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DeegooTable,
+			Columns: []string{user.DeegooColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(deegoo.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

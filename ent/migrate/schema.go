@@ -61,10 +61,37 @@ var (
 			},
 		},
 	}
+	// DeegoosColumns holds the columns for the "deegoos" table.
+	DeegoosColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "perception", Type: field.TypeInt8},
+		{Name: "focus", Type: field.TypeInt8},
+		{Name: "execution", Type: field.TypeInt8},
+		{Name: "memory", Type: field.TypeInt8},
+		{Name: "language", Type: field.TypeInt8},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "user_deegoo", Type: field.TypeString, Nullable: true},
+	}
+	// DeegoosTable holds the schema information for the "deegoos" table.
+	DeegoosTable = &schema.Table{
+		Name:       "deegoos",
+		Columns:    DeegoosColumns,
+		PrimaryKey: []*schema.Column{DeegoosColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "deegoos_users_deegoo",
+				Columns:    []*schema.Column{DeegoosColumns[7]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// HealthKitsColumns holds the columns for the "health_kits" table.
 	HealthKitsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "data", Type: field.TypeJSON},
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "start_date", Type: field.TypeTime},
+		{Name: "end_date", Type: field.TypeTime},
+		{Name: "step_count", Type: field.TypeFloat64},
 		{Name: "user_healthkit", Type: field.TypeString, Nullable: true},
 	}
 	// HealthKitsTable holds the schema information for the "health_kits" table.
@@ -75,7 +102,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "health_kits_users_healthkit",
-				Columns:    []*schema.Column{HealthKitsColumns[2]},
+				Columns:    []*schema.Column{HealthKitsColumns[4]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -279,6 +306,7 @@ var (
 	Tables = []*schema.Table{
 		AnswersTable,
 		ChoicesTable,
+		DeegoosTable,
 		HealthKitsTable,
 		MyCardsTable,
 		NotificationsTable,
@@ -295,6 +323,7 @@ func init() {
 	AnswersTable.ForeignKeys[0].RefTable = QuestionsTable
 	AnswersTable.ForeignKeys[1].RefTable = QuestionnaireResponsesTable
 	ChoicesTable.ForeignKeys[0].RefTable = QuestionsTable
+	DeegoosTable.ForeignKeys[0].RefTable = UsersTable
 	HealthKitsTable.ForeignKeys[0].RefTable = UsersTable
 	MyCardsTable.ForeignKeys[0].RefTable = UsersTable
 	NotificationsTable.ForeignKeys[0].RefTable = MyCardsTable

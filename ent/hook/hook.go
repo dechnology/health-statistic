@@ -37,6 +37,18 @@ func (f ChoiceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, erro
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ChoiceMutation", m)
 }
 
+// The DeegooFunc type is an adapter to allow the use of ordinary
+// function as Deegoo mutator.
+type DeegooFunc func(context.Context, *ent.DeegooMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DeegooFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DeegooMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DeegooMutation", m)
+}
+
 // The HealthKitFunc type is an adapter to allow the use of ordinary
 // function as HealthKit mutator.
 type HealthKitFunc func(context.Context, *ent.HealthKitMutation) (ent.Value, error)

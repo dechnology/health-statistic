@@ -6,7 +6,7 @@ const AuthButton = () => {
   if (isAuthenticated) {
     return (
       <button
-        className="hover:bg-sky-500 px-5 transition-all"
+        className="h-full hover:bg-sky-500 px-5 transition-all"
         onClick={() =>
           logout({ logoutParams: { returnTo: window.location.origin } })
         }

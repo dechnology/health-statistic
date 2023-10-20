@@ -1,5 +1,44 @@
 basePath: /api/v1
 definitions:
+  ent.Deegoo:
+    properties:
+      created_at:
+        description: CreatedAt holds the value of the "created_at" field.
+        type: string
+      execution:
+        description: Execution holds the value of the "execution" field.
+        type: integer
+      focus:
+        description: Focus holds the value of the "focus" field.
+        type: integer
+      id:
+        description: ID of the ent.
+        type: string
+      language:
+        description: Language holds the value of the "language" field.
+        type: integer
+      memory:
+        description: Memory holds the value of the "memory" field.
+        type: integer
+      perception:
+        description: Perception holds the value of the "perception" field.
+        type: integer
+    type: object
+  ent.HealthKit:
+    properties:
+      end_date:
+        description: EndDate holds the value of the "end_date" field.
+        type: string
+      id:
+        description: ID of the ent.
+        type: string
+      start_date:
+        description: StartDate holds the value of the "start_date" field.
+        type: string
+      step_count:
+        description: StepCount holds the value of the "step_count" field.
+        type: number
+    type: object
   ent.MyCard:
     properties:
       card_password:
@@ -201,6 +240,34 @@ definitions:
           The question this answer relates to, the question also needs to be in
           the same questionnaire as the response.
         example: 88888888-8888-4888-8888-888888888888
+        type: string
+    type: object
+  types.BaseDeegoo:
+    properties:
+      execution:
+        type: integer
+      focus:
+        type: integer
+      id:
+        type: string
+      language:
+        type: integer
+      memory:
+        type: integer
+      perception:
+        type: integer
+      user_id:
+        type: string
+    type: object
+  types.BaseHealthKit:
+    properties:
+      end_date:
+        type: string
+      id:
+        type: string
+      start_date:
+        type: string
+      step_count:
         type: string
     type: object
   types.BaseMyCard:
@@ -587,6 +654,8 @@ info:
 
     - `/user` [**GET**]
 
+    - `/user/healthkit` [**POST**]
+
     - `/user/notifications` [**GET**]
 
       **Not yet implemented**
@@ -602,9 +671,38 @@ info:
     - `/prices` [**GET**]
 
     - `/prices/{id}` [**GET**]
+
+    ### Deegoo
+
+    The following APIs are for Deegoo server to hit.
+
+    - `/deegoo` [**POST**]
+
+      This endpoint is for Deegoo server to post deegoo scores data to our server. The server will then process the data and store it in our database.
   title: Web3 - 健康資料公鏈API開發文件
   version: "1.0"
 paths:
+  /deegoo:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: The deegoo scores to submit
+        in: body
+        name: deegoo
+        required: true
+        schema:
+          $ref: '#/definitions/types.BaseDeegoo'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ent.Deegoo'
+      summary: Create Deegoo
+      tags:
+      - Deegoo
   /health_check:
     get:
       description: A health checking endpoint to make sure the server is not dead.
@@ -629,38 +727,6 @@ paths:
             additionalProperties: true
             type: object
       summary: Get HealthKitData
-      tags:
-      - HealthKit
-    post:
-      consumes:
-      - application/json
-      description: |-
-        Create a new HealthKit data assoicated with a given user.
-
-        ## Request Body
-
-        - `user_id` *`string`* **Required**
-            The ID of the user to whom this HealthKit data belongs.
-
-        - **Arbitrary JSON Data** Optional
-            The HealthKit data to be stored. Note that this field is arbitrary and you can store any data you want. However, we recommend you to follow the [HealthKit Data Types](https://developer.apple.com/documentation/healthkit/healthkit_data_types) and [HealthKit Data Types Reference](https://developer.apple.com/documentation/healthkit/healthkit_data_types_reference) to store your data. This will make it easier for you to use the data in the future.
-      parameters:
-      - description: The healthkit to be created
-        in: body
-        name: healthkit
-        required: true
-        schema:
-          additionalProperties: true
-          type: object
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Create HealthKitDatum
       tags:
       - HealthKit
   /mycards:
@@ -1047,6 +1113,27 @@ paths:
       summary: Get Own User
       tags:
       - Self
+  /user/healthkit:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: The healthkit to be created
+        in: body
+        name: healthkit
+        required: true
+        schema:
+          $ref: '#/definitions/types.BaseHealthKit'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ent.HealthKit'
+      summary: Create HealthKit Datum
+      tags:
+      - User
   /users:
     get:
       description: |

@@ -60,6 +60,8 @@ This is not meant to be confused with the plural counterpart, `/users`, whose en
 
 - `/user` [**GET**]
 
+- `/user/healthkit` [**POST**]
+
 - `/user/notifications` [**GET**]
 
   **Not yet implemented**
@@ -75,3 +77,11 @@ The following endpoints are for reading public resources. Currently, they are **
 - `/prices` [**GET**]
 
 - `/prices/{id}` [**GET**]
+
+### Deegoo
+
+The following APIs are for Deegoo server to hit.
+
+- `/deegoo` [**POST**]
+
+  This endpoint is for Deegoo server to post deegoo scores data to our server. The server will then process the data and store it in our database.

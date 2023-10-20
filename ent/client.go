@@ -21,6 +21,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/eesoymilk/health-statistic-api/ent/answer"
 	"github.com/eesoymilk/health-statistic-api/ent/choice"
+	"github.com/eesoymilk/health-statistic-api/ent/deegoo"
 	"github.com/eesoymilk/health-statistic-api/ent/healthkit"
 	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
@@ -40,6 +41,8 @@ type Client struct {
 	Answer *AnswerClient
 	// Choice is the client for interacting with the Choice builders.
 	Choice *ChoiceClient
+	// Deegoo is the client for interacting with the Deegoo builders.
+	Deegoo *DeegooClient
 	// HealthKit is the client for interacting with the HealthKit builders.
 	HealthKit *HealthKitClient
 	// MyCard is the client for interacting with the MyCard builders.
@@ -71,6 +74,7 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Answer = NewAnswerClient(c.config)
 	c.Choice = NewChoiceClient(c.config)
+	c.Deegoo = NewDeegooClient(c.config)
 	c.HealthKit = NewHealthKitClient(c.config)
 	c.MyCard = NewMyCardClient(c.config)
 	c.Notification = NewNotificationClient(c.config)
@@ -163,6 +167,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		config:                cfg,
 		Answer:                NewAnswerClient(cfg),
 		Choice:                NewChoiceClient(cfg),
+		Deegoo:                NewDeegooClient(cfg),
 		HealthKit:             NewHealthKitClient(cfg),
 		MyCard:                NewMyCardClient(cfg),
 		Notification:          NewNotificationClient(cfg),
@@ -192,6 +197,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		config:                cfg,
 		Answer:                NewAnswerClient(cfg),
 		Choice:                NewChoiceClient(cfg),
+		Deegoo:                NewDeegooClient(cfg),
 		HealthKit:             NewHealthKitClient(cfg),
 		MyCard:                NewMyCardClient(cfg),
 		Notification:          NewNotificationClient(cfg),
@@ -229,8 +235,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Answer, c.Choice, c.HealthKit, c.MyCard, c.Notification, c.Price, c.Question,
-		c.Questionnaire, c.QuestionnaireResponse, c.User,
+		c.Answer, c.Choice, c.Deegoo, c.HealthKit, c.MyCard, c.Notification, c.Price,
+		c.Question, c.Questionnaire, c.QuestionnaireResponse, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -240,8 +246,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Answer, c.Choice, c.HealthKit, c.MyCard, c.Notification, c.Price, c.Question,
-		c.Questionnaire, c.QuestionnaireResponse, c.User,
+		c.Answer, c.Choice, c.Deegoo, c.HealthKit, c.MyCard, c.Notification, c.Price,
+		c.Question, c.Questionnaire, c.QuestionnaireResponse, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -254,6 +260,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Answer.mutate(ctx, m)
 	case *ChoiceMutation:
 		return c.Choice.mutate(ctx, m)
+	case *DeegooMutation:
+		return c.Deegoo.mutate(ctx, m)
 	case *HealthKitMutation:
 		return c.HealthKit.mutate(ctx, m)
 	case *MyCardMutation:
@@ -591,6 +599,140 @@ func (c *ChoiceClient) mutate(ctx context.Context, m *ChoiceMutation) (Value, er
 	}
 }
 
+// DeegooClient is a client for the Deegoo schema.
+type DeegooClient struct {
+	config
+}
+
+// NewDeegooClient returns a client for the Deegoo from the given config.
+func NewDeegooClient(c config) *DeegooClient {
+	return &DeegooClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `deegoo.Hooks(f(g(h())))`.
+func (c *DeegooClient) Use(hooks ...Hook) {
+	c.hooks.Deegoo = append(c.hooks.Deegoo, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `deegoo.Intercept(f(g(h())))`.
+func (c *DeegooClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Deegoo = append(c.inters.Deegoo, interceptors...)
+}
+
+// Create returns a builder for creating a Deegoo entity.
+func (c *DeegooClient) Create() *DeegooCreate {
+	mutation := newDeegooMutation(c.config, OpCreate)
+	return &DeegooCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Deegoo entities.
+func (c *DeegooClient) CreateBulk(builders ...*DeegooCreate) *DeegooCreateBulk {
+	return &DeegooCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Deegoo.
+func (c *DeegooClient) Update() *DeegooUpdate {
+	mutation := newDeegooMutation(c.config, OpUpdate)
+	return &DeegooUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DeegooClient) UpdateOne(d *Deegoo) *DeegooUpdateOne {
+	mutation := newDeegooMutation(c.config, OpUpdateOne, withDeegoo(d))
+	return &DeegooUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DeegooClient) UpdateOneID(id uuid.UUID) *DeegooUpdateOne {
+	mutation := newDeegooMutation(c.config, OpUpdateOne, withDeegooID(id))
+	return &DeegooUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Deegoo.
+func (c *DeegooClient) Delete() *DeegooDelete {
+	mutation := newDeegooMutation(c.config, OpDelete)
+	return &DeegooDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DeegooClient) DeleteOne(d *Deegoo) *DeegooDeleteOne {
+	return c.DeleteOneID(d.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DeegooClient) DeleteOneID(id uuid.UUID) *DeegooDeleteOne {
+	builder := c.Delete().Where(deegoo.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DeegooDeleteOne{builder}
+}
+
+// Query returns a query builder for Deegoo.
+func (c *DeegooClient) Query() *DeegooQuery {
+	return &DeegooQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDeegoo},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Deegoo entity by its id.
+func (c *DeegooClient) Get(ctx context.Context, id uuid.UUID) (*Deegoo, error) {
+	return c.Query().Where(deegoo.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DeegooClient) GetX(ctx context.Context, id uuid.UUID) *Deegoo {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a Deegoo.
+func (c *DeegooClient) QueryUser(d *Deegoo) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := d.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(deegoo.Table, deegoo.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, deegoo.UserTable, deegoo.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(d.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *DeegooClient) Hooks() []Hook {
+	return c.hooks.Deegoo
+}
+
+// Interceptors returns the client interceptors.
+func (c *DeegooClient) Interceptors() []Interceptor {
+	return c.inters.Deegoo
+}
+
+func (c *DeegooClient) mutate(ctx context.Context, m *DeegooMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DeegooCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DeegooUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DeegooUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DeegooDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Deegoo mutation op: %q", m.Op())
+	}
+}
+
 // HealthKitClient is a client for the HealthKit schema.
 type HealthKitClient struct {
 	config
@@ -637,7 +779,7 @@ func (c *HealthKitClient) UpdateOne(hk *HealthKit) *HealthKitUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *HealthKitClient) UpdateOneID(id int) *HealthKitUpdateOne {
+func (c *HealthKitClient) UpdateOneID(id uuid.UUID) *HealthKitUpdateOne {
 	mutation := newHealthKitMutation(c.config, OpUpdateOne, withHealthKitID(id))
 	return &HealthKitUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -654,7 +796,7 @@ func (c *HealthKitClient) DeleteOne(hk *HealthKit) *HealthKitDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *HealthKitClient) DeleteOneID(id int) *HealthKitDeleteOne {
+func (c *HealthKitClient) DeleteOneID(id uuid.UUID) *HealthKitDeleteOne {
 	builder := c.Delete().Where(healthkit.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -671,12 +813,12 @@ func (c *HealthKitClient) Query() *HealthKitQuery {
 }
 
 // Get returns a HealthKit entity by its id.
-func (c *HealthKitClient) Get(ctx context.Context, id int) (*HealthKit, error) {
+func (c *HealthKitClient) Get(ctx context.Context, id uuid.UUID) (*HealthKit, error) {
 	return c.Query().Where(healthkit.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *HealthKitClient) GetX(ctx context.Context, id int) *HealthKit {
+func (c *HealthKitClient) GetX(ctx context.Context, id uuid.UUID) *HealthKit {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -1846,6 +1988,22 @@ func (c *UserClient) QueryHealthkit(u *User) *HealthKitQuery {
 	return query
 }
 
+// QueryDeegoo queries the deegoo edge of a User.
+func (c *UserClient) QueryDeegoo(u *User) *DeegooQuery {
+	query := (&DeegooClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(deegoo.Table, deegoo.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.DeegooTable, user.DeegooColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -1874,11 +2032,11 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Answer, Choice, HealthKit, MyCard, Notification, Price, Question, Questionnaire,
-		QuestionnaireResponse, User []ent.Hook
+		Answer, Choice, Deegoo, HealthKit, MyCard, Notification, Price, Question,
+		Questionnaire, QuestionnaireResponse, User []ent.Hook
 	}
 	inters struct {
-		Answer, Choice, HealthKit, MyCard, Notification, Price, Question, Questionnaire,
-		QuestionnaireResponse, User []ent.Interceptor
+		Answer, Choice, Deegoo, HealthKit, MyCard, Notification, Price, Question,
+		Questionnaire, QuestionnaireResponse, User []ent.Interceptor
 	}
 )

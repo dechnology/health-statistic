@@ -16,6 +16,39 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/deegoo": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Deegoo"
+                ],
+                "summary": "Create Deegoo",
+                "parameters": [
+                    {
+                        "description": "The deegoo scores to submit",
+                        "name": "deegoo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.BaseDeegoo"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ent.Deegoo"
+                        }
+                    }
+                }
+            }
+        },
         "/health_check": {
             "get": {
                 "security": [
@@ -47,40 +80,6 @@ const docTemplate = `{
                     "HealthKit"
                 ],
                 "summary": "Get HealthKitData",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "Create a new HealthKit data assoicated with a given user.\n\n## Request Body\n\n- ` + "`" + `user_id` + "`" + ` *` + "`" + `string` + "`" + `* **Required**\n    The ID of the user to whom this HealthKit data belongs.\n\n- **Arbitrary JSON Data** Optional\n    The HealthKit data to be stored. Note that this field is arbitrary and you can store any data you want. However, we recommend you to follow the [HealthKit Data Types](https://developer.apple.com/documentation/healthkit/healthkit_data_types) and [HealthKit Data Types Reference](https://developer.apple.com/documentation/healthkit/healthkit_data_types_reference) to store your data. This will make it easier for you to use the data in the future.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "HealthKit"
-                ],
-                "summary": "Create HealthKitDatum",
-                "parameters": [
-                    {
-                        "description": "The healthkit to be created",
-                        "name": "healthkit",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -557,6 +556,39 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/healthkit": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Create HealthKit Datum",
+                "parameters": [
+                    {
+                        "description": "The healthkit to be created",
+                        "name": "healthkit",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.BaseHealthKit"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ent.HealthKit"
+                        }
+                    }
+                }
+            }
+        },
         "/users": {
             "get": {
                 "description": "Get all users from the database.\n",
@@ -707,6 +739,60 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "ent.Deegoo": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "CreatedAt holds the value of the \"created_at\" field.",
+                    "type": "string"
+                },
+                "execution": {
+                    "description": "Execution holds the value of the \"execution\" field.",
+                    "type": "integer"
+                },
+                "focus": {
+                    "description": "Focus holds the value of the \"focus\" field.",
+                    "type": "integer"
+                },
+                "id": {
+                    "description": "ID of the ent.",
+                    "type": "string"
+                },
+                "language": {
+                    "description": "Language holds the value of the \"language\" field.",
+                    "type": "integer"
+                },
+                "memory": {
+                    "description": "Memory holds the value of the \"memory\" field.",
+                    "type": "integer"
+                },
+                "perception": {
+                    "description": "Perception holds the value of the \"perception\" field.",
+                    "type": "integer"
+                }
+            }
+        },
+        "ent.HealthKit": {
+            "type": "object",
+            "properties": {
+                "end_date": {
+                    "description": "EndDate holds the value of the \"end_date\" field.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID of the ent.",
+                    "type": "string"
+                },
+                "start_date": {
+                    "description": "StartDate holds the value of the \"start_date\" field.",
+                    "type": "string"
+                },
+                "step_count": {
+                    "description": "StepCount holds the value of the \"step_count\" field.",
+                    "type": "number"
+                }
+            }
+        },
         "ent.MyCard": {
             "type": "object",
             "properties": {
@@ -1005,6 +1091,49 @@ const docTemplate = `{
                     "description": "The question this answer relates to, the question also needs to be in\nthe same questionnaire as the response.",
                     "type": "string",
                     "example": "88888888-8888-4888-8888-888888888888"
+                }
+            }
+        },
+        "types.BaseDeegoo": {
+            "type": "object",
+            "properties": {
+                "execution": {
+                    "type": "integer"
+                },
+                "focus": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "language": {
+                    "type": "integer"
+                },
+                "memory": {
+                    "type": "integer"
+                },
+                "perception": {
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.BaseHealthKit": {
+            "type": "object",
+            "properties": {
+                "end_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "step_count": {
+                    "type": "string"
                 }
             }
         },
@@ -1444,7 +1573,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api/v1",
 	Schemes:          []string{"https"},
 	Title:            "Web3 - 健康資料公鏈API開發文件",
-	Description:      "This is the API documentation for 「健康資料公鏈」\n\n## Flow Diagram\n\n![flow_diagram](https://cdn.discordapp.com/attachments/874556062815100940/1132920083174408222/App-.drawio.png)\n\n---\n\n## Auth0 Setup\n\nThis API uses Auth0 as its authorization provider, and all endpoints are protected using Auth0 token.\nTherefore, all your requests must have **Authorization** header with a bearer token.\n\nUse the following parameters to login to our Auth0 services:\n\n- `domain`: `itri-dechnology.jp.auth0.com`\n\n- `clientId`: `holxN6SuSQtRV5oOSwOIXWYwJnvioObh`\n\n- `audience`: `https://health-statistic.dechnology.com.tw/api/v1/`\n\n**_Reference_**: [**Auth0 | Quickstart**](https://auth0.com/docs/quickstarts)\n\n## Schema Overview\n\n### Quesionnaires\n\nFor the sake of scalibility, we make the questionnaire system a general one. That is, we can later create more questionnaires in our application. Upon initialization of our database, the registration questionnaire is created and assigned a fixed UUID.\n\n---\n\n## Client Endpoints\n\nFull descriptions of all endpoints are described below; however, more common endpoints for a client application are described here. For detailed types of params, body, or response, please refer to the full descriptiions below.\n\n### Registraion\n\nEndpoints required to register an user.\n\n- `/questionnaires/registration` [**GET**]\n\n  Before the user register, we need to have them fill in the registration questionnaire. This questionniare can be fetch using this endpoint. Note that this questionnaire correspond to question 16 to 30 since the answers to question 1 to 15 are part of the user data.\n\n- `/register` [**POST**]\n\n  The only endpoint to create an user, note that we will use the ID from Auth0 as the primary key in our database, for example: `auth0|888888888888888888888888`.\n\n### Utilities\n\nSome useful endpoints.\n\n- `/health_check` [**GET**]\n\n  This endpoint checks if the server is alive and the database is connected. It returns a code of 200 if ture.\n\n### Client's User Data\n\nA normal user has access to all resources owned by him/her-self. This is available via the `/user` endpoint.\nThis is not meant to be confused with the plural counterpart, `/users`, whose endpoints are only accessible for users with `read:users` or `write:users` scope. The server will look into your Auth0 token and get the corresponding user data.\n\n- `/user` [**GET**]\n\n- `/user/notifications` [**GET**]\n\n  **Not yet implemented**\n\n### Public Resources\n\nThe following endpoints are for reading public resources. Currently, they are **\"quesionnaires\"** and **\"prices\"**.\n\n- `/quesionnaires` [**GET**]\n\n- `/quesionnaires/{id}` [**GET**]\n\n- `/prices` [**GET**]\n\n- `/prices/{id}` [**GET**]\n",
+	Description:      "This is the API documentation for 「健康資料公鏈」\n\n## Flow Diagram\n\n![flow_diagram](https://cdn.discordapp.com/attachments/874556062815100940/1132920083174408222/App-.drawio.png)\n\n---\n\n## Auth0 Setup\n\nThis API uses Auth0 as its authorization provider, and all endpoints are protected using Auth0 token.\nTherefore, all your requests must have **Authorization** header with a bearer token.\n\nUse the following parameters to login to our Auth0 services:\n\n- `domain`: `itri-dechnology.jp.auth0.com`\n\n- `clientId`: `holxN6SuSQtRV5oOSwOIXWYwJnvioObh`\n\n- `audience`: `https://health-statistic.dechnology.com.tw/api/v1/`\n\n**_Reference_**: [**Auth0 | Quickstart**](https://auth0.com/docs/quickstarts)\n\n## Schema Overview\n\n### Quesionnaires\n\nFor the sake of scalibility, we make the questionnaire system a general one. That is, we can later create more questionnaires in our application. Upon initialization of our database, the registration questionnaire is created and assigned a fixed UUID.\n\n---\n\n## Client Endpoints\n\nFull descriptions of all endpoints are described below; however, more common endpoints for a client application are described here. For detailed types of params, body, or response, please refer to the full descriptiions below.\n\n### Registraion\n\nEndpoints required to register an user.\n\n- `/questionnaires/registration` [**GET**]\n\n  Before the user register, we need to have them fill in the registration questionnaire. This questionniare can be fetch using this endpoint. Note that this questionnaire correspond to question 16 to 30 since the answers to question 1 to 15 are part of the user data.\n\n- `/register` [**POST**]\n\n  The only endpoint to create an user, note that we will use the ID from Auth0 as the primary key in our database, for example: `auth0|888888888888888888888888`.\n\n### Utilities\n\nSome useful endpoints.\n\n- `/health_check` [**GET**]\n\n  This endpoint checks if the server is alive and the database is connected. It returns a code of 200 if ture.\n\n### Client's User Data\n\nA normal user has access to all resources owned by him/her-self. This is available via the `/user` endpoint.\nThis is not meant to be confused with the plural counterpart, `/users`, whose endpoints are only accessible for users with `read:users` or `write:users` scope. The server will look into your Auth0 token and get the corresponding user data.\n\n- `/user` [**GET**]\n\n- `/user/healthkit` [**POST**]\n\n- `/user/notifications` [**GET**]\n\n  **Not yet implemented**\n\n### Public Resources\n\nThe following endpoints are for reading public resources. Currently, they are **\"quesionnaires\"** and **\"prices\"**.\n\n- `/quesionnaires` [**GET**]\n\n- `/quesionnaires/{id}` [**GET**]\n\n- `/prices` [**GET**]\n\n- `/prices/{id}` [**GET**]\n\n### Deegoo\n\nThe following APIs are for Deegoo server to hit.\n\n- `/deegoo` [**POST**]\n\n  This endpoint is for Deegoo server to post deegoo scores data to our server. The server will then process the data and store it in our database.\n",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

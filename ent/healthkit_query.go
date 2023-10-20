@@ -17,6 +17,7 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent/healthkit"
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
+	"github.com/google/uuid"
 )
 
 // HealthKitQuery is the builder for querying HealthKit entities.
@@ -110,8 +111,8 @@ func (hkq *HealthKitQuery) FirstX(ctx context.Context) *HealthKit {
 
 // FirstID returns the first HealthKit ID from the query.
 // Returns a *NotFoundError when no HealthKit ID was found.
-func (hkq *HealthKitQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (hkq *HealthKitQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = hkq.Limit(1).IDs(setContextOp(ctx, hkq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -123,7 +124,7 @@ func (hkq *HealthKitQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (hkq *HealthKitQuery) FirstIDX(ctx context.Context) int {
+func (hkq *HealthKitQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	id, err := hkq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -161,8 +162,8 @@ func (hkq *HealthKitQuery) OnlyX(ctx context.Context) *HealthKit {
 // OnlyID is like Only, but returns the only HealthKit ID in the query.
 // Returns a *NotSingularError when more than one HealthKit ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (hkq *HealthKitQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (hkq *HealthKitQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = hkq.Limit(2).IDs(setContextOp(ctx, hkq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -178,7 +179,7 @@ func (hkq *HealthKitQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (hkq *HealthKitQuery) OnlyIDX(ctx context.Context) int {
+func (hkq *HealthKitQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	id, err := hkq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -206,7 +207,7 @@ func (hkq *HealthKitQuery) AllX(ctx context.Context) []*HealthKit {
 }
 
 // IDs executes the query and returns a list of HealthKit IDs.
-func (hkq *HealthKitQuery) IDs(ctx context.Context) (ids []int, err error) {
+func (hkq *HealthKitQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
 	if hkq.ctx.Unique == nil && hkq.path != nil {
 		hkq.Unique(true)
 	}
@@ -218,7 +219,7 @@ func (hkq *HealthKitQuery) IDs(ctx context.Context) (ids []int, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (hkq *HealthKitQuery) IDsX(ctx context.Context) []int {
+func (hkq *HealthKitQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := hkq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -302,12 +303,12 @@ func (hkq *HealthKitQuery) WithUser(opts ...func(*UserQuery)) *HealthKitQuery {
 // Example:
 //
 //	var v []struct {
-//		Data map[string]interface {} `json:"data,omitempty"`
+//		StartDate time.Time `json:"start_date,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.HealthKit.Query().
-//		GroupBy(healthkit.FieldData).
+//		GroupBy(healthkit.FieldStartDate).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (hkq *HealthKitQuery) GroupBy(field string, fields ...string) *HealthKitGroupBy {
@@ -325,11 +326,11 @@ func (hkq *HealthKitQuery) GroupBy(field string, fields ...string) *HealthKitGro
 // Example:
 //
 //	var v []struct {
-//		Data map[string]interface {} `json:"data,omitempty"`
+//		StartDate time.Time `json:"start_date,omitempty"`
 //	}
 //
 //	client.HealthKit.Query().
-//		Select(healthkit.FieldData).
+//		Select(healthkit.FieldStartDate).
 //		Scan(ctx, &v)
 func (hkq *HealthKitQuery) Select(fields ...string) *HealthKitSelect {
 	hkq.ctx.Fields = append(hkq.ctx.Fields, fields...)
@@ -455,7 +456,7 @@ func (hkq *HealthKitQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (hkq *HealthKitQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(healthkit.Table, healthkit.Columns, sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewQuerySpec(healthkit.Table, healthkit.Columns, sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeUUID))
 	_spec.From = hkq.sql
 	if unique := hkq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

@@ -14,6 +14,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/eesoymilk/health-statistic-api/ent/deegoo"
 	"github.com/eesoymilk/health-statistic-api/ent/healthkit"
 	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
@@ -209,18 +210,33 @@ func (uc *UserCreate) AddMycards(m ...*MyCard) *UserCreate {
 }
 
 // AddHealthkitIDs adds the "healthkit" edge to the HealthKit entity by IDs.
-func (uc *UserCreate) AddHealthkitIDs(ids ...int) *UserCreate {
+func (uc *UserCreate) AddHealthkitIDs(ids ...uuid.UUID) *UserCreate {
 	uc.mutation.AddHealthkitIDs(ids...)
 	return uc
 }
 
 // AddHealthkit adds the "healthkit" edges to the HealthKit entity.
 func (uc *UserCreate) AddHealthkit(h ...*HealthKit) *UserCreate {
-	ids := make([]int, len(h))
+	ids := make([]uuid.UUID, len(h))
 	for i := range h {
 		ids[i] = h[i].ID
 	}
 	return uc.AddHealthkitIDs(ids...)
+}
+
+// AddDeegooIDs adds the "deegoo" edge to the Deegoo entity by IDs.
+func (uc *UserCreate) AddDeegooIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddDeegooIDs(ids...)
+	return uc
+}
+
+// AddDeegoo adds the "deegoo" edges to the Deegoo entity.
+func (uc *UserCreate) AddDeegoo(d ...*Deegoo) *UserCreate {
+	ids := make([]uuid.UUID, len(d))
+	for i := range d {
+		ids[i] = d[i].ID
+	}
+	return uc.AddDeegooIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -552,7 +568,23 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Columns: []string{user.HealthkitColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.DeegooIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DeegooTable,
+			Columns: []string{user.DeegooColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(deegoo.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

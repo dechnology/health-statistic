@@ -9,6 +9,7 @@ package healthkit
 import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/google/uuid"
 )
 
 const (
@@ -16,8 +17,12 @@ const (
 	Label = "health_kit"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldData holds the string denoting the data field in the database.
-	FieldData = "data"
+	// FieldStartDate holds the string denoting the start_date field in the database.
+	FieldStartDate = "start_date"
+	// FieldEndDate holds the string denoting the end_date field in the database.
+	FieldEndDate = "end_date"
+	// FieldStepCount holds the string denoting the step_count field in the database.
+	FieldStepCount = "step_count"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// Table holds the table name of the healthkit in the database.
@@ -34,7 +39,9 @@ const (
 // Columns holds all SQL columns for healthkit fields.
 var Columns = []string{
 	FieldID,
-	FieldData,
+	FieldStartDate,
+	FieldEndDate,
+	FieldStepCount,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "health_kits"
@@ -58,12 +65,34 @@ func ValidColumn(column string) bool {
 	return false
 }
 
+var (
+	// StepCountValidator is a validator for the "step_count" field. It is called by the builders before save.
+	StepCountValidator func(float64) error
+	// DefaultID holds the default value on creation for the "id" field.
+	DefaultID func() uuid.UUID
+)
+
 // OrderOption defines the ordering options for the HealthKit queries.
 type OrderOption func(*sql.Selector)
 
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByStartDate orders the results by the start_date field.
+func ByStartDate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStartDate, opts...).ToFunc()
+}
+
+// ByEndDate orders the results by the end_date field.
+func ByEndDate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEndDate, opts...).ToFunc()
+}
+
+// ByStepCount orders the results by the step_count field.
+func ByStepCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStepCount, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.

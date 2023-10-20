@@ -44,7 +44,7 @@ func (hkd *HealthKitDelete) ExecX(ctx context.Context) int {
 }
 
 func (hkd *HealthKitDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(healthkit.Table, sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewDeleteSpec(healthkit.Table, sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeUUID))
 	if ps := hkd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

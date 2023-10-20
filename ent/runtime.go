@@ -11,6 +11,8 @@ import (
 
 	"github.com/eesoymilk/health-statistic-api/ent/answer"
 	"github.com/eesoymilk/health-statistic-api/ent/choice"
+	"github.com/eesoymilk/health-statistic-api/ent/deegoo"
+	"github.com/eesoymilk/health-statistic-api/ent/healthkit"
 	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/price"
@@ -50,6 +52,116 @@ func init() {
 	choiceDescID := choiceFields[0].Descriptor()
 	// choice.DefaultID holds the default value on creation for the id field.
 	choice.DefaultID = choiceDescID.Default.(func() uuid.UUID)
+	deegooFields := schema.Deegoo{}.Fields()
+	_ = deegooFields
+	// deegooDescPerception is the schema descriptor for perception field.
+	deegooDescPerception := deegooFields[1].Descriptor()
+	// deegoo.PerceptionValidator is a validator for the "perception" field. It is called by the builders before save.
+	deegoo.PerceptionValidator = func() func(int8) error {
+		validators := deegooDescPerception.Validators
+		fns := [...]func(int8) error{
+			validators[0].(func(int8) error),
+			validators[1].(func(int8) error),
+		}
+		return func(perception int8) error {
+			for _, fn := range fns {
+				if err := fn(perception); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// deegooDescFocus is the schema descriptor for focus field.
+	deegooDescFocus := deegooFields[2].Descriptor()
+	// deegoo.FocusValidator is a validator for the "focus" field. It is called by the builders before save.
+	deegoo.FocusValidator = func() func(int8) error {
+		validators := deegooDescFocus.Validators
+		fns := [...]func(int8) error{
+			validators[0].(func(int8) error),
+			validators[1].(func(int8) error),
+		}
+		return func(focus int8) error {
+			for _, fn := range fns {
+				if err := fn(focus); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// deegooDescExecution is the schema descriptor for execution field.
+	deegooDescExecution := deegooFields[3].Descriptor()
+	// deegoo.ExecutionValidator is a validator for the "execution" field. It is called by the builders before save.
+	deegoo.ExecutionValidator = func() func(int8) error {
+		validators := deegooDescExecution.Validators
+		fns := [...]func(int8) error{
+			validators[0].(func(int8) error),
+			validators[1].(func(int8) error),
+		}
+		return func(execution int8) error {
+			for _, fn := range fns {
+				if err := fn(execution); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// deegooDescMemory is the schema descriptor for memory field.
+	deegooDescMemory := deegooFields[4].Descriptor()
+	// deegoo.MemoryValidator is a validator for the "memory" field. It is called by the builders before save.
+	deegoo.MemoryValidator = func() func(int8) error {
+		validators := deegooDescMemory.Validators
+		fns := [...]func(int8) error{
+			validators[0].(func(int8) error),
+			validators[1].(func(int8) error),
+		}
+		return func(memory int8) error {
+			for _, fn := range fns {
+				if err := fn(memory); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// deegooDescLanguage is the schema descriptor for language field.
+	deegooDescLanguage := deegooFields[5].Descriptor()
+	// deegoo.LanguageValidator is a validator for the "language" field. It is called by the builders before save.
+	deegoo.LanguageValidator = func() func(int8) error {
+		validators := deegooDescLanguage.Validators
+		fns := [...]func(int8) error{
+			validators[0].(func(int8) error),
+			validators[1].(func(int8) error),
+		}
+		return func(language int8) error {
+			for _, fn := range fns {
+				if err := fn(language); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// deegooDescCreatedAt is the schema descriptor for created_at field.
+	deegooDescCreatedAt := deegooFields[6].Descriptor()
+	// deegoo.DefaultCreatedAt holds the default value on creation for the created_at field.
+	deegoo.DefaultCreatedAt = deegooDescCreatedAt.Default.(func() time.Time)
+	// deegooDescID is the schema descriptor for id field.
+	deegooDescID := deegooFields[0].Descriptor()
+	// deegoo.DefaultID holds the default value on creation for the id field.
+	deegoo.DefaultID = deegooDescID.Default.(func() uuid.UUID)
+	healthkitFields := schema.HealthKit{}.Fields()
+	_ = healthkitFields
+	// healthkitDescStepCount is the schema descriptor for step_count field.
+	healthkitDescStepCount := healthkitFields[3].Descriptor()
+	// healthkit.StepCountValidator is a validator for the "step_count" field. It is called by the builders before save.
+	healthkit.StepCountValidator = healthkitDescStepCount.Validators[0].(func(float64) error)
+	// healthkitDescID is the schema descriptor for id field.
+	healthkitDescID := healthkitFields[0].Descriptor()
+	// healthkit.DefaultID holds the default value on creation for the id field.
+	healthkit.DefaultID = healthkitDescID.Default.(func() uuid.UUID)
 	mycardFields := schema.MyCard{}.Fields()
 	_ = mycardFields
 	// mycardDescCardPassword is the schema descriptor for card_password field.

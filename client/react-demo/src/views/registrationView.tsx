@@ -6,9 +6,21 @@ import { Answer, Questionnaire } from '../types/questionnaire';
 import InfoQuestionnaire from '../utils/infoQuestionnaire';
 import { useAuth0 } from '@auth0/auth0-react';
 import * as jose from 'jose';
+import { baseUrl } from '../utils/const';
 
-const baseUrl = 'https://health-statistic.dechnology.com.tw/api/v1';
-// const baseUrl = 'http://localhost:8080/api/v1';
+interface RegistrationResponse {
+  questionnaire_id: string;
+  answers: {
+    question_id: string;
+    body: string;
+    choice_ids?: string[];
+  }[];
+}
+
+interface RegistrationRequestBody {
+  response: RegistrationResponse;
+  user: { id: string | undefined };
+}
 
 const getRegistrationQuestionnaire = async (
   token: string | null,
@@ -44,7 +56,7 @@ const RegistrationView = () => {
   const [registrationAnswers, setRegistrationAnswers] = useState<
     Answer[] | undefined
   >([]);
-  const requestBody = useRef<any>();
+  const requestBody = useRef<RegistrationRequestBody>();
 
   useEffect(() => {
     const getToken = async () => {
@@ -126,11 +138,11 @@ const RegistrationView = () => {
       }, {}),
     };
 
-    const response = {
+    const response: RegistrationResponse = {
       questionnaire_id: registrationQuestionnaire.id,
       answers: registrationAnswers.map((a) =>
         a.type === 'single_choice'
-          ? { question_id: a.question_id, choice_ids: [a.body] }
+          ? { question_id: a.question_id, body: a.body, choice_ids: [a.body] }
           : { question_id: a.question_id, body: a.body },
       ),
     };
@@ -156,6 +168,7 @@ const RegistrationView = () => {
     console.log(registerResponse.data);
   };
 
+  if (!isAuthenticated || !user) return <div>Not Logged In</div>;
   if (isLoading || !registrationAnswers)
     return <div>Loading Registration Questionnaire...</div>;
   if (error) return <div>Error: {error.message}</div>;
