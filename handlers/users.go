@@ -106,21 +106,6 @@ func (h *Handler) UpdateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, updatedUserNode)
 }
 
-//	@Summary				Delete User
-//	@Description.markdown	user.delete
-//	@Tags					Users
-//	@Produce				json
-//	@Param					id	path	string	true	"The user's Auth0 ID"
-//	@Success				200
-//	@Router					/users/{id} [delete]
-func (h *Handler) DeleteUser(c *gin.Context) {
-	if err := h.DB.User.DeleteOneID(c.Param("id")).Exec(c.Request.Context()); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusNoContent, nil)
-}
-
 //	@Summary				Get All Notifications From an User
 //	@Description.markdown	user_notifications.get
 //	@Tags					Users

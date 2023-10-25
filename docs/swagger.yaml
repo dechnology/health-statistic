@@ -26,18 +26,15 @@ definitions:
     type: object
   ent.HealthKit:
     properties:
-      end_date:
-        description: EndDate holds the value of the "end_date" field.
+      end_time:
+        description: EndTime holds the value of the "end_time" field.
         type: string
       id:
         description: ID of the ent.
         type: string
-      start_date:
-        description: StartDate holds the value of the "start_date" field.
+      start_time:
+        description: StartTime holds the value of the "start_time" field.
         type: string
-      step_count:
-        description: StepCount holds the value of the "step_count" field.
-        type: number
     type: object
   ent.MyCard:
     properties:
@@ -259,15 +256,30 @@ definitions:
       user_id:
         type: string
     type: object
-  types.BaseHealthKit:
+  types.BaseHKData:
     properties:
-      end_date:
+      end_timestamp:
         type: string
       id:
         type: string
-      start_date:
+      start_timestamp:
         type: string
-      step_count:
+      timezone_id:
+        type: string
+      type:
+        type: string
+      value:
+        type: string
+    type: object
+  types.BaseHealthKit:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/types.BaseHKData'
+        type: array
+      end_time:
+        type: string
+      start_time:
         type: string
     type: object
   types.BaseMyCard:
@@ -1131,7 +1143,7 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/ent.HealthKit'
-      summary: Create HealthKit Datum
+      summary: Create HealthKit Data
       tags:
       - User
   /users:
@@ -1165,7 +1177,7 @@ paths:
           description: OK
       summary: Delete User
       tags:
-      - Users
+      - User
     get:
       description: |
         Get the user specified by the `id` path param.

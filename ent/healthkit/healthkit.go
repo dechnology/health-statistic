@@ -17,14 +17,14 @@ const (
 	Label = "health_kit"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldStartDate holds the string denoting the start_date field in the database.
-	FieldStartDate = "start_date"
-	// FieldEndDate holds the string denoting the end_date field in the database.
-	FieldEndDate = "end_date"
-	// FieldStepCount holds the string denoting the step_count field in the database.
-	FieldStepCount = "step_count"
+	// FieldStartTime holds the string denoting the start_time field in the database.
+	FieldStartTime = "start_time"
+	// FieldEndTime holds the string denoting the end_time field in the database.
+	FieldEndTime = "end_time"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
+	// EdgeData holds the string denoting the data edge name in mutations.
+	EdgeData = "data"
 	// Table holds the table name of the healthkit in the database.
 	Table = "health_kits"
 	// UserTable is the table that holds the user relation/edge.
@@ -34,14 +34,20 @@ const (
 	UserInverseTable = "users"
 	// UserColumn is the table column denoting the user relation/edge.
 	UserColumn = "user_healthkit"
+	// DataTable is the table that holds the data relation/edge.
+	DataTable = "hk_data"
+	// DataInverseTable is the table name for the HKData entity.
+	// It exists in this package in order to avoid circular dependency with the "hkdata" package.
+	DataInverseTable = "hk_data"
+	// DataColumn is the table column denoting the data relation/edge.
+	DataColumn = "health_kit_data"
 )
 
 // Columns holds all SQL columns for healthkit fields.
 var Columns = []string{
 	FieldID,
-	FieldStartDate,
-	FieldEndDate,
-	FieldStepCount,
+	FieldStartTime,
+	FieldEndTime,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "health_kits"
@@ -66,8 +72,6 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// StepCountValidator is a validator for the "step_count" field. It is called by the builders before save.
-	StepCountValidator func(float64) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -80,19 +84,14 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
-// ByStartDate orders the results by the start_date field.
-func ByStartDate(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldStartDate, opts...).ToFunc()
+// ByStartTime orders the results by the start_time field.
+func ByStartTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStartTime, opts...).ToFunc()
 }
 
-// ByEndDate orders the results by the end_date field.
-func ByEndDate(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldEndDate, opts...).ToFunc()
-}
-
-// ByStepCount orders the results by the step_count field.
-func ByStepCount(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldStepCount, opts...).ToFunc()
+// ByEndTime orders the results by the end_time field.
+func ByEndTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEndTime, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.
@@ -101,10 +100,31 @@ func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newUserStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByDataCount orders the results by data count.
+func ByDataCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDataStep(), opts...)
+	}
+}
+
+// ByData orders the results by data terms.
+func ByData(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDataStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(UserInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+	)
+}
+func newDataStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DataInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DataTable, DataColumn),
 	)
 }

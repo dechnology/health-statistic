@@ -19,6 +19,9 @@ type Choice func(*sql.Selector)
 // Deegoo is the predicate function for deegoo builders.
 type Deegoo func(*sql.Selector)
 
+// HKData is the predicate function for hkdata builders.
+type HKData func(*sql.Selector)
+
 // HealthKit is the predicate function for healthkit builders.
 type HealthKit func(*sql.Selector)
 

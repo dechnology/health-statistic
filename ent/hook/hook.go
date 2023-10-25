@@ -49,6 +49,18 @@ func (f DeegooFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, erro
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DeegooMutation", m)
 }
 
+// The HKDataFunc type is an adapter to allow the use of ordinary
+// function as HKData mutator.
+type HKDataFunc func(context.Context, *ent.HKDataMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f HKDataFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.HKDataMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.HKDataMutation", m)
+}
+
 // The HealthKitFunc type is an adapter to allow the use of ordinary
 // function as HealthKit mutator.
 type HealthKitFunc func(context.Context, *ent.HealthKitMutation) (ent.Value, error)

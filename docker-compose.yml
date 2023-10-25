@@ -1,7 +1,8 @@
 version: '3.8'
 services:
   api:
-    image: ghcr.io/eesoymilk/health-statistic-api:main
+    # image: ghcr.io/eesoymilk/health-statistic-api:main
+    image: ${API_IMAGE}
     depends_on:
       db:
         condition: service_healthy
@@ -9,7 +10,7 @@ services:
       - "8080:8080"
     environment:
       POSTGRES_HOST: db # this is not localhost since we are connecting to a container named db
-      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_PORT: 5432
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -17,11 +18,12 @@ services:
       AUTH0_AUDIENCE: ${AUTH0_AUDIENCE}
 
   db:
-    image: ghcr.io/eesoymilk/health-statistic-db:main
+    # image: ghcr.io/eesoymilk/health-statistic-db:main
+    image: ${DB_IMAGE}
     restart: always
     user: postgres
     ports:
-      - "5432:${POSTGRES_PORT}"
+      - "${POSTGRES_PORT}:5432"
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}

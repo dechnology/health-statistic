@@ -154,10 +154,6 @@ func init() {
 	deegoo.DefaultID = deegooDescID.Default.(func() uuid.UUID)
 	healthkitFields := schema.HealthKit{}.Fields()
 	_ = healthkitFields
-	// healthkitDescStepCount is the schema descriptor for step_count field.
-	healthkitDescStepCount := healthkitFields[3].Descriptor()
-	// healthkit.StepCountValidator is a validator for the "step_count" field. It is called by the builders before save.
-	healthkit.StepCountValidator = healthkitDescStepCount.Validators[0].(func(float64) error)
 	// healthkitDescID is the schema descriptor for id field.
 	healthkitDescID := healthkitFields[0].Descriptor()
 	// healthkit.DefaultID holds the default value on creation for the id field.

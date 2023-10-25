@@ -20,6 +20,7 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent/choice"
 	"github.com/eesoymilk/health-statistic-api/ent/deegoo"
 	"github.com/eesoymilk/health-statistic-api/ent/healthkit"
+	"github.com/eesoymilk/health-statistic-api/ent/hkdata"
 	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/price"
@@ -90,6 +91,7 @@ func checkColumn(table, column string) error {
 			answer.Table:                answer.ValidColumn,
 			choice.Table:                choice.ValidColumn,
 			deegoo.Table:                deegoo.ValidColumn,
+			hkdata.Table:                hkdata.ValidColumn,
 			healthkit.Table:             healthkit.ValidColumn,
 			mycard.Table:                mycard.ValidColumn,
 			notification.Table:          notification.ValidColumn,

@@ -82,16 +82,39 @@ var (
 				Symbol:     "deegoos_users_deegoo",
 				Columns:    []*schema.Column{DeegoosColumns[7]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// HkDataColumns holds the columns for the "hk_data" table.
+	HkDataColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "type", Type: field.TypeString},
+		{Name: "value", Type: field.TypeString},
+		{Name: "start_timestamp", Type: field.TypeString},
+		{Name: "end_timestamp", Type: field.TypeString},
+		{Name: "timezone_id", Type: field.TypeString},
+		{Name: "health_kit_data", Type: field.TypeUUID, Nullable: true},
+	}
+	// HkDataTable holds the schema information for the "hk_data" table.
+	HkDataTable = &schema.Table{
+		Name:       "hk_data",
+		Columns:    HkDataColumns,
+		PrimaryKey: []*schema.Column{HkDataColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "hk_data_health_kits_data",
+				Columns:    []*schema.Column{HkDataColumns[6]},
+				RefColumns: []*schema.Column{HealthKitsColumns[0]},
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
 	// HealthKitsColumns holds the columns for the "health_kits" table.
 	HealthKitsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
-		{Name: "start_date", Type: field.TypeTime},
-		{Name: "end_date", Type: field.TypeTime},
-		{Name: "step_count", Type: field.TypeFloat64},
+		{Name: "start_time", Type: field.TypeTime},
+		{Name: "end_time", Type: field.TypeTime},
 		{Name: "user_healthkit", Type: field.TypeString, Nullable: true},
 	}
 	// HealthKitsTable holds the schema information for the "health_kits" table.
@@ -102,9 +125,9 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "health_kits_users_healthkit",
-				Columns:    []*schema.Column{HealthKitsColumns[4]},
+				Columns:    []*schema.Column{HealthKitsColumns[3]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -163,7 +186,7 @@ var (
 				Symbol:     "notifications_users_notifications",
 				Columns:    []*schema.Column{NotificationsColumns[7]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -307,6 +330,7 @@ var (
 		AnswersTable,
 		ChoicesTable,
 		DeegoosTable,
+		HkDataTable,
 		HealthKitsTable,
 		MyCardsTable,
 		NotificationsTable,
@@ -324,6 +348,7 @@ func init() {
 	AnswersTable.ForeignKeys[1].RefTable = QuestionnaireResponsesTable
 	ChoicesTable.ForeignKeys[0].RefTable = QuestionsTable
 	DeegoosTable.ForeignKeys[0].RefTable = UsersTable
+	HkDataTable.ForeignKeys[0].RefTable = HealthKitsTable
 	HealthKitsTable.ForeignKeys[0].RefTable = UsersTable
 	MyCardsTable.ForeignKeys[0].RefTable = UsersTable
 	NotificationsTable.ForeignKeys[0].RefTable = MyCardsTable

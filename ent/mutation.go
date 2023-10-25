@@ -19,6 +19,7 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent/choice"
 	"github.com/eesoymilk/health-statistic-api/ent/deegoo"
 	"github.com/eesoymilk/health-statistic-api/ent/healthkit"
+	"github.com/eesoymilk/health-statistic-api/ent/hkdata"
 	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
@@ -42,6 +43,7 @@ const (
 	TypeAnswer                = "Answer"
 	TypeChoice                = "Choice"
 	TypeDeegoo                = "Deegoo"
+	TypeHKData                = "HKData"
 	TypeHealthKit             = "HealthKit"
 	TypeMyCard                = "MyCard"
 	TypeNotification          = "Notification"
@@ -2082,19 +2084,635 @@ func (m *DeegooMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Deegoo edge %s", name)
 }
 
+// HKDataMutation represents an operation that mutates the HKData nodes in the graph.
+type HKDataMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *uuid.UUID
+	_type            *string
+	value            *string
+	start_timestamp  *string
+	end_timestamp    *string
+	timezone_id      *string
+	clearedFields    map[string]struct{}
+	healthkit        *uuid.UUID
+	clearedhealthkit bool
+	done             bool
+	oldValue         func(context.Context) (*HKData, error)
+	predicates       []predicate.HKData
+}
+
+var _ ent.Mutation = (*HKDataMutation)(nil)
+
+// hkdataOption allows management of the mutation configuration using functional options.
+type hkdataOption func(*HKDataMutation)
+
+// newHKDataMutation creates new mutation for the HKData entity.
+func newHKDataMutation(c config, op Op, opts ...hkdataOption) *HKDataMutation {
+	m := &HKDataMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeHKData,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withHKDataID sets the ID field of the mutation.
+func withHKDataID(id uuid.UUID) hkdataOption {
+	return func(m *HKDataMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *HKData
+		)
+		m.oldValue = func(ctx context.Context) (*HKData, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().HKData.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withHKData sets the old HKData of the mutation.
+func withHKData(node *HKData) hkdataOption {
+	return func(m *HKDataMutation) {
+		m.oldValue = func(context.Context) (*HKData, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m HKDataMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m HKDataMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of HKData entities.
+func (m *HKDataMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *HKDataMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *HKDataMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().HKData.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetType sets the "type" field.
+func (m *HKDataMutation) SetType(s string) {
+	m._type = &s
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *HKDataMutation) GetType() (r string, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the HKData entity.
+// If the HKData object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HKDataMutation) OldType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *HKDataMutation) ResetType() {
+	m._type = nil
+}
+
+// SetValue sets the "value" field.
+func (m *HKDataMutation) SetValue(s string) {
+	m.value = &s
+}
+
+// Value returns the value of the "value" field in the mutation.
+func (m *HKDataMutation) Value() (r string, exists bool) {
+	v := m.value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldValue returns the old "value" field's value of the HKData entity.
+// If the HKData object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HKDataMutation) OldValue(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldValue is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldValue requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldValue: %w", err)
+	}
+	return oldValue.Value, nil
+}
+
+// ResetValue resets all changes to the "value" field.
+func (m *HKDataMutation) ResetValue() {
+	m.value = nil
+}
+
+// SetStartTimestamp sets the "start_timestamp" field.
+func (m *HKDataMutation) SetStartTimestamp(s string) {
+	m.start_timestamp = &s
+}
+
+// StartTimestamp returns the value of the "start_timestamp" field in the mutation.
+func (m *HKDataMutation) StartTimestamp() (r string, exists bool) {
+	v := m.start_timestamp
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartTimestamp returns the old "start_timestamp" field's value of the HKData entity.
+// If the HKData object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HKDataMutation) OldStartTimestamp(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartTimestamp is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartTimestamp requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartTimestamp: %w", err)
+	}
+	return oldValue.StartTimestamp, nil
+}
+
+// ResetStartTimestamp resets all changes to the "start_timestamp" field.
+func (m *HKDataMutation) ResetStartTimestamp() {
+	m.start_timestamp = nil
+}
+
+// SetEndTimestamp sets the "end_timestamp" field.
+func (m *HKDataMutation) SetEndTimestamp(s string) {
+	m.end_timestamp = &s
+}
+
+// EndTimestamp returns the value of the "end_timestamp" field in the mutation.
+func (m *HKDataMutation) EndTimestamp() (r string, exists bool) {
+	v := m.end_timestamp
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEndTimestamp returns the old "end_timestamp" field's value of the HKData entity.
+// If the HKData object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HKDataMutation) OldEndTimestamp(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEndTimestamp is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEndTimestamp requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEndTimestamp: %w", err)
+	}
+	return oldValue.EndTimestamp, nil
+}
+
+// ResetEndTimestamp resets all changes to the "end_timestamp" field.
+func (m *HKDataMutation) ResetEndTimestamp() {
+	m.end_timestamp = nil
+}
+
+// SetTimezoneID sets the "timezone_id" field.
+func (m *HKDataMutation) SetTimezoneID(s string) {
+	m.timezone_id = &s
+}
+
+// TimezoneID returns the value of the "timezone_id" field in the mutation.
+func (m *HKDataMutation) TimezoneID() (r string, exists bool) {
+	v := m.timezone_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTimezoneID returns the old "timezone_id" field's value of the HKData entity.
+// If the HKData object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HKDataMutation) OldTimezoneID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTimezoneID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTimezoneID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTimezoneID: %w", err)
+	}
+	return oldValue.TimezoneID, nil
+}
+
+// ResetTimezoneID resets all changes to the "timezone_id" field.
+func (m *HKDataMutation) ResetTimezoneID() {
+	m.timezone_id = nil
+}
+
+// SetHealthkitID sets the "healthkit" edge to the HealthKit entity by id.
+func (m *HKDataMutation) SetHealthkitID(id uuid.UUID) {
+	m.healthkit = &id
+}
+
+// ClearHealthkit clears the "healthkit" edge to the HealthKit entity.
+func (m *HKDataMutation) ClearHealthkit() {
+	m.clearedhealthkit = true
+}
+
+// HealthkitCleared reports if the "healthkit" edge to the HealthKit entity was cleared.
+func (m *HKDataMutation) HealthkitCleared() bool {
+	return m.clearedhealthkit
+}
+
+// HealthkitID returns the "healthkit" edge ID in the mutation.
+func (m *HKDataMutation) HealthkitID() (id uuid.UUID, exists bool) {
+	if m.healthkit != nil {
+		return *m.healthkit, true
+	}
+	return
+}
+
+// HealthkitIDs returns the "healthkit" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// HealthkitID instead. It exists only for internal usage by the builders.
+func (m *HKDataMutation) HealthkitIDs() (ids []uuid.UUID) {
+	if id := m.healthkit; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetHealthkit resets all changes to the "healthkit" edge.
+func (m *HKDataMutation) ResetHealthkit() {
+	m.healthkit = nil
+	m.clearedhealthkit = false
+}
+
+// Where appends a list predicates to the HKDataMutation builder.
+func (m *HKDataMutation) Where(ps ...predicate.HKData) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the HKDataMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *HKDataMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.HKData, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *HKDataMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *HKDataMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (HKData).
+func (m *HKDataMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *HKDataMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m._type != nil {
+		fields = append(fields, hkdata.FieldType)
+	}
+	if m.value != nil {
+		fields = append(fields, hkdata.FieldValue)
+	}
+	if m.start_timestamp != nil {
+		fields = append(fields, hkdata.FieldStartTimestamp)
+	}
+	if m.end_timestamp != nil {
+		fields = append(fields, hkdata.FieldEndTimestamp)
+	}
+	if m.timezone_id != nil {
+		fields = append(fields, hkdata.FieldTimezoneID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *HKDataMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case hkdata.FieldType:
+		return m.GetType()
+	case hkdata.FieldValue:
+		return m.Value()
+	case hkdata.FieldStartTimestamp:
+		return m.StartTimestamp()
+	case hkdata.FieldEndTimestamp:
+		return m.EndTimestamp()
+	case hkdata.FieldTimezoneID:
+		return m.TimezoneID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *HKDataMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case hkdata.FieldType:
+		return m.OldType(ctx)
+	case hkdata.FieldValue:
+		return m.OldValue(ctx)
+	case hkdata.FieldStartTimestamp:
+		return m.OldStartTimestamp(ctx)
+	case hkdata.FieldEndTimestamp:
+		return m.OldEndTimestamp(ctx)
+	case hkdata.FieldTimezoneID:
+		return m.OldTimezoneID(ctx)
+	}
+	return nil, fmt.Errorf("unknown HKData field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *HKDataMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case hkdata.FieldType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
+		return nil
+	case hkdata.FieldValue:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetValue(v)
+		return nil
+	case hkdata.FieldStartTimestamp:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartTimestamp(v)
+		return nil
+	case hkdata.FieldEndTimestamp:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEndTimestamp(v)
+		return nil
+	case hkdata.FieldTimezoneID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTimezoneID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown HKData field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *HKDataMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *HKDataMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *HKDataMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown HKData numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *HKDataMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *HKDataMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *HKDataMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown HKData nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *HKDataMutation) ResetField(name string) error {
+	switch name {
+	case hkdata.FieldType:
+		m.ResetType()
+		return nil
+	case hkdata.FieldValue:
+		m.ResetValue()
+		return nil
+	case hkdata.FieldStartTimestamp:
+		m.ResetStartTimestamp()
+		return nil
+	case hkdata.FieldEndTimestamp:
+		m.ResetEndTimestamp()
+		return nil
+	case hkdata.FieldTimezoneID:
+		m.ResetTimezoneID()
+		return nil
+	}
+	return fmt.Errorf("unknown HKData field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *HKDataMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.healthkit != nil {
+		edges = append(edges, hkdata.EdgeHealthkit)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *HKDataMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case hkdata.EdgeHealthkit:
+		if id := m.healthkit; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *HKDataMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *HKDataMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *HKDataMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedhealthkit {
+		edges = append(edges, hkdata.EdgeHealthkit)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *HKDataMutation) EdgeCleared(name string) bool {
+	switch name {
+	case hkdata.EdgeHealthkit:
+		return m.clearedhealthkit
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *HKDataMutation) ClearEdge(name string) error {
+	switch name {
+	case hkdata.EdgeHealthkit:
+		m.ClearHealthkit()
+		return nil
+	}
+	return fmt.Errorf("unknown HKData unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *HKDataMutation) ResetEdge(name string) error {
+	switch name {
+	case hkdata.EdgeHealthkit:
+		m.ResetHealthkit()
+		return nil
+	}
+	return fmt.Errorf("unknown HKData edge %s", name)
+}
+
 // HealthKitMutation represents an operation that mutates the HealthKit nodes in the graph.
 type HealthKitMutation struct {
 	config
 	op            Op
 	typ           string
 	id            *uuid.UUID
-	start_date    *time.Time
-	end_date      *time.Time
-	step_count    *float64
-	addstep_count *float64
+	start_time    *time.Time
+	end_time      *time.Time
 	clearedFields map[string]struct{}
 	user          *string
 	cleareduser   bool
+	data          map[uuid.UUID]struct{}
+	removeddata   map[uuid.UUID]struct{}
+	cleareddata   bool
 	done          bool
 	oldValue      func(context.Context) (*HealthKit, error)
 	predicates    []predicate.HealthKit
@@ -2204,132 +2822,76 @@ func (m *HealthKitMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	}
 }
 
-// SetStartDate sets the "start_date" field.
-func (m *HealthKitMutation) SetStartDate(t time.Time) {
-	m.start_date = &t
+// SetStartTime sets the "start_time" field.
+func (m *HealthKitMutation) SetStartTime(t time.Time) {
+	m.start_time = &t
 }
 
-// StartDate returns the value of the "start_date" field in the mutation.
-func (m *HealthKitMutation) StartDate() (r time.Time, exists bool) {
-	v := m.start_date
+// StartTime returns the value of the "start_time" field in the mutation.
+func (m *HealthKitMutation) StartTime() (r time.Time, exists bool) {
+	v := m.start_time
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldStartDate returns the old "start_date" field's value of the HealthKit entity.
+// OldStartTime returns the old "start_time" field's value of the HealthKit entity.
 // If the HealthKit object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *HealthKitMutation) OldStartDate(ctx context.Context) (v time.Time, err error) {
+func (m *HealthKitMutation) OldStartTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStartDate is only allowed on UpdateOne operations")
+		return v, errors.New("OldStartTime is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStartDate requires an ID field in the mutation")
+		return v, errors.New("OldStartTime requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStartDate: %w", err)
+		return v, fmt.Errorf("querying old value for OldStartTime: %w", err)
 	}
-	return oldValue.StartDate, nil
+	return oldValue.StartTime, nil
 }
 
-// ResetStartDate resets all changes to the "start_date" field.
-func (m *HealthKitMutation) ResetStartDate() {
-	m.start_date = nil
+// ResetStartTime resets all changes to the "start_time" field.
+func (m *HealthKitMutation) ResetStartTime() {
+	m.start_time = nil
 }
 
-// SetEndDate sets the "end_date" field.
-func (m *HealthKitMutation) SetEndDate(t time.Time) {
-	m.end_date = &t
+// SetEndTime sets the "end_time" field.
+func (m *HealthKitMutation) SetEndTime(t time.Time) {
+	m.end_time = &t
 }
 
-// EndDate returns the value of the "end_date" field in the mutation.
-func (m *HealthKitMutation) EndDate() (r time.Time, exists bool) {
-	v := m.end_date
+// EndTime returns the value of the "end_time" field in the mutation.
+func (m *HealthKitMutation) EndTime() (r time.Time, exists bool) {
+	v := m.end_time
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldEndDate returns the old "end_date" field's value of the HealthKit entity.
+// OldEndTime returns the old "end_time" field's value of the HealthKit entity.
 // If the HealthKit object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *HealthKitMutation) OldEndDate(ctx context.Context) (v time.Time, err error) {
+func (m *HealthKitMutation) OldEndTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldEndDate is only allowed on UpdateOne operations")
+		return v, errors.New("OldEndTime is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldEndDate requires an ID field in the mutation")
+		return v, errors.New("OldEndTime requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldEndDate: %w", err)
+		return v, fmt.Errorf("querying old value for OldEndTime: %w", err)
 	}
-	return oldValue.EndDate, nil
+	return oldValue.EndTime, nil
 }
 
-// ResetEndDate resets all changes to the "end_date" field.
-func (m *HealthKitMutation) ResetEndDate() {
-	m.end_date = nil
-}
-
-// SetStepCount sets the "step_count" field.
-func (m *HealthKitMutation) SetStepCount(f float64) {
-	m.step_count = &f
-	m.addstep_count = nil
-}
-
-// StepCount returns the value of the "step_count" field in the mutation.
-func (m *HealthKitMutation) StepCount() (r float64, exists bool) {
-	v := m.step_count
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldStepCount returns the old "step_count" field's value of the HealthKit entity.
-// If the HealthKit object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *HealthKitMutation) OldStepCount(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStepCount is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStepCount requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStepCount: %w", err)
-	}
-	return oldValue.StepCount, nil
-}
-
-// AddStepCount adds f to the "step_count" field.
-func (m *HealthKitMutation) AddStepCount(f float64) {
-	if m.addstep_count != nil {
-		*m.addstep_count += f
-	} else {
-		m.addstep_count = &f
-	}
-}
-
-// AddedStepCount returns the value that was added to the "step_count" field in this mutation.
-func (m *HealthKitMutation) AddedStepCount() (r float64, exists bool) {
-	v := m.addstep_count
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetStepCount resets all changes to the "step_count" field.
-func (m *HealthKitMutation) ResetStepCount() {
-	m.step_count = nil
-	m.addstep_count = nil
+// ResetEndTime resets all changes to the "end_time" field.
+func (m *HealthKitMutation) ResetEndTime() {
+	m.end_time = nil
 }
 
 // SetUserID sets the "user" edge to the User entity by id.
@@ -2371,6 +2933,60 @@ func (m *HealthKitMutation) ResetUser() {
 	m.cleareduser = false
 }
 
+// AddDatumIDs adds the "data" edge to the HKData entity by ids.
+func (m *HealthKitMutation) AddDatumIDs(ids ...uuid.UUID) {
+	if m.data == nil {
+		m.data = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.data[ids[i]] = struct{}{}
+	}
+}
+
+// ClearData clears the "data" edge to the HKData entity.
+func (m *HealthKitMutation) ClearData() {
+	m.cleareddata = true
+}
+
+// DataCleared reports if the "data" edge to the HKData entity was cleared.
+func (m *HealthKitMutation) DataCleared() bool {
+	return m.cleareddata
+}
+
+// RemoveDatumIDs removes the "data" edge to the HKData entity by IDs.
+func (m *HealthKitMutation) RemoveDatumIDs(ids ...uuid.UUID) {
+	if m.removeddata == nil {
+		m.removeddata = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.data, ids[i])
+		m.removeddata[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedData returns the removed IDs of the "data" edge to the HKData entity.
+func (m *HealthKitMutation) RemovedDataIDs() (ids []uuid.UUID) {
+	for id := range m.removeddata {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// DataIDs returns the "data" edge IDs in the mutation.
+func (m *HealthKitMutation) DataIDs() (ids []uuid.UUID) {
+	for id := range m.data {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetData resets all changes to the "data" edge.
+func (m *HealthKitMutation) ResetData() {
+	m.data = nil
+	m.cleareddata = false
+	m.removeddata = nil
+}
+
 // Where appends a list predicates to the HealthKitMutation builder.
 func (m *HealthKitMutation) Where(ps ...predicate.HealthKit) {
 	m.predicates = append(m.predicates, ps...)
@@ -2405,15 +3021,12 @@ func (m *HealthKitMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *HealthKitMutation) Fields() []string {
-	fields := make([]string, 0, 3)
-	if m.start_date != nil {
-		fields = append(fields, healthkit.FieldStartDate)
+	fields := make([]string, 0, 2)
+	if m.start_time != nil {
+		fields = append(fields, healthkit.FieldStartTime)
 	}
-	if m.end_date != nil {
-		fields = append(fields, healthkit.FieldEndDate)
-	}
-	if m.step_count != nil {
-		fields = append(fields, healthkit.FieldStepCount)
+	if m.end_time != nil {
+		fields = append(fields, healthkit.FieldEndTime)
 	}
 	return fields
 }
@@ -2423,12 +3036,10 @@ func (m *HealthKitMutation) Fields() []string {
 // schema.
 func (m *HealthKitMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case healthkit.FieldStartDate:
-		return m.StartDate()
-	case healthkit.FieldEndDate:
-		return m.EndDate()
-	case healthkit.FieldStepCount:
-		return m.StepCount()
+	case healthkit.FieldStartTime:
+		return m.StartTime()
+	case healthkit.FieldEndTime:
+		return m.EndTime()
 	}
 	return nil, false
 }
@@ -2438,12 +3049,10 @@ func (m *HealthKitMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *HealthKitMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case healthkit.FieldStartDate:
-		return m.OldStartDate(ctx)
-	case healthkit.FieldEndDate:
-		return m.OldEndDate(ctx)
-	case healthkit.FieldStepCount:
-		return m.OldStepCount(ctx)
+	case healthkit.FieldStartTime:
+		return m.OldStartTime(ctx)
+	case healthkit.FieldEndTime:
+		return m.OldEndTime(ctx)
 	}
 	return nil, fmt.Errorf("unknown HealthKit field %s", name)
 }
@@ -2453,26 +3062,19 @@ func (m *HealthKitMutation) OldField(ctx context.Context, name string) (ent.Valu
 // type.
 func (m *HealthKitMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case healthkit.FieldStartDate:
+	case healthkit.FieldStartTime:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetStartDate(v)
+		m.SetStartTime(v)
 		return nil
-	case healthkit.FieldEndDate:
+	case healthkit.FieldEndTime:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetEndDate(v)
-		return nil
-	case healthkit.FieldStepCount:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStepCount(v)
+		m.SetEndTime(v)
 		return nil
 	}
 	return fmt.Errorf("unknown HealthKit field %s", name)
@@ -2481,21 +3083,13 @@ func (m *HealthKitMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *HealthKitMutation) AddedFields() []string {
-	var fields []string
-	if m.addstep_count != nil {
-		fields = append(fields, healthkit.FieldStepCount)
-	}
-	return fields
+	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *HealthKitMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case healthkit.FieldStepCount:
-		return m.AddedStepCount()
-	}
 	return nil, false
 }
 
@@ -2504,13 +3098,6 @@ func (m *HealthKitMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *HealthKitMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case healthkit.FieldStepCount:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddStepCount(v)
-		return nil
 	}
 	return fmt.Errorf("unknown HealthKit numeric field %s", name)
 }
@@ -2538,14 +3125,11 @@ func (m *HealthKitMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *HealthKitMutation) ResetField(name string) error {
 	switch name {
-	case healthkit.FieldStartDate:
-		m.ResetStartDate()
+	case healthkit.FieldStartTime:
+		m.ResetStartTime()
 		return nil
-	case healthkit.FieldEndDate:
-		m.ResetEndDate()
-		return nil
-	case healthkit.FieldStepCount:
-		m.ResetStepCount()
+	case healthkit.FieldEndTime:
+		m.ResetEndTime()
 		return nil
 	}
 	return fmt.Errorf("unknown HealthKit field %s", name)
@@ -2553,9 +3137,12 @@ func (m *HealthKitMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *HealthKitMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.user != nil {
 		edges = append(edges, healthkit.EdgeUser)
+	}
+	if m.data != nil {
+		edges = append(edges, healthkit.EdgeData)
 	}
 	return edges
 }
@@ -2568,27 +3155,47 @@ func (m *HealthKitMutation) AddedIDs(name string) []ent.Value {
 		if id := m.user; id != nil {
 			return []ent.Value{*id}
 		}
+	case healthkit.EdgeData:
+		ids := make([]ent.Value, 0, len(m.data))
+		for id := range m.data {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *HealthKitMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removeddata != nil {
+		edges = append(edges, healthkit.EdgeData)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *HealthKitMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case healthkit.EdgeData:
+		ids := make([]ent.Value, 0, len(m.removeddata))
+		for id := range m.removeddata {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *HealthKitMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.cleareduser {
 		edges = append(edges, healthkit.EdgeUser)
+	}
+	if m.cleareddata {
+		edges = append(edges, healthkit.EdgeData)
 	}
 	return edges
 }
@@ -2599,6 +3206,8 @@ func (m *HealthKitMutation) EdgeCleared(name string) bool {
 	switch name {
 	case healthkit.EdgeUser:
 		return m.cleareduser
+	case healthkit.EdgeData:
+		return m.cleareddata
 	}
 	return false
 }
@@ -2620,6 +3229,9 @@ func (m *HealthKitMutation) ResetEdge(name string) error {
 	switch name {
 	case healthkit.EdgeUser:
 		m.ResetUser()
+		return nil
+	case healthkit.EdgeData:
+		m.ResetData()
 		return nil
 	}
 	return fmt.Errorf("unknown HealthKit edge %s", name)

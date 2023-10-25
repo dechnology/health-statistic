@@ -39,7 +39,7 @@ func (h *Handler) GetSelf(c *gin.Context) {
 	c.JSON(http.StatusOK, userNode)
 }
 
-//	@Summary				Create HealthKit Datum
+//	@Summary				Create HealthKit Data
 //	@Description.markdown	user_healthkit.post
 //	@Tags					User
 //	@Accept					json
@@ -74,15 +74,47 @@ func (h *Handler) CreateUserHealthKitData(c *gin.Context) {
 
 	healthkitNode, err := h.DB.HealthKit.
 		Create().
-		SetStartDate(body.StartDate).
-		SetEndDate(body.EndDate).
-		SetStepCount(body.StepCount).
 		SetUserID(*userId).
+		SetStartTime(body.StartTime).
+		SetEndTime(body.EndTime).
 		Save(c.Request.Context())
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	for _, datum := range body.Data {
+		_, err := h.DB.HKData.
+			Create().
+			SetHealthkit(healthkitNode).
+			SetType(datum.Type).
+			SetValue(datum.Value).
+			SetStartTimestamp(datum.StartTimestamp).
+			SetEndTimestamp(datum.EndTimestamp).
+			SetTimezoneID(datum.TimezoneID).
+			Save(c.Request.Context())
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
 	c.JSON(http.StatusOK, healthkitNode)
+}
+
+//	@Summary				Delete User
+//	@Description.markdown	user.delete
+//	@Tags					User
+//	@Produce				json
+//	@Param					id	path	string	true	"The user's Auth0 ID"
+//	@Success				200
+//	@Router					/users/{id} [delete]
+func (h *Handler) DeleteUser(c *gin.Context) {
+	if err := h.DB.User.DeleteOneID(c.Param("id")).Exec(c.Request.Context()); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusNoContent, nil)
 }

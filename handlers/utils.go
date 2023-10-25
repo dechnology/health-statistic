@@ -27,8 +27,10 @@ func (h *Handler) GetUserById(
 		WithDeegoo().
 		WithHealthkit().
 		Only(ctx)
+
 	if err != nil {
 		return nil, err
 	}
+
 	return userNode, nil
 }
