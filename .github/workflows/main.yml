@@ -84,7 +84,7 @@ jobs:
             mkdir src || true
             cd src || exit 1
 
-            exporr API_IMAGE=${{ env.API_IMAGE }}
+            export API_IMAGE=${{ env.API_IMAGE }}
             export DB_IMAGE=${{ env.DB_IMAGE }}
             export POSTGRES_PORT=${{ env.POSTGRES_PORT }}
             export POSTGRES_USER=${{ env.POSTGRES_USER }}
