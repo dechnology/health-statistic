@@ -18,7 +18,7 @@ services:
       AUTH0_ISSUER_URL: ${AUTH0_ISSUER_URL}
       AUTH0_AUDIENCE: ${AUTH0_AUDIENCE}
     volumes:
-      - ./firebase-credentials.json:${PWD}/firebase-credentials.json
+      - ./firebase-credentials.json:/usr/src/app/firebase-credentials.json
 
   db:
     # image: ghcr.io/eesoymilk/health-statistic-db:main
