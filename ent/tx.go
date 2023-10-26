@@ -22,6 +22,8 @@ type Tx struct {
 	Choice *ChoiceClient
 	// Deegoo is the client for interacting with the Deegoo builders.
 	Deegoo *DeegooClient
+	// HKData is the client for interacting with the HKData builders.
+	HKData *HKDataClient
 	// HealthKit is the client for interacting with the HealthKit builders.
 	HealthKit *HealthKitClient
 	// MyCard is the client for interacting with the MyCard builders.
@@ -172,6 +174,7 @@ func (tx *Tx) init() {
 	tx.Answer = NewAnswerClient(tx.config)
 	tx.Choice = NewChoiceClient(tx.config)
 	tx.Deegoo = NewDeegooClient(tx.config)
+	tx.HKData = NewHKDataClient(tx.config)
 	tx.HealthKit = NewHealthKitClient(tx.config)
 	tx.MyCard = NewMyCardClient(tx.config)
 	tx.Notification = NewNotificationClient(tx.config)

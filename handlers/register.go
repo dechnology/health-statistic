@@ -23,8 +23,7 @@ import (
 //	@Router					/register [post]
 func (h *Handler) Register(c *gin.Context) {
 
-	// STEP 0:	Check if a MyCard is available
-	fmt.Print("Step 0\n")
+	fmt.Print("Step 0: Check if a MyCard is available\n")
 	myCardNode, err := h.DB.MyCard.Query().
 		Where(mycard.Not(mycard.HasRecipient())).
 		First(c.Request.Context())
@@ -36,8 +35,7 @@ func (h *Handler) Register(c *gin.Context) {
 		return
 	}
 
-	// STEP 1:	Create a new user
-	fmt.Print("Step 1\n")
+	fmt.Print("Step 0.5: Create a new user\n")
 	var body types.RegisterData
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -51,6 +49,7 @@ func (h *Handler) Register(c *gin.Context) {
 	}
 	log.Print(string(out))
 
+	fmt.Print("Step 1: Create a new user\n")
 	userNode, err := h.DB.User.
 		Create().
 		SetID(body.User.ID).
@@ -70,6 +69,7 @@ func (h *Handler) Register(c *gin.Context) {
 		SetSmokingHabit(user.SmokingHabit(body.User.SmokingHabit)).
 		AddMycards(myCardNode). // Assign a MyCard
 		Save(c.Request.Context())
+
 	if err != nil {
 		c.JSON(
 			http.StatusInternalServerError,
@@ -78,8 +78,7 @@ func (h *Handler) Register(c *gin.Context) {
 		return
 	}
 
-	// STEP 2:	Respond to registration questionnaire
-	fmt.Print("Step 2\n")
+	fmt.Print("Step 2: Respond to registration questionnaire\n")
 	if body.Response.QuestionnaireId != h.RegistrationQuestionnaireId {
 		c.JSON(
 			http.StatusBadRequest,
@@ -93,6 +92,7 @@ func (h *Handler) Register(c *gin.Context) {
 		body.Response.QuestionnaireId,
 		body.Response.Answers,
 	)
+
 	if err != nil {
 		c.JSON(
 			http.StatusBadRequest,
@@ -106,7 +106,4 @@ func (h *Handler) Register(c *gin.Context) {
 		"mycard":   myCardNode,
 		"response": responseNode,
 	})
-
-	// TODO
-	// STEP	3:	Send notification
 }

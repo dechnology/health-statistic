@@ -22,7 +22,7 @@ const DeegooForm = () => {
 
     const response = await axios.post(
       `${baseUrl}/deegoo`,
-      { ...deegooData },
+      { ...deegooData, user_id: user?.sub },
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -63,6 +63,45 @@ const DeegooForm = () => {
               setDeegooData((prev) => ({
                 ...prev,
                 focus: parseFloat(e.target.value),
+              }))
+            }
+          />
+        </label>
+        <label className="flex">
+          <div>Execution</div>
+          <input
+            type="text"
+            name="stepCount"
+            onChange={(e) =>
+              setDeegooData((prev) => ({
+                ...prev,
+                execution: parseFloat(e.target.value),
+              }))
+            }
+          />
+        </label>
+        <label className="flex">
+          <div>Memory</div>
+          <input
+            type="text"
+            name="stepCount"
+            onChange={(e) =>
+              setDeegooData((prev) => ({
+                ...prev,
+                memory: parseFloat(e.target.value),
+              }))
+            }
+          />
+        </label>
+        <label className="flex">
+          <div>language</div>
+          <input
+            type="text"
+            name="stepCount"
+            onChange={(e) =>
+              setDeegooData((prev) => ({
+                ...prev,
+                language: parseFloat(e.target.value),
               }))
             }
           />

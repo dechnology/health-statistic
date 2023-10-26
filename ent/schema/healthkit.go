@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -19,9 +20,8 @@ func (HealthKit) Fields() []ent.Field {
 			Immutable().
 			Default(uuid.New).
 			Unique(),
-		field.Time("start_date"),
-		field.Time("end_date"),
-		field.Float("step_count").Min(0),
+		field.Time("start_time"),
+		field.Time("end_time"),
 	}
 }
 
@@ -31,5 +31,7 @@ func (HealthKit) Edges() []ent.Edge {
 		edge.From("user", User.Type).
 			Ref("healthkit").
 			Unique(),
+		edge.To("data", HKData.Type).
+			Annotations(entsql.OnDelete(entsql.Cascade)),
 	}
 }

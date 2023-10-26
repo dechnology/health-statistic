@@ -16,6 +16,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/eesoymilk/health-statistic-api/ent/healthkit"
+	"github.com/eesoymilk/health-statistic-api/ent/hkdata"
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
 )
@@ -33,28 +34,15 @@ func (hku *HealthKitUpdate) Where(ps ...predicate.HealthKit) *HealthKitUpdate {
 	return hku
 }
 
-// SetStartDate sets the "start_date" field.
-func (hku *HealthKitUpdate) SetStartDate(t time.Time) *HealthKitUpdate {
-	hku.mutation.SetStartDate(t)
+// SetStartTime sets the "start_time" field.
+func (hku *HealthKitUpdate) SetStartTime(t time.Time) *HealthKitUpdate {
+	hku.mutation.SetStartTime(t)
 	return hku
 }
 
-// SetEndDate sets the "end_date" field.
-func (hku *HealthKitUpdate) SetEndDate(t time.Time) *HealthKitUpdate {
-	hku.mutation.SetEndDate(t)
-	return hku
-}
-
-// SetStepCount sets the "step_count" field.
-func (hku *HealthKitUpdate) SetStepCount(f float64) *HealthKitUpdate {
-	hku.mutation.ResetStepCount()
-	hku.mutation.SetStepCount(f)
-	return hku
-}
-
-// AddStepCount adds f to the "step_count" field.
-func (hku *HealthKitUpdate) AddStepCount(f float64) *HealthKitUpdate {
-	hku.mutation.AddStepCount(f)
+// SetEndTime sets the "end_time" field.
+func (hku *HealthKitUpdate) SetEndTime(t time.Time) *HealthKitUpdate {
+	hku.mutation.SetEndTime(t)
 	return hku
 }
 
@@ -77,6 +65,21 @@ func (hku *HealthKitUpdate) SetUser(u *User) *HealthKitUpdate {
 	return hku.SetUserID(u.ID)
 }
 
+// AddDatumIDs adds the "data" edge to the HKData entity by IDs.
+func (hku *HealthKitUpdate) AddDatumIDs(ids ...string) *HealthKitUpdate {
+	hku.mutation.AddDatumIDs(ids...)
+	return hku
+}
+
+// AddData adds the "data" edges to the HKData entity.
+func (hku *HealthKitUpdate) AddData(h ...*HKData) *HealthKitUpdate {
+	ids := make([]string, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return hku.AddDatumIDs(ids...)
+}
+
 // Mutation returns the HealthKitMutation object of the builder.
 func (hku *HealthKitUpdate) Mutation() *HealthKitMutation {
 	return hku.mutation
@@ -86,6 +89,27 @@ func (hku *HealthKitUpdate) Mutation() *HealthKitMutation {
 func (hku *HealthKitUpdate) ClearUser() *HealthKitUpdate {
 	hku.mutation.ClearUser()
 	return hku
+}
+
+// ClearData clears all "data" edges to the HKData entity.
+func (hku *HealthKitUpdate) ClearData() *HealthKitUpdate {
+	hku.mutation.ClearData()
+	return hku
+}
+
+// RemoveDatumIDs removes the "data" edge to HKData entities by IDs.
+func (hku *HealthKitUpdate) RemoveDatumIDs(ids ...string) *HealthKitUpdate {
+	hku.mutation.RemoveDatumIDs(ids...)
+	return hku
+}
+
+// RemoveData removes "data" edges to HKData entities.
+func (hku *HealthKitUpdate) RemoveData(h ...*HKData) *HealthKitUpdate {
+	ids := make([]string, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return hku.RemoveDatumIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -115,20 +139,7 @@ func (hku *HealthKitUpdate) ExecX(ctx context.Context) {
 	}
 }
 
-// check runs all checks and user-defined validators on the builder.
-func (hku *HealthKitUpdate) check() error {
-	if v, ok := hku.mutation.StepCount(); ok {
-		if err := healthkit.StepCountValidator(v); err != nil {
-			return &ValidationError{Name: "step_count", err: fmt.Errorf(`ent: validator failed for field "HealthKit.step_count": %w`, err)}
-		}
-	}
-	return nil
-}
-
 func (hku *HealthKitUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	if err := hku.check(); err != nil {
-		return n, err
-	}
 	_spec := sqlgraph.NewUpdateSpec(healthkit.Table, healthkit.Columns, sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeUUID))
 	if ps := hku.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -137,17 +148,11 @@ func (hku *HealthKitUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := hku.mutation.StartDate(); ok {
-		_spec.SetField(healthkit.FieldStartDate, field.TypeTime, value)
+	if value, ok := hku.mutation.StartTime(); ok {
+		_spec.SetField(healthkit.FieldStartTime, field.TypeTime, value)
 	}
-	if value, ok := hku.mutation.EndDate(); ok {
-		_spec.SetField(healthkit.FieldEndDate, field.TypeTime, value)
-	}
-	if value, ok := hku.mutation.StepCount(); ok {
-		_spec.SetField(healthkit.FieldStepCount, field.TypeFloat64, value)
-	}
-	if value, ok := hku.mutation.AddedStepCount(); ok {
-		_spec.AddField(healthkit.FieldStepCount, field.TypeFloat64, value)
+	if value, ok := hku.mutation.EndTime(); ok {
+		_spec.SetField(healthkit.FieldEndTime, field.TypeTime, value)
 	}
 	if hku.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -178,6 +183,51 @@ func (hku *HealthKitUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if hku.mutation.DataCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   healthkit.DataTable,
+			Columns: []string{healthkit.DataColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := hku.mutation.RemovedDataIDs(); len(nodes) > 0 && !hku.mutation.DataCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   healthkit.DataTable,
+			Columns: []string{healthkit.DataColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := hku.mutation.DataIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   healthkit.DataTable,
+			Columns: []string{healthkit.DataColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, hku.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{healthkit.Label}
@@ -198,28 +248,15 @@ type HealthKitUpdateOne struct {
 	mutation *HealthKitMutation
 }
 
-// SetStartDate sets the "start_date" field.
-func (hkuo *HealthKitUpdateOne) SetStartDate(t time.Time) *HealthKitUpdateOne {
-	hkuo.mutation.SetStartDate(t)
+// SetStartTime sets the "start_time" field.
+func (hkuo *HealthKitUpdateOne) SetStartTime(t time.Time) *HealthKitUpdateOne {
+	hkuo.mutation.SetStartTime(t)
 	return hkuo
 }
 
-// SetEndDate sets the "end_date" field.
-func (hkuo *HealthKitUpdateOne) SetEndDate(t time.Time) *HealthKitUpdateOne {
-	hkuo.mutation.SetEndDate(t)
-	return hkuo
-}
-
-// SetStepCount sets the "step_count" field.
-func (hkuo *HealthKitUpdateOne) SetStepCount(f float64) *HealthKitUpdateOne {
-	hkuo.mutation.ResetStepCount()
-	hkuo.mutation.SetStepCount(f)
-	return hkuo
-}
-
-// AddStepCount adds f to the "step_count" field.
-func (hkuo *HealthKitUpdateOne) AddStepCount(f float64) *HealthKitUpdateOne {
-	hkuo.mutation.AddStepCount(f)
+// SetEndTime sets the "end_time" field.
+func (hkuo *HealthKitUpdateOne) SetEndTime(t time.Time) *HealthKitUpdateOne {
+	hkuo.mutation.SetEndTime(t)
 	return hkuo
 }
 
@@ -242,6 +279,21 @@ func (hkuo *HealthKitUpdateOne) SetUser(u *User) *HealthKitUpdateOne {
 	return hkuo.SetUserID(u.ID)
 }
 
+// AddDatumIDs adds the "data" edge to the HKData entity by IDs.
+func (hkuo *HealthKitUpdateOne) AddDatumIDs(ids ...string) *HealthKitUpdateOne {
+	hkuo.mutation.AddDatumIDs(ids...)
+	return hkuo
+}
+
+// AddData adds the "data" edges to the HKData entity.
+func (hkuo *HealthKitUpdateOne) AddData(h ...*HKData) *HealthKitUpdateOne {
+	ids := make([]string, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return hkuo.AddDatumIDs(ids...)
+}
+
 // Mutation returns the HealthKitMutation object of the builder.
 func (hkuo *HealthKitUpdateOne) Mutation() *HealthKitMutation {
 	return hkuo.mutation
@@ -251,6 +303,27 @@ func (hkuo *HealthKitUpdateOne) Mutation() *HealthKitMutation {
 func (hkuo *HealthKitUpdateOne) ClearUser() *HealthKitUpdateOne {
 	hkuo.mutation.ClearUser()
 	return hkuo
+}
+
+// ClearData clears all "data" edges to the HKData entity.
+func (hkuo *HealthKitUpdateOne) ClearData() *HealthKitUpdateOne {
+	hkuo.mutation.ClearData()
+	return hkuo
+}
+
+// RemoveDatumIDs removes the "data" edge to HKData entities by IDs.
+func (hkuo *HealthKitUpdateOne) RemoveDatumIDs(ids ...string) *HealthKitUpdateOne {
+	hkuo.mutation.RemoveDatumIDs(ids...)
+	return hkuo
+}
+
+// RemoveData removes "data" edges to HKData entities.
+func (hkuo *HealthKitUpdateOne) RemoveData(h ...*HKData) *HealthKitUpdateOne {
+	ids := make([]string, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return hkuo.RemoveDatumIDs(ids...)
 }
 
 // Where appends a list predicates to the HealthKitUpdate builder.
@@ -293,20 +366,7 @@ func (hkuo *HealthKitUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
-// check runs all checks and user-defined validators on the builder.
-func (hkuo *HealthKitUpdateOne) check() error {
-	if v, ok := hkuo.mutation.StepCount(); ok {
-		if err := healthkit.StepCountValidator(v); err != nil {
-			return &ValidationError{Name: "step_count", err: fmt.Errorf(`ent: validator failed for field "HealthKit.step_count": %w`, err)}
-		}
-	}
-	return nil
-}
-
 func (hkuo *HealthKitUpdateOne) sqlSave(ctx context.Context) (_node *HealthKit, err error) {
-	if err := hkuo.check(); err != nil {
-		return _node, err
-	}
 	_spec := sqlgraph.NewUpdateSpec(healthkit.Table, healthkit.Columns, sqlgraph.NewFieldSpec(healthkit.FieldID, field.TypeUUID))
 	id, ok := hkuo.mutation.ID()
 	if !ok {
@@ -332,17 +392,11 @@ func (hkuo *HealthKitUpdateOne) sqlSave(ctx context.Context) (_node *HealthKit, 
 			}
 		}
 	}
-	if value, ok := hkuo.mutation.StartDate(); ok {
-		_spec.SetField(healthkit.FieldStartDate, field.TypeTime, value)
+	if value, ok := hkuo.mutation.StartTime(); ok {
+		_spec.SetField(healthkit.FieldStartTime, field.TypeTime, value)
 	}
-	if value, ok := hkuo.mutation.EndDate(); ok {
-		_spec.SetField(healthkit.FieldEndDate, field.TypeTime, value)
-	}
-	if value, ok := hkuo.mutation.StepCount(); ok {
-		_spec.SetField(healthkit.FieldStepCount, field.TypeFloat64, value)
-	}
-	if value, ok := hkuo.mutation.AddedStepCount(); ok {
-		_spec.AddField(healthkit.FieldStepCount, field.TypeFloat64, value)
+	if value, ok := hkuo.mutation.EndTime(); ok {
+		_spec.SetField(healthkit.FieldEndTime, field.TypeTime, value)
 	}
 	if hkuo.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -366,6 +420,51 @@ func (hkuo *HealthKitUpdateOne) sqlSave(ctx context.Context) (_node *HealthKit, 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if hkuo.mutation.DataCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   healthkit.DataTable,
+			Columns: []string{healthkit.DataColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := hkuo.mutation.RemovedDataIDs(); len(nodes) > 0 && !hkuo.mutation.DataCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   healthkit.DataTable,
+			Columns: []string{healthkit.DataColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := hkuo.mutation.DataIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   healthkit.DataTable,
+			Columns: []string{healthkit.DataColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

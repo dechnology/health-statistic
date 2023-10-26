@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -15,6 +16,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/eesoymilk/health-statistic-api/ent/healthkit"
+	"github.com/eesoymilk/health-statistic-api/ent/hkdata"
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
 	"github.com/google/uuid"
@@ -28,6 +30,7 @@ type HealthKitQuery struct {
 	inters     []Interceptor
 	predicates []predicate.HealthKit
 	withUser   *UserQuery
+	withData   *HKDataQuery
 	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -80,6 +83,28 @@ func (hkq *HealthKitQuery) QueryUser() *UserQuery {
 			sqlgraph.From(healthkit.Table, healthkit.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, healthkit.UserTable, healthkit.UserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(hkq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryData chains the current query on the "data" edge.
+func (hkq *HealthKitQuery) QueryData() *HKDataQuery {
+	query := (&HKDataClient{config: hkq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := hkq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := hkq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(healthkit.Table, healthkit.FieldID, selector),
+			sqlgraph.To(hkdata.Table, hkdata.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, healthkit.DataTable, healthkit.DataColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(hkq.driver.Dialect(), step)
 		return fromU, nil
@@ -280,6 +305,7 @@ func (hkq *HealthKitQuery) Clone() *HealthKitQuery {
 		inters:     append([]Interceptor{}, hkq.inters...),
 		predicates: append([]predicate.HealthKit{}, hkq.predicates...),
 		withUser:   hkq.withUser.Clone(),
+		withData:   hkq.withData.Clone(),
 		// clone intermediate query.
 		sql:  hkq.sql.Clone(),
 		path: hkq.path,
@@ -297,18 +323,29 @@ func (hkq *HealthKitQuery) WithUser(opts ...func(*UserQuery)) *HealthKitQuery {
 	return hkq
 }
 
+// WithData tells the query-builder to eager-load the nodes that are connected to
+// the "data" edge. The optional arguments are used to configure the query builder of the edge.
+func (hkq *HealthKitQuery) WithData(opts ...func(*HKDataQuery)) *HealthKitQuery {
+	query := (&HKDataClient{config: hkq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	hkq.withData = query
+	return hkq
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
 // Example:
 //
 //	var v []struct {
-//		StartDate time.Time `json:"start_date,omitempty"`
+//		StartTime time.Time `json:"start_time,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.HealthKit.Query().
-//		GroupBy(healthkit.FieldStartDate).
+//		GroupBy(healthkit.FieldStartTime).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (hkq *HealthKitQuery) GroupBy(field string, fields ...string) *HealthKitGroupBy {
@@ -326,11 +363,11 @@ func (hkq *HealthKitQuery) GroupBy(field string, fields ...string) *HealthKitGro
 // Example:
 //
 //	var v []struct {
-//		StartDate time.Time `json:"start_date,omitempty"`
+//		StartTime time.Time `json:"start_time,omitempty"`
 //	}
 //
 //	client.HealthKit.Query().
-//		Select(healthkit.FieldStartDate).
+//		Select(healthkit.FieldStartTime).
 //		Scan(ctx, &v)
 func (hkq *HealthKitQuery) Select(fields ...string) *HealthKitSelect {
 	hkq.ctx.Fields = append(hkq.ctx.Fields, fields...)
@@ -376,8 +413,9 @@ func (hkq *HealthKitQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*H
 		nodes       = []*HealthKit{}
 		withFKs     = hkq.withFKs
 		_spec       = hkq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			hkq.withUser != nil,
+			hkq.withData != nil,
 		}
 	)
 	if hkq.withUser != nil {
@@ -407,6 +445,13 @@ func (hkq *HealthKitQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*H
 	if query := hkq.withUser; query != nil {
 		if err := hkq.loadUser(ctx, query, nodes, nil,
 			func(n *HealthKit, e *User) { n.Edges.User = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := hkq.withData; query != nil {
+		if err := hkq.loadData(ctx, query, nodes,
+			func(n *HealthKit) { n.Edges.Data = []*HKData{} },
+			func(n *HealthKit, e *HKData) { n.Edges.Data = append(n.Edges.Data, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -442,6 +487,37 @@ func (hkq *HealthKitQuery) loadUser(ctx context.Context, query *UserQuery, nodes
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (hkq *HealthKitQuery) loadData(ctx context.Context, query *HKDataQuery, nodes []*HealthKit, init func(*HealthKit), assign func(*HealthKit, *HKData)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*HealthKit)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.HKData(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(healthkit.DataColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.health_kit_data
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "health_kit_data" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "health_kit_data" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

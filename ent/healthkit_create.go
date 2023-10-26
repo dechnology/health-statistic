@@ -15,6 +15,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/eesoymilk/health-statistic-api/ent/healthkit"
+	"github.com/eesoymilk/health-statistic-api/ent/hkdata"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
 	"github.com/google/uuid"
 )
@@ -26,21 +27,15 @@ type HealthKitCreate struct {
 	hooks    []Hook
 }
 
-// SetStartDate sets the "start_date" field.
-func (hkc *HealthKitCreate) SetStartDate(t time.Time) *HealthKitCreate {
-	hkc.mutation.SetStartDate(t)
+// SetStartTime sets the "start_time" field.
+func (hkc *HealthKitCreate) SetStartTime(t time.Time) *HealthKitCreate {
+	hkc.mutation.SetStartTime(t)
 	return hkc
 }
 
-// SetEndDate sets the "end_date" field.
-func (hkc *HealthKitCreate) SetEndDate(t time.Time) *HealthKitCreate {
-	hkc.mutation.SetEndDate(t)
-	return hkc
-}
-
-// SetStepCount sets the "step_count" field.
-func (hkc *HealthKitCreate) SetStepCount(f float64) *HealthKitCreate {
-	hkc.mutation.SetStepCount(f)
+// SetEndTime sets the "end_time" field.
+func (hkc *HealthKitCreate) SetEndTime(t time.Time) *HealthKitCreate {
+	hkc.mutation.SetEndTime(t)
 	return hkc
 }
 
@@ -75,6 +70,21 @@ func (hkc *HealthKitCreate) SetNillableUserID(id *string) *HealthKitCreate {
 // SetUser sets the "user" edge to the User entity.
 func (hkc *HealthKitCreate) SetUser(u *User) *HealthKitCreate {
 	return hkc.SetUserID(u.ID)
+}
+
+// AddDatumIDs adds the "data" edge to the HKData entity by IDs.
+func (hkc *HealthKitCreate) AddDatumIDs(ids ...string) *HealthKitCreate {
+	hkc.mutation.AddDatumIDs(ids...)
+	return hkc
+}
+
+// AddData adds the "data" edges to the HKData entity.
+func (hkc *HealthKitCreate) AddData(h ...*HKData) *HealthKitCreate {
+	ids := make([]string, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return hkc.AddDatumIDs(ids...)
 }
 
 // Mutation returns the HealthKitMutation object of the builder.
@@ -120,19 +130,11 @@ func (hkc *HealthKitCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (hkc *HealthKitCreate) check() error {
-	if _, ok := hkc.mutation.StartDate(); !ok {
-		return &ValidationError{Name: "start_date", err: errors.New(`ent: missing required field "HealthKit.start_date"`)}
+	if _, ok := hkc.mutation.StartTime(); !ok {
+		return &ValidationError{Name: "start_time", err: errors.New(`ent: missing required field "HealthKit.start_time"`)}
 	}
-	if _, ok := hkc.mutation.EndDate(); !ok {
-		return &ValidationError{Name: "end_date", err: errors.New(`ent: missing required field "HealthKit.end_date"`)}
-	}
-	if _, ok := hkc.mutation.StepCount(); !ok {
-		return &ValidationError{Name: "step_count", err: errors.New(`ent: missing required field "HealthKit.step_count"`)}
-	}
-	if v, ok := hkc.mutation.StepCount(); ok {
-		if err := healthkit.StepCountValidator(v); err != nil {
-			return &ValidationError{Name: "step_count", err: fmt.Errorf(`ent: validator failed for field "HealthKit.step_count": %w`, err)}
-		}
+	if _, ok := hkc.mutation.EndTime(); !ok {
+		return &ValidationError{Name: "end_time", err: errors.New(`ent: missing required field "HealthKit.end_time"`)}
 	}
 	return nil
 }
@@ -169,17 +171,13 @@ func (hkc *HealthKitCreate) createSpec() (*HealthKit, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := hkc.mutation.StartDate(); ok {
-		_spec.SetField(healthkit.FieldStartDate, field.TypeTime, value)
-		_node.StartDate = value
+	if value, ok := hkc.mutation.StartTime(); ok {
+		_spec.SetField(healthkit.FieldStartTime, field.TypeTime, value)
+		_node.StartTime = value
 	}
-	if value, ok := hkc.mutation.EndDate(); ok {
-		_spec.SetField(healthkit.FieldEndDate, field.TypeTime, value)
-		_node.EndDate = value
-	}
-	if value, ok := hkc.mutation.StepCount(); ok {
-		_spec.SetField(healthkit.FieldStepCount, field.TypeFloat64, value)
-		_node.StepCount = value
+	if value, ok := hkc.mutation.EndTime(); ok {
+		_spec.SetField(healthkit.FieldEndTime, field.TypeTime, value)
+		_node.EndTime = value
 	}
 	if nodes := hkc.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -196,6 +194,22 @@ func (hkc *HealthKitCreate) createSpec() (*HealthKit, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.user_healthkit = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := hkc.mutation.DataIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   healthkit.DataTable,
+			Columns: []string{healthkit.DataColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

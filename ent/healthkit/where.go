@@ -60,139 +60,94 @@ func IDLTE(id uuid.UUID) predicate.HealthKit {
 	return predicate.HealthKit(sql.FieldLTE(FieldID, id))
 }
 
-// StartDate applies equality check predicate on the "start_date" field. It's identical to StartDateEQ.
-func StartDate(v time.Time) predicate.HealthKit {
-	return predicate.HealthKit(sql.FieldEQ(FieldStartDate, v))
+// StartTime applies equality check predicate on the "start_time" field. It's identical to StartTimeEQ.
+func StartTime(v time.Time) predicate.HealthKit {
+	return predicate.HealthKit(sql.FieldEQ(FieldStartTime, v))
 }
 
-// EndDate applies equality check predicate on the "end_date" field. It's identical to EndDateEQ.
-func EndDate(v time.Time) predicate.HealthKit {
-	return predicate.HealthKit(sql.FieldEQ(FieldEndDate, v))
+// EndTime applies equality check predicate on the "end_time" field. It's identical to EndTimeEQ.
+func EndTime(v time.Time) predicate.HealthKit {
+	return predicate.HealthKit(sql.FieldEQ(FieldEndTime, v))
 }
 
-// StepCount applies equality check predicate on the "step_count" field. It's identical to StepCountEQ.
-func StepCount(v float64) predicate.HealthKit {
-	return predicate.HealthKit(sql.FieldEQ(FieldStepCount, v))
+// StartTimeEQ applies the EQ predicate on the "start_time" field.
+func StartTimeEQ(v time.Time) predicate.HealthKit {
+	return predicate.HealthKit(sql.FieldEQ(FieldStartTime, v))
 }
 
-// StartDateEQ applies the EQ predicate on the "start_date" field.
-func StartDateEQ(v time.Time) predicate.HealthKit {
-	return predicate.HealthKit(sql.FieldEQ(FieldStartDate, v))
+// StartTimeNEQ applies the NEQ predicate on the "start_time" field.
+func StartTimeNEQ(v time.Time) predicate.HealthKit {
+	return predicate.HealthKit(sql.FieldNEQ(FieldStartTime, v))
 }
 
-// StartDateNEQ applies the NEQ predicate on the "start_date" field.
-func StartDateNEQ(v time.Time) predicate.HealthKit {
-	return predicate.HealthKit(sql.FieldNEQ(FieldStartDate, v))
+// StartTimeIn applies the In predicate on the "start_time" field.
+func StartTimeIn(vs ...time.Time) predicate.HealthKit {
+	return predicate.HealthKit(sql.FieldIn(FieldStartTime, vs...))
 }
 
-// StartDateIn applies the In predicate on the "start_date" field.
-func StartDateIn(vs ...time.Time) predicate.HealthKit {
-	return predicate.HealthKit(sql.FieldIn(FieldStartDate, vs...))
+// StartTimeNotIn applies the NotIn predicate on the "start_time" field.
+func StartTimeNotIn(vs ...time.Time) predicate.HealthKit {
+	return predicate.HealthKit(sql.FieldNotIn(FieldStartTime, vs...))
 }
 
-// StartDateNotIn applies the NotIn predicate on the "start_date" field.
-func StartDateNotIn(vs ...time.Time) predicate.HealthKit {
-	return predicate.HealthKit(sql.FieldNotIn(FieldStartDate, vs...))
+// StartTimeGT applies the GT predicate on the "start_time" field.
+func StartTimeGT(v time.Time) predicate.HealthKit {
+	return predicate.HealthKit(sql.FieldGT(FieldStartTime, v))
 }
 
-// StartDateGT applies the GT predicate on the "start_date" field.
-func StartDateGT(v time.Time) predicate.HealthKit {
-	return predicate.HealthKit(sql.FieldGT(FieldStartDate, v))
+// StartTimeGTE applies the GTE predicate on the "start_time" field.
+func StartTimeGTE(v time.Time) predicate.HealthKit {
+	return predicate.HealthKit(sql.FieldGTE(FieldStartTime, v))
 }
 
-// StartDateGTE applies the GTE predicate on the "start_date" field.
-func StartDateGTE(v time.Time) predicate.HealthKit {
-	return predicate.HealthKit(sql.FieldGTE(FieldStartDate, v))
+// StartTimeLT applies the LT predicate on the "start_time" field.
+func StartTimeLT(v time.Time) predicate.HealthKit {
+	return predicate.HealthKit(sql.FieldLT(FieldStartTime, v))
 }
 
-// StartDateLT applies the LT predicate on the "start_date" field.
-func StartDateLT(v time.Time) predicate.HealthKit {
-	return predicate.HealthKit(sql.FieldLT(FieldStartDate, v))
+// StartTimeLTE applies the LTE predicate on the "start_time" field.
+func StartTimeLTE(v time.Time) predicate.HealthKit {
+	return predicate.HealthKit(sql.FieldLTE(FieldStartTime, v))
 }
 
-// StartDateLTE applies the LTE predicate on the "start_date" field.
-func StartDateLTE(v time.Time) predicate.HealthKit {
-	return predicate.HealthKit(sql.FieldLTE(FieldStartDate, v))
+// EndTimeEQ applies the EQ predicate on the "end_time" field.
+func EndTimeEQ(v time.Time) predicate.HealthKit {
+	return predicate.HealthKit(sql.FieldEQ(FieldEndTime, v))
 }
 
-// EndDateEQ applies the EQ predicate on the "end_date" field.
-func EndDateEQ(v time.Time) predicate.HealthKit {
-	return predicate.HealthKit(sql.FieldEQ(FieldEndDate, v))
+// EndTimeNEQ applies the NEQ predicate on the "end_time" field.
+func EndTimeNEQ(v time.Time) predicate.HealthKit {
+	return predicate.HealthKit(sql.FieldNEQ(FieldEndTime, v))
 }
 
-// EndDateNEQ applies the NEQ predicate on the "end_date" field.
-func EndDateNEQ(v time.Time) predicate.HealthKit {
-	return predicate.HealthKit(sql.FieldNEQ(FieldEndDate, v))
+// EndTimeIn applies the In predicate on the "end_time" field.
+func EndTimeIn(vs ...time.Time) predicate.HealthKit {
+	return predicate.HealthKit(sql.FieldIn(FieldEndTime, vs...))
 }
 
-// EndDateIn applies the In predicate on the "end_date" field.
-func EndDateIn(vs ...time.Time) predicate.HealthKit {
-	return predicate.HealthKit(sql.FieldIn(FieldEndDate, vs...))
+// EndTimeNotIn applies the NotIn predicate on the "end_time" field.
+func EndTimeNotIn(vs ...time.Time) predicate.HealthKit {
+	return predicate.HealthKit(sql.FieldNotIn(FieldEndTime, vs...))
 }
 
-// EndDateNotIn applies the NotIn predicate on the "end_date" field.
-func EndDateNotIn(vs ...time.Time) predicate.HealthKit {
-	return predicate.HealthKit(sql.FieldNotIn(FieldEndDate, vs...))
+// EndTimeGT applies the GT predicate on the "end_time" field.
+func EndTimeGT(v time.Time) predicate.HealthKit {
+	return predicate.HealthKit(sql.FieldGT(FieldEndTime, v))
 }
 
-// EndDateGT applies the GT predicate on the "end_date" field.
-func EndDateGT(v time.Time) predicate.HealthKit {
-	return predicate.HealthKit(sql.FieldGT(FieldEndDate, v))
+// EndTimeGTE applies the GTE predicate on the "end_time" field.
+func EndTimeGTE(v time.Time) predicate.HealthKit {
+	return predicate.HealthKit(sql.FieldGTE(FieldEndTime, v))
 }
 
-// EndDateGTE applies the GTE predicate on the "end_date" field.
-func EndDateGTE(v time.Time) predicate.HealthKit {
-	return predicate.HealthKit(sql.FieldGTE(FieldEndDate, v))
+// EndTimeLT applies the LT predicate on the "end_time" field.
+func EndTimeLT(v time.Time) predicate.HealthKit {
+	return predicate.HealthKit(sql.FieldLT(FieldEndTime, v))
 }
 
-// EndDateLT applies the LT predicate on the "end_date" field.
-func EndDateLT(v time.Time) predicate.HealthKit {
-	return predicate.HealthKit(sql.FieldLT(FieldEndDate, v))
-}
-
-// EndDateLTE applies the LTE predicate on the "end_date" field.
-func EndDateLTE(v time.Time) predicate.HealthKit {
-	return predicate.HealthKit(sql.FieldLTE(FieldEndDate, v))
-}
-
-// StepCountEQ applies the EQ predicate on the "step_count" field.
-func StepCountEQ(v float64) predicate.HealthKit {
-	return predicate.HealthKit(sql.FieldEQ(FieldStepCount, v))
-}
-
-// StepCountNEQ applies the NEQ predicate on the "step_count" field.
-func StepCountNEQ(v float64) predicate.HealthKit {
-	return predicate.HealthKit(sql.FieldNEQ(FieldStepCount, v))
-}
-
-// StepCountIn applies the In predicate on the "step_count" field.
-func StepCountIn(vs ...float64) predicate.HealthKit {
-	return predicate.HealthKit(sql.FieldIn(FieldStepCount, vs...))
-}
-
-// StepCountNotIn applies the NotIn predicate on the "step_count" field.
-func StepCountNotIn(vs ...float64) predicate.HealthKit {
-	return predicate.HealthKit(sql.FieldNotIn(FieldStepCount, vs...))
-}
-
-// StepCountGT applies the GT predicate on the "step_count" field.
-func StepCountGT(v float64) predicate.HealthKit {
-	return predicate.HealthKit(sql.FieldGT(FieldStepCount, v))
-}
-
-// StepCountGTE applies the GTE predicate on the "step_count" field.
-func StepCountGTE(v float64) predicate.HealthKit {
-	return predicate.HealthKit(sql.FieldGTE(FieldStepCount, v))
-}
-
-// StepCountLT applies the LT predicate on the "step_count" field.
-func StepCountLT(v float64) predicate.HealthKit {
-	return predicate.HealthKit(sql.FieldLT(FieldStepCount, v))
-}
-
-// StepCountLTE applies the LTE predicate on the "step_count" field.
-func StepCountLTE(v float64) predicate.HealthKit {
-	return predicate.HealthKit(sql.FieldLTE(FieldStepCount, v))
+// EndTimeLTE applies the LTE predicate on the "end_time" field.
+func EndTimeLTE(v time.Time) predicate.HealthKit {
+	return predicate.HealthKit(sql.FieldLTE(FieldEndTime, v))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.
@@ -210,6 +165,29 @@ func HasUser() predicate.HealthKit {
 func HasUserWith(preds ...predicate.User) predicate.HealthKit {
 	return predicate.HealthKit(func(s *sql.Selector) {
 		step := newUserStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasData applies the HasEdge predicate on the "data" edge.
+func HasData() predicate.HealthKit {
+	return predicate.HealthKit(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, DataTable, DataColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDataWith applies the HasEdge predicate on the "data" edge with a given conditions (other predicates).
+func HasDataWith(preds ...predicate.HKData) predicate.HealthKit {
+	return predicate.HealthKit(func(s *sql.Selector) {
+		step := newDataStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

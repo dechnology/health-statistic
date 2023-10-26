@@ -109,10 +109,14 @@ func (User) Edges() []ent.Edge {
 		edge.To("questionnaire_responses", QuestionnaireResponse.Type).
 			Annotations(entsql.OnDelete(entsql.Cascade)),
 		edge.To("notifications", Notification.Type).
+			Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("prices", Price.Type).
 			Annotations(entsql.OnDelete(entsql.SetNull)),
-		edge.To("prices", Price.Type),
-		edge.To("mycards", MyCard.Type).Required(),
-		edge.To("healthkit", HealthKit.Type),
-		edge.To("deegoo", Deegoo.Type),
+		edge.To("mycards", MyCard.Type).Required().
+			Annotations(entsql.OnDelete(entsql.SetNull)),
+		edge.To("healthkit", HealthKit.Type).
+			Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("deegoo", Deegoo.Type).
+			Annotations(entsql.OnDelete(entsql.Cascade)),
 	}
 }

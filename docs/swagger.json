@@ -563,7 +563,7 @@
                 "tags": [
                     "User"
                 ],
-                "summary": "Create HealthKit Datum",
+                "summary": "Create HealthKit Data",
                 "parameters": [
                     {
                         "description": "The healthkit to be created",
@@ -679,7 +679,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
+                    "User"
                 ],
                 "summary": "Delete User",
                 "parameters": [
@@ -771,21 +771,17 @@
         "ent.HealthKit": {
             "type": "object",
             "properties": {
-                "end_date": {
-                    "description": "EndDate holds the value of the \"end_date\" field.",
+                "end_time": {
+                    "description": "EndTime holds the value of the \"end_time\" field.",
                     "type": "string"
                 },
                 "id": {
                     "description": "ID of the ent.",
                     "type": "string"
                 },
-                "start_date": {
-                    "description": "StartDate holds the value of the \"start_date\" field.",
+                "start_time": {
+                    "description": "StartTime holds the value of the \"start_time\" field.",
                     "type": "string"
-                },
-                "step_count": {
-                    "description": "StepCount holds the value of the \"step_count\" field.",
-                    "type": "number"
                 }
             }
         },
@@ -1116,19 +1112,42 @@
                 }
             }
         },
-        "types.BaseHealthKit": {
+        "types.BaseHKData": {
             "type": "object",
             "properties": {
-                "end_date": {
+                "end_timestamp": {
                     "type": "string"
                 },
                 "id": {
                     "type": "string"
                 },
-                "start_date": {
+                "start_timestamp": {
                     "type": "string"
                 },
-                "step_count": {
+                "timezone_id": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.BaseHealthKit": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.BaseHKData"
+                    }
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "start_time": {
                     "type": "string"
                 }
             }

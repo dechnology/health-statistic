@@ -24,12 +24,10 @@ type HealthKit struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
-	// StartDate holds the value of the "start_date" field.
-	StartDate time.Time `json:"start_date,omitempty"`
-	// EndDate holds the value of the "end_date" field.
-	EndDate time.Time `json:"end_date,omitempty"`
-	// StepCount holds the value of the "step_count" field.
-	StepCount float64 `json:"step_count,omitempty"`
+	// StartTime holds the value of the "start_time" field.
+	StartTime time.Time `json:"start_time,omitempty"`
+	// EndTime holds the value of the "end_time" field.
+	EndTime time.Time `json:"end_time,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the HealthKitQuery when eager-loading is set.
 	Edges          HealthKitEdges `json:"-"`
@@ -41,9 +39,11 @@ type HealthKit struct {
 type HealthKitEdges struct {
 	// User holds the value of the user edge.
 	User *User `json:"user,omitempty"`
+	// Data holds the value of the data edge.
+	Data []*HKData `json:"data,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -59,14 +59,21 @@ func (e HealthKitEdges) UserOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "user"}
 }
 
+// DataOrErr returns the Data value or an error if the edge
+// was not loaded in eager-loading.
+func (e HealthKitEdges) DataOrErr() ([]*HKData, error) {
+	if e.loadedTypes[1] {
+		return e.Data, nil
+	}
+	return nil, &NotLoadedError{edge: "data"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*HealthKit) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case healthkit.FieldStepCount:
-			values[i] = new(sql.NullFloat64)
-		case healthkit.FieldStartDate, healthkit.FieldEndDate:
+		case healthkit.FieldStartTime, healthkit.FieldEndTime:
 			values[i] = new(sql.NullTime)
 		case healthkit.FieldID:
 			values[i] = new(uuid.UUID)
@@ -93,23 +100,17 @@ func (hk *HealthKit) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				hk.ID = *value
 			}
-		case healthkit.FieldStartDate:
+		case healthkit.FieldStartTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field start_date", values[i])
+				return fmt.Errorf("unexpected type %T for field start_time", values[i])
 			} else if value.Valid {
-				hk.StartDate = value.Time
+				hk.StartTime = value.Time
 			}
-		case healthkit.FieldEndDate:
+		case healthkit.FieldEndTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field end_date", values[i])
+				return fmt.Errorf("unexpected type %T for field end_time", values[i])
 			} else if value.Valid {
-				hk.EndDate = value.Time
-			}
-		case healthkit.FieldStepCount:
-			if value, ok := values[i].(*sql.NullFloat64); !ok {
-				return fmt.Errorf("unexpected type %T for field step_count", values[i])
-			} else if value.Valid {
-				hk.StepCount = value.Float64
+				hk.EndTime = value.Time
 			}
 		case healthkit.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -136,6 +137,11 @@ func (hk *HealthKit) QueryUser() *UserQuery {
 	return NewHealthKitClient(hk.config).QueryUser(hk)
 }
 
+// QueryData queries the "data" edge of the HealthKit entity.
+func (hk *HealthKit) QueryData() *HKDataQuery {
+	return NewHealthKitClient(hk.config).QueryData(hk)
+}
+
 // Update returns a builder for updating this HealthKit.
 // Note that you need to call HealthKit.Unwrap() before calling this method if this HealthKit
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -159,14 +165,11 @@ func (hk *HealthKit) String() string {
 	var builder strings.Builder
 	builder.WriteString("HealthKit(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", hk.ID))
-	builder.WriteString("start_date=")
-	builder.WriteString(hk.StartDate.Format(time.ANSIC))
+	builder.WriteString("start_time=")
+	builder.WriteString(hk.StartTime.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("end_date=")
-	builder.WriteString(hk.EndDate.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("step_count=")
-	builder.WriteString(fmt.Sprintf("%v", hk.StepCount))
+	builder.WriteString("end_time=")
+	builder.WriteString(hk.EndTime.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

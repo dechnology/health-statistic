@@ -23,6 +23,7 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent/choice"
 	"github.com/eesoymilk/health-statistic-api/ent/deegoo"
 	"github.com/eesoymilk/health-statistic-api/ent/healthkit"
+	"github.com/eesoymilk/health-statistic-api/ent/hkdata"
 	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/price"
@@ -43,6 +44,8 @@ type Client struct {
 	Choice *ChoiceClient
 	// Deegoo is the client for interacting with the Deegoo builders.
 	Deegoo *DeegooClient
+	// HKData is the client for interacting with the HKData builders.
+	HKData *HKDataClient
 	// HealthKit is the client for interacting with the HealthKit builders.
 	HealthKit *HealthKitClient
 	// MyCard is the client for interacting with the MyCard builders.
@@ -75,6 +78,7 @@ func (c *Client) init() {
 	c.Answer = NewAnswerClient(c.config)
 	c.Choice = NewChoiceClient(c.config)
 	c.Deegoo = NewDeegooClient(c.config)
+	c.HKData = NewHKDataClient(c.config)
 	c.HealthKit = NewHealthKitClient(c.config)
 	c.MyCard = NewMyCardClient(c.config)
 	c.Notification = NewNotificationClient(c.config)
@@ -168,6 +172,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Answer:                NewAnswerClient(cfg),
 		Choice:                NewChoiceClient(cfg),
 		Deegoo:                NewDeegooClient(cfg),
+		HKData:                NewHKDataClient(cfg),
 		HealthKit:             NewHealthKitClient(cfg),
 		MyCard:                NewMyCardClient(cfg),
 		Notification:          NewNotificationClient(cfg),
@@ -198,6 +203,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Answer:                NewAnswerClient(cfg),
 		Choice:                NewChoiceClient(cfg),
 		Deegoo:                NewDeegooClient(cfg),
+		HKData:                NewHKDataClient(cfg),
 		HealthKit:             NewHealthKitClient(cfg),
 		MyCard:                NewMyCardClient(cfg),
 		Notification:          NewNotificationClient(cfg),
@@ -235,8 +241,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Answer, c.Choice, c.Deegoo, c.HealthKit, c.MyCard, c.Notification, c.Price,
-		c.Question, c.Questionnaire, c.QuestionnaireResponse, c.User,
+		c.Answer, c.Choice, c.Deegoo, c.HKData, c.HealthKit, c.MyCard, c.Notification,
+		c.Price, c.Question, c.Questionnaire, c.QuestionnaireResponse, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -246,8 +252,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Answer, c.Choice, c.Deegoo, c.HealthKit, c.MyCard, c.Notification, c.Price,
-		c.Question, c.Questionnaire, c.QuestionnaireResponse, c.User,
+		c.Answer, c.Choice, c.Deegoo, c.HKData, c.HealthKit, c.MyCard, c.Notification,
+		c.Price, c.Question, c.Questionnaire, c.QuestionnaireResponse, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -262,6 +268,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Choice.mutate(ctx, m)
 	case *DeegooMutation:
 		return c.Deegoo.mutate(ctx, m)
+	case *HKDataMutation:
+		return c.HKData.mutate(ctx, m)
 	case *HealthKitMutation:
 		return c.HealthKit.mutate(ctx, m)
 	case *MyCardMutation:
@@ -733,6 +741,140 @@ func (c *DeegooClient) mutate(ctx context.Context, m *DeegooMutation) (Value, er
 	}
 }
 
+// HKDataClient is a client for the HKData schema.
+type HKDataClient struct {
+	config
+}
+
+// NewHKDataClient returns a client for the HKData from the given config.
+func NewHKDataClient(c config) *HKDataClient {
+	return &HKDataClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `hkdata.Hooks(f(g(h())))`.
+func (c *HKDataClient) Use(hooks ...Hook) {
+	c.hooks.HKData = append(c.hooks.HKData, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `hkdata.Intercept(f(g(h())))`.
+func (c *HKDataClient) Intercept(interceptors ...Interceptor) {
+	c.inters.HKData = append(c.inters.HKData, interceptors...)
+}
+
+// Create returns a builder for creating a HKData entity.
+func (c *HKDataClient) Create() *HKDataCreate {
+	mutation := newHKDataMutation(c.config, OpCreate)
+	return &HKDataCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of HKData entities.
+func (c *HKDataClient) CreateBulk(builders ...*HKDataCreate) *HKDataCreateBulk {
+	return &HKDataCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for HKData.
+func (c *HKDataClient) Update() *HKDataUpdate {
+	mutation := newHKDataMutation(c.config, OpUpdate)
+	return &HKDataUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *HKDataClient) UpdateOne(hd *HKData) *HKDataUpdateOne {
+	mutation := newHKDataMutation(c.config, OpUpdateOne, withHKData(hd))
+	return &HKDataUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *HKDataClient) UpdateOneID(id string) *HKDataUpdateOne {
+	mutation := newHKDataMutation(c.config, OpUpdateOne, withHKDataID(id))
+	return &HKDataUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for HKData.
+func (c *HKDataClient) Delete() *HKDataDelete {
+	mutation := newHKDataMutation(c.config, OpDelete)
+	return &HKDataDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *HKDataClient) DeleteOne(hd *HKData) *HKDataDeleteOne {
+	return c.DeleteOneID(hd.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *HKDataClient) DeleteOneID(id string) *HKDataDeleteOne {
+	builder := c.Delete().Where(hkdata.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &HKDataDeleteOne{builder}
+}
+
+// Query returns a query builder for HKData.
+func (c *HKDataClient) Query() *HKDataQuery {
+	return &HKDataQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeHKData},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a HKData entity by its id.
+func (c *HKDataClient) Get(ctx context.Context, id string) (*HKData, error) {
+	return c.Query().Where(hkdata.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *HKDataClient) GetX(ctx context.Context, id string) *HKData {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryHealthkit queries the healthkit edge of a HKData.
+func (c *HKDataClient) QueryHealthkit(hd *HKData) *HealthKitQuery {
+	query := (&HealthKitClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := hd.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hkdata.Table, hkdata.FieldID, id),
+			sqlgraph.To(healthkit.Table, healthkit.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, hkdata.HealthkitTable, hkdata.HealthkitColumn),
+		)
+		fromV = sqlgraph.Neighbors(hd.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *HKDataClient) Hooks() []Hook {
+	return c.hooks.HKData
+}
+
+// Interceptors returns the client interceptors.
+func (c *HKDataClient) Interceptors() []Interceptor {
+	return c.inters.HKData
+}
+
+func (c *HKDataClient) mutate(ctx context.Context, m *HKDataMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&HKDataCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&HKDataUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&HKDataUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&HKDataDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown HKData mutation op: %q", m.Op())
+	}
+}
+
 // HealthKitClient is a client for the HealthKit schema.
 type HealthKitClient struct {
 	config
@@ -835,6 +977,22 @@ func (c *HealthKitClient) QueryUser(hk *HealthKit) *UserQuery {
 			sqlgraph.From(healthkit.Table, healthkit.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, healthkit.UserTable, healthkit.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(hk.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryData queries the data edge of a HealthKit.
+func (c *HealthKitClient) QueryData(hk *HealthKit) *HKDataQuery {
+	query := (&HKDataClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := hk.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(healthkit.Table, healthkit.FieldID, id),
+			sqlgraph.To(hkdata.Table, hkdata.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, healthkit.DataTable, healthkit.DataColumn),
 		)
 		fromV = sqlgraph.Neighbors(hk.driver.Dialect(), step)
 		return fromV, nil
@@ -2032,11 +2190,11 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Answer, Choice, Deegoo, HealthKit, MyCard, Notification, Price, Question,
-		Questionnaire, QuestionnaireResponse, User []ent.Hook
+		Answer, Choice, Deegoo, HKData, HealthKit, MyCard, Notification, Price,
+		Question, Questionnaire, QuestionnaireResponse, User []ent.Hook
 	}
 	inters struct {
-		Answer, Choice, Deegoo, HealthKit, MyCard, Notification, Price, Question,
-		Questionnaire, QuestionnaireResponse, User []ent.Interceptor
+		Answer, Choice, Deegoo, HKData, HealthKit, MyCard, Notification, Price,
+		Question, Questionnaire, QuestionnaireResponse, User []ent.Interceptor
 	}
 )
