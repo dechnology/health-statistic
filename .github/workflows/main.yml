@@ -13,8 +13,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  API_IMAGE: ${{ github.repository }}/health-statistic-api:main
-  DB_IMAGE: ${{ github.repository }}/health-statistic-db:main
+  API_IMAGE: ghcr.io/${{ github.actor }}/health-statistic-api:main
+  DB_IMAGE: ghcr.io/${{ github.actor }}/health-statistic-db:main
   POSTGRES_PORT: 5432
   POSTGRES_USER: postgres
   POSTGRES_DB: health-statistic
