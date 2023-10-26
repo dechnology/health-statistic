@@ -17,6 +17,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
   API_IMAGE: ${{ github.repository }}/health-statistic-api:main
   DB_IMAGE: ${{ github.repository }}/health-statistic-db:main
+  GOOGLE_APPLICATION_CREDENTIALS: ./firebase-credentials.json
   POSTGRES_PORT: 5432
   POSTGRES_USER: postgres
   POSTGRES_DB: health-statistic
@@ -88,6 +89,7 @@ jobs:
 
             exporr API_IMAGE=${{ env.API_IMAGE }}
             export DB_IMAGE=${{ env.DB_IMAGE }}
+            export GOOGLE_APPLICATION_CREDENTIALS=${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
             export POSTGRES_PORT=${{ env.POSTGRES_PORT }}
             export POSTGRES_USER=${{ env.POSTGRES_USER }}
             export POSTGRES_DB=${{ env.POSTGRES_DB }}
