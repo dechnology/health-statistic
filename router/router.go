@@ -1,6 +1,7 @@
 package router
 
 import (
+	"firebase.google.com/go/v4/messaging"
 	"github.com/eesoymilk/health-statistic-api/ent"
 	"github.com/eesoymilk/health-statistic-api/handlers"
 	"github.com/eesoymilk/health-statistic-api/middlewares"
@@ -10,11 +11,12 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func New(db *ent.Client) *gin.Engine {
+func New(db *ent.Client, fcm *messaging.Client) *gin.Engine {
 	r := gin.Default()
 
 	h := handlers.Handler{
-		DB: db,
+		DB:  db,
+		FCM: fcm,
 		RegistrationQuestionnaireId: uuid.MustParse(
 			"88888888-8888-4888-8888-888888888888",
 		),

@@ -7,6 +7,7 @@ import (
 
 	"github.com/eesoymilk/health-statistic-api/db"
 	_ "github.com/eesoymilk/health-statistic-api/docs"
+	"github.com/eesoymilk/health-statistic-api/fcm"
 	"github.com/eesoymilk/health-statistic-api/router"
 	"github.com/joho/godotenv"
 )
@@ -37,6 +38,12 @@ func main() {
 		log.Print(err.Error())
 	}
 
-	r := router.New(entClient)
+	fcm, err := fcm.New(context.Background())
+
+	if err != nil {
+		log.Fatalf("error initializing FCM: %v\n", err)
+	}
+
+	r := router.New(entClient, fcm)
 	r.Run(":6969")
 }
