@@ -56,8 +56,8 @@ func (hdc *HKDataCreate) SetTimezoneID(s string) *HKDataCreate {
 }
 
 // SetID sets the "id" field.
-func (hdc *HKDataCreate) SetID(u uuid.UUID) *HKDataCreate {
-	hdc.mutation.SetID(u)
+func (hdc *HKDataCreate) SetID(s string) *HKDataCreate {
+	hdc.mutation.SetID(s)
 	return hdc
 }
 
@@ -144,10 +144,10 @@ func (hdc *HKDataCreate) sqlSave(ctx context.Context) (*HKData, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
-			_node.ID = *id
-		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
-			return nil, err
+		if id, ok := _spec.ID.Value.(string); ok {
+			_node.ID = id
+		} else {
+			return nil, fmt.Errorf("unexpected HKData.ID type: %T", _spec.ID.Value)
 		}
 	}
 	hdc.mutation.id = &_node.ID
@@ -158,11 +158,11 @@ func (hdc *HKDataCreate) sqlSave(ctx context.Context) (*HKData, error) {
 func (hdc *HKDataCreate) createSpec() (*HKData, *sqlgraph.CreateSpec) {
 	var (
 		_node = &HKData{config: hdc.config}
-		_spec = sqlgraph.NewCreateSpec(hkdata.Table, sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeUUID))
+		_spec = sqlgraph.NewCreateSpec(hkdata.Table, sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeString))
 	)
 	if id, ok := hdc.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = &id
+		_spec.ID.Value = id
 	}
 	if value, ok := hdc.mutation.GetType(); ok {
 		_spec.SetField(hkdata.FieldType, field.TypeString, value)

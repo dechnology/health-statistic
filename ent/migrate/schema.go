@@ -88,7 +88,7 @@ var (
 	}
 	// HkDataColumns holds the columns for the "hk_data" table.
 	HkDataColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "id", Type: field.TypeString, Unique: true},
 		{Name: "type", Type: field.TypeString},
 		{Name: "value", Type: field.TypeString},
 		{Name: "start_timestamp", Type: field.TypeString},

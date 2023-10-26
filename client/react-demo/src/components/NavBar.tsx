@@ -8,21 +8,20 @@ const NavBar = () => {
   return (
     <>
       <div className="flex justify-between bg-sky-300 px-10 font-semibold text-lg">
-        <div className="flex py-5">
-          {isAuthenticated ? <p>{user && user.name}</p> : 'Not Logged In'}
-          <nav>
-            {/* <ul className="flex">
-              <li className="mx-5">
-                <NavLink to="/">Registration</NavLink>
-              </li>
-              <li className="mx-5">
-                <NavLink to="/profile">Profile</NavLink>
-              </li>
-            </ul> */}
-          </nav>
-        </div>
+        <nav>
+          <ul className="flex gap-2">
+            <li className="py-5 px-2 hover:bg-sky-500 transition-all">
+              <NavLink to="/">Registration</NavLink>
+            </li>
+            <li className="py-5 px-2 hover:bg-sky-500 transition-all">
+              <NavLink to="/profile">Profile</NavLink>
+            </li>
+          </ul>
+        </nav>
         <div className="flex items-center gap-2">
-          {isAuthenticated ? <p>Hi! {user && user.name}.</p> : 'Not Logged In'}
+          <p className="italic">
+            {isAuthenticated ? `Hi! ${user && user.name}` : 'Not Logged In'}
+          </p>
           <AuthButton />
         </div>
       </div>

@@ -4,7 +4,6 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
 )
 
 // HKData holds the schema definition for the HKData entity.
@@ -16,7 +15,7 @@ type HKData struct {
 func (HKData) Fields() []ent.Field {
 	return []ent.Field{
 		// you need to manually set the id value
-		field.UUID("id", uuid.UUID{}).
+		field.String("id").
 			Immutable().
 			Unique(),
 		field.String("type"),

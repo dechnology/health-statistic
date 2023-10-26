@@ -22,10 +22,19 @@ func (h *Handler) GetUserById(
 ) (*ent.User, error) {
 	userNode, err := h.DB.User.Query().
 		Where(user.ID(userId)).
+		WithQuestionnaireResponses(func(qrq *ent.QuestionnaireResponseQuery) {
+			qrq.WithQuestionnaire(func(qq *ent.QuestionnaireQuery) {
+				qq.WithQuestions()
+			}).WithAnswers(func(aq *ent.AnswerQuery) {
+				aq.WithChosen()
+			})
+		}).
 		WithMycards().
 		WithPrices().
 		WithDeegoo().
-		WithHealthkit().
+		WithHealthkit(func(hkq *ent.HealthKitQuery) {
+			hkq.WithData()
+		}).
 		Only(ctx)
 
 	if err != nil {

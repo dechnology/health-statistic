@@ -787,7 +787,7 @@ func (c *HKDataClient) UpdateOne(hd *HKData) *HKDataUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *HKDataClient) UpdateOneID(id uuid.UUID) *HKDataUpdateOne {
+func (c *HKDataClient) UpdateOneID(id string) *HKDataUpdateOne {
 	mutation := newHKDataMutation(c.config, OpUpdateOne, withHKDataID(id))
 	return &HKDataUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -804,7 +804,7 @@ func (c *HKDataClient) DeleteOne(hd *HKData) *HKDataDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *HKDataClient) DeleteOneID(id uuid.UUID) *HKDataDeleteOne {
+func (c *HKDataClient) DeleteOneID(id string) *HKDataDeleteOne {
 	builder := c.Delete().Where(hkdata.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -821,12 +821,12 @@ func (c *HKDataClient) Query() *HKDataQuery {
 }
 
 // Get returns a HKData entity by its id.
-func (c *HKDataClient) Get(ctx context.Context, id uuid.UUID) (*HKData, error) {
+func (c *HKDataClient) Get(ctx context.Context, id string) (*HKData, error) {
 	return c.Query().Where(hkdata.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *HKDataClient) GetX(ctx context.Context, id uuid.UUID) *HKData {
+func (c *HKDataClient) GetX(ctx context.Context, id string) *HKData {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)

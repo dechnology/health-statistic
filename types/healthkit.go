@@ -16,7 +16,7 @@ type BaseHKData struct {
 }
 
 type BaseHealthKit struct {
-	StartTime time.Time    `json:"start_time"`
-	EndTime   time.Time    `json:"end_time"`
-	Data      []BaseHKData `json:"data"`
+	StartTime time.Time  `json:"start_time"`
+	EndTime   time.Time  `json:"end_time"`
+	Data      [][]string `json:"data"`
 }

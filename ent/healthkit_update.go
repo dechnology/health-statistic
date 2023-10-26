@@ -19,7 +19,6 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent/hkdata"
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
-	"github.com/google/uuid"
 )
 
 // HealthKitUpdate is the builder for updating HealthKit entities.
@@ -67,14 +66,14 @@ func (hku *HealthKitUpdate) SetUser(u *User) *HealthKitUpdate {
 }
 
 // AddDatumIDs adds the "data" edge to the HKData entity by IDs.
-func (hku *HealthKitUpdate) AddDatumIDs(ids ...uuid.UUID) *HealthKitUpdate {
+func (hku *HealthKitUpdate) AddDatumIDs(ids ...string) *HealthKitUpdate {
 	hku.mutation.AddDatumIDs(ids...)
 	return hku
 }
 
 // AddData adds the "data" edges to the HKData entity.
 func (hku *HealthKitUpdate) AddData(h ...*HKData) *HealthKitUpdate {
-	ids := make([]uuid.UUID, len(h))
+	ids := make([]string, len(h))
 	for i := range h {
 		ids[i] = h[i].ID
 	}
@@ -99,14 +98,14 @@ func (hku *HealthKitUpdate) ClearData() *HealthKitUpdate {
 }
 
 // RemoveDatumIDs removes the "data" edge to HKData entities by IDs.
-func (hku *HealthKitUpdate) RemoveDatumIDs(ids ...uuid.UUID) *HealthKitUpdate {
+func (hku *HealthKitUpdate) RemoveDatumIDs(ids ...string) *HealthKitUpdate {
 	hku.mutation.RemoveDatumIDs(ids...)
 	return hku
 }
 
 // RemoveData removes "data" edges to HKData entities.
 func (hku *HealthKitUpdate) RemoveData(h ...*HKData) *HealthKitUpdate {
-	ids := make([]uuid.UUID, len(h))
+	ids := make([]string, len(h))
 	for i := range h {
 		ids[i] = h[i].ID
 	}
@@ -192,7 +191,7 @@ func (hku *HealthKitUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{healthkit.DataColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -205,7 +204,7 @@ func (hku *HealthKitUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{healthkit.DataColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -221,7 +220,7 @@ func (hku *HealthKitUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{healthkit.DataColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -281,14 +280,14 @@ func (hkuo *HealthKitUpdateOne) SetUser(u *User) *HealthKitUpdateOne {
 }
 
 // AddDatumIDs adds the "data" edge to the HKData entity by IDs.
-func (hkuo *HealthKitUpdateOne) AddDatumIDs(ids ...uuid.UUID) *HealthKitUpdateOne {
+func (hkuo *HealthKitUpdateOne) AddDatumIDs(ids ...string) *HealthKitUpdateOne {
 	hkuo.mutation.AddDatumIDs(ids...)
 	return hkuo
 }
 
 // AddData adds the "data" edges to the HKData entity.
 func (hkuo *HealthKitUpdateOne) AddData(h ...*HKData) *HealthKitUpdateOne {
-	ids := make([]uuid.UUID, len(h))
+	ids := make([]string, len(h))
 	for i := range h {
 		ids[i] = h[i].ID
 	}
@@ -313,14 +312,14 @@ func (hkuo *HealthKitUpdateOne) ClearData() *HealthKitUpdateOne {
 }
 
 // RemoveDatumIDs removes the "data" edge to HKData entities by IDs.
-func (hkuo *HealthKitUpdateOne) RemoveDatumIDs(ids ...uuid.UUID) *HealthKitUpdateOne {
+func (hkuo *HealthKitUpdateOne) RemoveDatumIDs(ids ...string) *HealthKitUpdateOne {
 	hkuo.mutation.RemoveDatumIDs(ids...)
 	return hkuo
 }
 
 // RemoveData removes "data" edges to HKData entities.
 func (hkuo *HealthKitUpdateOne) RemoveData(h ...*HKData) *HealthKitUpdateOne {
-	ids := make([]uuid.UUID, len(h))
+	ids := make([]string, len(h))
 	for i := range h {
 		ids[i] = h[i].ID
 	}
@@ -436,7 +435,7 @@ func (hkuo *HealthKitUpdateOne) sqlSave(ctx context.Context) (_node *HealthKit, 
 			Columns: []string{healthkit.DataColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -449,7 +448,7 @@ func (hkuo *HealthKitUpdateOne) sqlSave(ctx context.Context) (_node *HealthKit, 
 			Columns: []string{healthkit.DataColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -465,7 +464,7 @@ func (hkuo *HealthKitUpdateOne) sqlSave(ctx context.Context) (_node *HealthKit, 
 			Columns: []string{healthkit.DataColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

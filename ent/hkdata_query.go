@@ -111,8 +111,8 @@ func (hdq *HKDataQuery) FirstX(ctx context.Context) *HKData {
 
 // FirstID returns the first HKData ID from the query.
 // Returns a *NotFoundError when no HKData ID was found.
-func (hdq *HKDataQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
-	var ids []uuid.UUID
+func (hdq *HKDataQuery) FirstID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = hdq.Limit(1).IDs(setContextOp(ctx, hdq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -124,7 +124,7 @@ func (hdq *HKDataQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (hdq *HKDataQuery) FirstIDX(ctx context.Context) uuid.UUID {
+func (hdq *HKDataQuery) FirstIDX(ctx context.Context) string {
 	id, err := hdq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -162,8 +162,8 @@ func (hdq *HKDataQuery) OnlyX(ctx context.Context) *HKData {
 // OnlyID is like Only, but returns the only HKData ID in the query.
 // Returns a *NotSingularError when more than one HKData ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (hdq *HKDataQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
-	var ids []uuid.UUID
+func (hdq *HKDataQuery) OnlyID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = hdq.Limit(2).IDs(setContextOp(ctx, hdq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -179,7 +179,7 @@ func (hdq *HKDataQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (hdq *HKDataQuery) OnlyIDX(ctx context.Context) uuid.UUID {
+func (hdq *HKDataQuery) OnlyIDX(ctx context.Context) string {
 	id, err := hdq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -207,7 +207,7 @@ func (hdq *HKDataQuery) AllX(ctx context.Context) []*HKData {
 }
 
 // IDs executes the query and returns a list of HKData IDs.
-func (hdq *HKDataQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+func (hdq *HKDataQuery) IDs(ctx context.Context) (ids []string, err error) {
 	if hdq.ctx.Unique == nil && hdq.path != nil {
 		hdq.Unique(true)
 	}
@@ -219,7 +219,7 @@ func (hdq *HKDataQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (hdq *HKDataQuery) IDsX(ctx context.Context) []uuid.UUID {
+func (hdq *HKDataQuery) IDsX(ctx context.Context) []string {
 	ids, err := hdq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -456,7 +456,7 @@ func (hdq *HKDataQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (hdq *HKDataQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(hkdata.Table, hkdata.Columns, sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeUUID))
+	_spec := sqlgraph.NewQuerySpec(hkdata.Table, hkdata.Columns, sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeString))
 	_spec.From = hdq.sql
 	if unique := hdq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

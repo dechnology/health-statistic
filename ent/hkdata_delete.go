@@ -44,7 +44,7 @@ func (hdd *HKDataDelete) ExecX(ctx context.Context) int {
 }
 
 func (hdd *HKDataDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(hkdata.Table, sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeUUID))
+	_spec := sqlgraph.NewDeleteSpec(hkdata.Table, sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeString))
 	if ps := hdd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

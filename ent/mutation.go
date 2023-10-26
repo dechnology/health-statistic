@@ -2089,7 +2089,7 @@ type HKDataMutation struct {
 	config
 	op               Op
 	typ              string
-	id               *uuid.UUID
+	id               *string
 	_type            *string
 	value            *string
 	start_timestamp  *string
@@ -2123,7 +2123,7 @@ func newHKDataMutation(c config, op Op, opts ...hkdataOption) *HKDataMutation {
 }
 
 // withHKDataID sets the ID field of the mutation.
-func withHKDataID(id uuid.UUID) hkdataOption {
+func withHKDataID(id string) hkdataOption {
 	return func(m *HKDataMutation) {
 		var (
 			err   error
@@ -2175,13 +2175,13 @@ func (m HKDataMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of HKData entities.
-func (m *HKDataMutation) SetID(id uuid.UUID) {
+func (m *HKDataMutation) SetID(id string) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *HKDataMutation) ID() (id uuid.UUID, exists bool) {
+func (m *HKDataMutation) ID() (id string, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -2192,12 +2192,12 @@ func (m *HKDataMutation) ID() (id uuid.UUID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *HKDataMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+func (m *HKDataMutation) IDs(ctx context.Context) ([]string, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []uuid.UUID{id}, nil
+			return []string{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -2710,8 +2710,8 @@ type HealthKitMutation struct {
 	clearedFields map[string]struct{}
 	user          *string
 	cleareduser   bool
-	data          map[uuid.UUID]struct{}
-	removeddata   map[uuid.UUID]struct{}
+	data          map[string]struct{}
+	removeddata   map[string]struct{}
 	cleareddata   bool
 	done          bool
 	oldValue      func(context.Context) (*HealthKit, error)
@@ -2934,9 +2934,9 @@ func (m *HealthKitMutation) ResetUser() {
 }
 
 // AddDatumIDs adds the "data" edge to the HKData entity by ids.
-func (m *HealthKitMutation) AddDatumIDs(ids ...uuid.UUID) {
+func (m *HealthKitMutation) AddDatumIDs(ids ...string) {
 	if m.data == nil {
-		m.data = make(map[uuid.UUID]struct{})
+		m.data = make(map[string]struct{})
 	}
 	for i := range ids {
 		m.data[ids[i]] = struct{}{}
@@ -2954,9 +2954,9 @@ func (m *HealthKitMutation) DataCleared() bool {
 }
 
 // RemoveDatumIDs removes the "data" edge to the HKData entity by IDs.
-func (m *HealthKitMutation) RemoveDatumIDs(ids ...uuid.UUID) {
+func (m *HealthKitMutation) RemoveDatumIDs(ids ...string) {
 	if m.removeddata == nil {
-		m.removeddata = make(map[uuid.UUID]struct{})
+		m.removeddata = make(map[string]struct{})
 	}
 	for i := range ids {
 		delete(m.data, ids[i])
@@ -2965,7 +2965,7 @@ func (m *HealthKitMutation) RemoveDatumIDs(ids ...uuid.UUID) {
 }
 
 // RemovedData returns the removed IDs of the "data" edge to the HKData entity.
-func (m *HealthKitMutation) RemovedDataIDs() (ids []uuid.UUID) {
+func (m *HealthKitMutation) RemovedDataIDs() (ids []string) {
 	for id := range m.removeddata {
 		ids = append(ids, id)
 	}
@@ -2973,7 +2973,7 @@ func (m *HealthKitMutation) RemovedDataIDs() (ids []uuid.UUID) {
 }
 
 // DataIDs returns the "data" edge IDs in the mutation.
-func (m *HealthKitMutation) DataIDs() (ids []uuid.UUID) {
+func (m *HealthKitMutation) DataIDs() (ids []string) {
 	for id := range m.data {
 		ids = append(ids, id)
 	}
