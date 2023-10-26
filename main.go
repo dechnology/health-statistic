@@ -12,15 +12,15 @@ import (
 	"github.com/joho/godotenv"
 )
 
-//	@Title		Web3 - 健康資料公鏈API開發文件
-//	@Version	1.0
-//	@Description.markdown
-//	@Host						health-statistic.dechnology.com.tw
-//	@Schemes					https
-//	@BasePath					/api/v1
-//	@SecurityDefinitions.apikey	BearerAuth
-//	@In							header
-//	@Name						Authorization
+// @Title		Web3 - 健康資料公鏈API開發文件
+// @Version	1.0
+// @Description.markdown
+// @Host						health-statistic.dechnology.com.tw
+// @Schemes					https
+// @BasePath					/api/v1
+// @SecurityDefinitions.apikey	BearerAuth
+// @In							header
+// @Name						Authorization
 func main() {
 	// Loading environment variables when not using a docker container
 	if os.Getenv("RUNNING_IN_DOCKER") == "" {
