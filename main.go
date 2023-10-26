@@ -45,5 +45,5 @@ func main() {
 	}
 
 	r := router.New(entClient, fcm)
-	r.Run(":6969")
+	r.Run(":8080")
 }
