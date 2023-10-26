@@ -7,19 +7,20 @@ import (
 
 	"github.com/eesoymilk/health-statistic-api/db"
 	_ "github.com/eesoymilk/health-statistic-api/docs"
+	"github.com/eesoymilk/health-statistic-api/fcm"
 	"github.com/eesoymilk/health-statistic-api/router"
 	"github.com/joho/godotenv"
 )
 
-// @Title		Web3 - 健康資料公鏈API開發文件
-// @Version	1.0
-// @Description.markdown
-// @Host						health-statistic.dechnology.com.tw
-// @Schemes					https
-// @BasePath					/api/v1
-// @SecurityDefinitions.apikey	BearerAuth
-// @In							header
-// @Name						Authorization
+//	@Title		Web3 - 健康資料公鏈API開發文件
+//	@Version	1.0
+//	@Description.markdown
+//	@Host						health-statistic.dechnology.com.tw
+//	@Schemes					https
+//	@BasePath					/api/v1
+//	@SecurityDefinitions.apikey	BearerAuth
+//	@In							header
+//	@Name						Authorization
 func main() {
 	// Loading environment variables when not using a docker container
 	if os.Getenv("RUNNING_IN_DOCKER") == "" {
@@ -37,6 +38,12 @@ func main() {
 		log.Print(err.Error())
 	}
 
-	r := router.New(entClient)
+	fcm, err := fcm.New(context.Background())
+
+	if err != nil {
+		log.Fatalf("error initializing FCM: %v\n", err)
+	}
+
+	r := router.New(entClient, fcm)
 	r.Run(":6969")
 }

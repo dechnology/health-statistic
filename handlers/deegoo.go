@@ -2,10 +2,12 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 
+	"firebase.google.com/go/v4/messaging"
 	"github.com/eesoymilk/health-statistic-api/types"
 	"github.com/gin-gonic/gin"
 )
@@ -46,5 +48,27 @@ func (h *Handler) SubmitDeegoo(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	// This registration token comes from the client FCM SDKs.
+	registrationToken := "YOUR_REGISTRATION_TOKEN"
+
+	// See documentation on defining a message payload.
+	message := &messaging.Message{
+		Data: map[string]string{
+			"score": "850",
+			"time":  "2:45",
+		},
+		Token: registrationToken,
+	}
+
+	// Send a message to the device corresponding to the provided
+	// registration token.
+	response, err := h.FCM.Send(c.Request.Context(), message)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	// Response is a message ID string.
+	fmt.Println("Successfully sent message:", response)
+
 	c.JSON(http.StatusOK, deegooNode)
 }

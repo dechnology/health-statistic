@@ -256,26 +256,13 @@ definitions:
       user_id:
         type: string
     type: object
-  types.BaseHKData:
-    properties:
-      end_timestamp:
-        type: string
-      id:
-        type: string
-      start_timestamp:
-        type: string
-      timezone_id:
-        type: string
-      type:
-        type: string
-      value:
-        type: string
-    type: object
   types.BaseHealthKit:
     properties:
       data:
         items:
-          $ref: '#/definitions/types.BaseHKData'
+          items:
+            type: string
+          type: array
         type: array
       end_time:
         type: string
