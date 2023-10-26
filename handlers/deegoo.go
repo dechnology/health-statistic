@@ -12,14 +12,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// @Summary				Create Deegoo
-// @Description.markdown	deegoo.post
-// @Tags					Deegoo
-// @Accept					json
-// @Produce				json
-// @Param					deegoo	body		types.BaseDeegoo	true	"The deegoo scores to submit"
-// @Success				200		{object}	ent.Deegoo
-// @Router					/deegoo [post]
+//	@Summary				Create Deegoo
+//	@Description.markdown	deegoo.post
+//	@Tags					Deegoo
+//	@Accept					json
+//	@Produce				json
+//	@Param					deegoo	body		types.BaseDeegoo	true	"The deegoo scores to submit"
+//	@Success				200		{object}	ent.Deegoo
+//	@Router					/deegoo [post]
 func (h *Handler) SubmitDeegoo(c *gin.Context) {
 	var body types.BaseDeegoo
 	if err := c.ShouldBindJSON(&body); err != nil {

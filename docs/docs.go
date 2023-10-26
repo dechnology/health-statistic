@@ -1116,36 +1116,16 @@ const docTemplate = `{
                 }
             }
         },
-        "types.BaseHKData": {
-            "type": "object",
-            "properties": {
-                "end_timestamp": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "start_timestamp": {
-                    "type": "string"
-                },
-                "timezone_id": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                },
-                "value": {
-                    "type": "string"
-                }
-            }
-        },
         "types.BaseHealthKit": {
             "type": "object",
             "properties": {
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/types.BaseHKData"
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     }
                 },
                 "end_time": {
