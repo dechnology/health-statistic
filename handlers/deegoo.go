@@ -63,9 +63,9 @@ func (h *Handler) SubmitDeegoo(c *gin.Context) {
 
 	// See documentation on defining a message payload.
 	message := &messaging.Message{
-		Data: map[string]string{
-			"score": "850",
-			"time":  "2:45",
+		Notification: &messaging.Notification{
+			Title: "Messgae from DeeGoo",
+			Body:  "Your DeeGoo score has been submitted!",
 		},
 		Token: user.FcmToken,
 	}

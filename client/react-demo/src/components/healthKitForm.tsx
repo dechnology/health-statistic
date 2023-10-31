@@ -34,9 +34,12 @@ const HKDataForm = () => {
       className="border border-solid border-slate-300 bg-white p-4 rounded-2xl flex flex-col gap-4"
       onSubmit={handleSubmit}
     >
+      <h2 className="text-2xl font-semibold text-center">
+        HealthKit Data Upload
+      </h2>
       <button
         type="submit"
-        className="border border-solid rounded-md p-4 bg-sky-500 text-white font-bold text-xl hover:bg-sky-600 transition-all"
+        className="border border-solid rounded-md py-4 px-8 mx-auto bg-sky-500 text-white font-bold text-xl hover:bg-sky-600 transition-all"
       >
         Submit HealthKit
       </button>

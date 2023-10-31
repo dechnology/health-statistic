@@ -41,11 +41,13 @@ const DeegooForm = () => {
     >
       <h2 className="text-2xl font-semibold text-center">Deegoo Data Upload</h2>
       <div className="flex flex-col gap-2">
-        <label className="flex">
-          <div>Perception</div>
+        <label className="flex items-center">
+          <div className="basis-1/3 uppercase font-medium">Perception</div>
           <input
             type="text"
             name="stepCount"
+            defaultValue={0}
+            className="border border-black border-opacity-40 p-2 rounded basis-2/3"
             onChange={(e) =>
               setDeegooData((prev) => ({
                 ...prev,
@@ -54,11 +56,13 @@ const DeegooForm = () => {
             }
           />
         </label>
-        <label className="flex">
-          <div>Focus</div>
+        <label className="flex items-center">
+          <div className="basis-1/3 uppercase font-medium">Focus</div>
           <input
             type="text"
             name="stepCount"
+            defaultValue={0}
+            className="border border-black border-opacity-40 p-2 rounded basis-2/3"
             onChange={(e) =>
               setDeegooData((prev) => ({
                 ...prev,
@@ -67,11 +71,13 @@ const DeegooForm = () => {
             }
           />
         </label>
-        <label className="flex">
-          <div>Execution</div>
+        <label className="flex items-center">
+          <div className="basis-1/3 uppercase font-medium">Execution</div>
           <input
             type="text"
             name="stepCount"
+            defaultValue={0}
+            className="border border-black border-opacity-40 p-2 rounded basis-2/3"
             onChange={(e) =>
               setDeegooData((prev) => ({
                 ...prev,
@@ -80,11 +86,13 @@ const DeegooForm = () => {
             }
           />
         </label>
-        <label className="flex">
-          <div>Memory</div>
+        <label className="flex items-center">
+          <div className="basis-1/3 uppercase font-medium">Memory</div>
           <input
             type="text"
             name="stepCount"
+            defaultValue={0}
+            className="border border-black border-opacity-40 p-2 rounded basis-2/3"
             onChange={(e) =>
               setDeegooData((prev) => ({
                 ...prev,
@@ -93,11 +101,13 @@ const DeegooForm = () => {
             }
           />
         </label>
-        <label className="flex">
-          <div>language</div>
+        <label className="flex items-center">
+          <div className="basis-1/3 uppercase font-medium">language</div>
           <input
             type="text"
             name="stepCount"
+            defaultValue={0}
+            className="border border-black border-opacity-40 p-2 rounded basis-2/3"
             onChange={(e) =>
               setDeegooData((prev) => ({
                 ...prev,
@@ -109,7 +119,7 @@ const DeegooForm = () => {
       </div>
       <button
         type="submit"
-        className="border border-solid rounded-md p-4 bg-sky-500 text-white font-bold text-xl hover:bg-sky-600 transition-all"
+        className="border w-fit mx-auto border-solid rounded-md py-4 px-8 bg-sky-500 text-white font-bold text-xl hover:bg-sky-600 transition-all"
       >
         Submit
       </button>
