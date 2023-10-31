@@ -12,14 +12,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// @Summary				Create Deegoo
-// @Description.markdown	deegoo.post
-// @Tags					Deegoo
-// @Accept					json
-// @Produce				json
-// @Param					deegoo	body		types.BaseDeegoo	true	"The deegoo scores to submit"
-// @Success				200		{object}	ent.Deegoo
-// @Router					/deegoo [post]
+//	@Summary				Create Deegoo
+//	@Description.markdown	deegoo.post
+//	@Tags					Deegoo
+//	@Accept					json
+//	@Produce				json
+//	@Param					deegoo	body		types.BaseDeegoo	true	"The deegoo scores to submit"
+//	@Success				200		{object}	ent.Deegoo
+//	@Router					/deegoo [post]
 func (h *Handler) SubmitDeegoo(c *gin.Context) {
 	var body types.BaseDeegoo
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -34,6 +34,13 @@ func (h *Handler) SubmitDeegoo(c *gin.Context) {
 	}
 	log.Print(string(out))
 
+	user, err := h.GetUserById(c.Request.Context(), body.UserId)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	deegooNode, err := h.DB.Deegoo.
 		Create().
 		SetPerception(body.Perception).
@@ -41,7 +48,7 @@ func (h *Handler) SubmitDeegoo(c *gin.Context) {
 		SetExecution(body.Execution).
 		SetMemory(body.Memory).
 		SetLanguage(body.Language).
-		SetUserID(body.UserId).
+		SetUser(user).
 		Save(c.Request.Context())
 
 	if err != nil {
@@ -49,8 +56,10 @@ func (h *Handler) SubmitDeegoo(c *gin.Context) {
 		return
 	}
 
-	// This registration token comes from the client FCM SDKs.
-	registrationToken := "dTHzcCQDCUZcmnU6kX7u5f:APA91bHkdnCCqGtMVKN9XX4k9hz58tyUi79PlF9LEF5D6LkydkUJmpfWpMjDb6Y1Y5ruHlppuHFLGwIC9jjx3rkzOXtOkC2eR7yRzSDRUO6iXnIcG_GdaN46zjTJrBl5lgWBCxbc7u_r"
+	if user.FcmToken == "" {
+		c.JSON(http.StatusOK, deegooNode)
+		return
+	}
 
 	// See documentation on defining a message payload.
 	message := &messaging.Message{
@@ -58,7 +67,7 @@ func (h *Handler) SubmitDeegoo(c *gin.Context) {
 			"score": "850",
 			"time":  "2:45",
 		},
-		Token: registrationToken,
+		Token: user.FcmToken,
 	}
 
 	// Send a message to the device corresponding to the provided

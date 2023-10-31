@@ -556,6 +556,39 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/fcm": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Update User's FCM Token",
+                "parameters": [
+                    {
+                        "description": "The FCM token to update",
+                        "name": "healthkit",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.FcmTokenRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ent.User"
+                        }
+                    }
+                }
+            }
+        },
         "/user/healthkit": {
             "post": {
                 "consumes": [
@@ -958,6 +991,10 @@ const docTemplate = `{
                         }
                     ]
                 },
+                "fcm_token": {
+                    "description": "FcmToken holds the value of the \"fcm_token\" field.",
+                    "type": "string"
+                },
                 "gender": {
                     "description": "Gender holds the value of the \"gender\" field.",
                     "allOf": [
@@ -1315,6 +1352,14 @@ const docTemplate = `{
                 "weight": {
                     "type": "number",
                     "example": 80.3
+                }
+            }
+        },
+        "types.FcmTokenRequest": {
+            "type": "object",
+            "properties": {
+                "fcm_token": {
+                    "type": "string"
                 }
             }
         },
