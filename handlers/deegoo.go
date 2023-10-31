@@ -12,14 +12,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//	@Summary				Create Deegoo
-//	@Description.markdown	deegoo.post
-//	@Tags					Deegoo
-//	@Accept					json
-//	@Produce				json
-//	@Param					deegoo	body		types.BaseDeegoo	true	"The deegoo scores to submit"
-//	@Success				200		{object}	ent.Deegoo
-//	@Router					/deegoo [post]
+// @Summary				Create Deegoo
+// @Description.markdown	deegoo.post
+// @Tags					Deegoo
+// @Accept					json
+// @Produce				json
+// @Param					deegoo	body		types.BaseDeegoo	true	"The deegoo scores to submit"
+// @Success				200		{object}	ent.Deegoo
+// @Router					/deegoo [post]
 func (h *Handler) SubmitDeegoo(c *gin.Context) {
 	var body types.BaseDeegoo
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -50,7 +50,7 @@ func (h *Handler) SubmitDeegoo(c *gin.Context) {
 	}
 
 	// This registration token comes from the client FCM SDKs.
-	registrationToken := "YOUR_REGISTRATION_TOKEN"
+	registrationToken := "dTHzcCQDCUZcmnU6kX7u5f:APA91bHkdnCCqGtMVKN9XX4k9hz58tyUi79PlF9LEF5D6LkydkUJmpfWpMjDb6Y1Y5ruHlppuHFLGwIC9jjx3rkzOXtOkC2eR7yRzSDRUO6iXnIcG_GdaN46zjTJrBl5lgWBCxbc7u_r"
 
 	// See documentation on defining a message payload.
 	message := &messaging.Message{
