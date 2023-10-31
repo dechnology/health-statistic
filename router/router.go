@@ -62,22 +62,6 @@ func New(db *ent.Client, fcm *messaging.Client) *gin.Engine {
 			deegoo.POST("", h.SubmitDeegoo)
 		}
 
-		readUsers := middlewares.Authorize("read:users")
-		writeUsers := middlewares.Authorize("write:users")
-		users := v1.Group("/users")
-		users.Use(readUsers)
-		{
-			users.GET("", h.GetUsers)
-
-			id := users.Group("/:id")
-			{
-				id.GET("", h.GetUser)
-				id.PUT("", writeUsers, h.UpdateUser)
-				id.DELETE("", writeUsers, h.DeleteUser)
-				id.GET("/notifications", h.GetUserNotifications)
-			}
-		}
-
 		// readQuestionnaires := middlewares.Authorize("read:questionnaires")
 		writeQuestionnaires := middlewares.Authorize("write:questionnaires")
 		questionnaires := v1.Group("/questionnaires")
@@ -85,33 +69,12 @@ func New(db *ent.Client, fcm *messaging.Client) *gin.Engine {
 		{
 			questionnaires.GET("", h.GetQuestionnaires)
 			questionnaires.GET("/registration", h.GetRegistrationQuestionnaire)
-			questionnaires.POST("", writeQuestionnaires, h.CreateQuestionnaire)
 
 			id := questionnaires.Group("/:id")
 			{
 				id.GET("", h.GetQuestionnaire)
-				id.DELETE("", writeQuestionnaires, h.DeleteQuestionnaire)
 				id.POST("/responses", writeQuestionnaires, h.CreateQuestionnaireResponse)
-				id.GET("/responses", h.GetQuestionnaireResponses)
 			}
-		}
-
-		readMyCards := middlewares.Authorize("read:mycards")
-		writeMyCards := middlewares.Authorize("write:mycards")
-		mycards := v1.Group("/mycards")
-		mycards.Use(readMyCards)
-		{
-			mycards.GET("", h.GetMyCards)
-			mycards.GET("/:id", h.GetMyCard)
-			mycards.DELETE("/:id", writeMyCards, h.DeleteMyCard)
-		}
-
-		writePrices := middlewares.Authorize("write:prices")
-		prices := v1.Group("/prices")
-		{
-			prices.GET("", h.GetPrices)
-			prices.GET("/:id", h.GetPrice)
-			prices.DELETE("/:id", writePrices, h.DeletePrice)
 		}
 	}
 

@@ -71,235 +71,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/healthkit": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "HealthKit"
-                ],
-                "summary": "Get HealthKitData",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/mycards": {
-            "get": {
-                "description": "Get all MyCards from the database.\n",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "MyCard"
-                ],
-                "summary": "Get MyCards",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/ent.MyCard"
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "MyCard"
-                ],
-                "summary": "Create MyCard",
-                "parameters": [
-                    {
-                        "description": "The mycard to be created",
-                        "name": "mycard",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.BaseMyCard"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/ent.MyCard"
-                        }
-                    }
-                }
-            }
-        },
-        "/mycards/{id}": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "MyCard"
-                ],
-                "summary": "Get MyCard",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The mycard's ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/ent.MyCard"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "MyCard"
-                ],
-                "summary": "Delete MyCard",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The mycard's ID.",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
-        },
-        "/prices": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Price"
-                ],
-                "summary": "Get Prices",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/ent.Price"
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Price"
-                ],
-                "summary": "Create Price",
-                "parameters": [
-                    {
-                        "description": "The price to be created",
-                        "name": "price",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.BasePrice"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/ent.Price"
-                        }
-                    }
-                }
-            }
-        },
-        "/prices/{id}": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Price"
-                ],
-                "summary": "Get Price",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The price's ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/ent.Price"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Price"
-                ],
-                "summary": "Delete Price",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The price's ID.",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
-        },
         "/questionnaires": {
             "get": {
                 "description": "Get all questionnaires from the database. This will include responses from yourself.\n",
@@ -318,38 +89,6 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/types.QuestionnaireDetails"
                             }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "Create a new questionnaire and optionally its questions.\n\n## Request Body\n\n- ` + "`" + `name` + "`" + ` *` + "`" + `string` + "`" + `* **Required**\n    The name of the questionnaire to be created.\n\n- ` + "`" + `questions` + "`" + ` *` + "`" + `array` + "`" + `* Optional\n    The initial questions in this questionnaire. This field may be empty and you can add questions later using post request to ` + "`" + `quesionnaires/:id/new/question` + "`" + `.\n    \n    - ` + "`" + `body` + "`" + ` *` + "`" + `string` + "`" + `* **Required**\n        The body of one of the question in the questionnaire.\n    \n    - ` + "`" + `type` + "`" + ` *` + "`" + `string` + "`" + `* **Required**\n        The type of the question. For now, we accept all strings but in the future this field might be an enum.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Questionnaire"
-                ],
-                "summary": "Create Questionnaire",
-                "parameters": [
-                    {
-                        "description": "The questionnaire to be created.",
-                        "name": "questionnaire",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.BaseQuestionnaire"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/ent.Questionnaire"
                         }
                     }
                 }
@@ -402,65 +141,9 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
-            "delete": {
-                "description": "Delete the questionnaire specified by the ` + "`" + `id` + "`" + ` path param.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Questionnaire"
-                ],
-                "summary": "Delete Questionnaire",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The questionnaire's ID.",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
             }
         },
         "/questionnaires/{id}/responses": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Questionnaire"
-                ],
-                "summary": "Get Questionnaire Responses",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The questionnaire's ID.",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/ent.QuestionnaireResponse"
-                            }
-                        }
-                    }
-                }
-            },
             "post": {
                 "consumes": [
                     "application/json"
@@ -540,7 +223,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Self"
+                    "User"
                 ],
                 "summary": "Get Own User",
                 "responses": {
@@ -591,6 +274,7 @@ const docTemplate = `{
         },
         "/user/healthkit": {
             "post": {
+                "description": "# Description\n\nUpload HealthKit data for a user.\n\n## Request Body\n\n- ` + "`" + `data` + "`" + ` _` + "`" + `array` + "`" + `_ **Required**\n  The data is an array of arrays. Each array represents a unit of healthkit data. Each unit of healthkit data is an array of 6 elements. The 6 elements are:\n  \n  - ` + "`" + `type` + "`" + ` _` + "`" + `string` + "`" + `_ **Required**\n    The type of the healthkit data. For example, ` + "`" + `HKQuantityTypeIdentifierHeartRate` + "`" + `, ` + "`" + `HKQuantityTypeIdentifierStepCount` + "`" + `, and etc.\n  \n  - ` + "`" + `count` + "`" + ` _` + "`" + `string` + "`" + `_ **Required**\n    The count of the healthkit data. For example, if the type is ` + "`" + `HKQuantityTypeIdentifierHeartRate` + "`" + `, then the count is the heart rate.\n  \n  - ` + "`" + `uuid` + "`" + ` _` + "`" + `string` + "`" + `_ **Required**\n    The UUID of the healthkit data.\n  \n  - ` + "`" + `start_time` + "`" + ` _` + "`" + `string` + "`" + `_ **Required**\n    The start time of the healthkit data.\n  \n  - ` + "`" + `end_time` + "`" + ` _` + "`" + `string` + "`" + `_ **Required**\n    The end time of the healthkit data.\n  \n  - ` + "`" + `timezone_id` + "`" + ` _` + "`" + `string` + "`" + `_ **Required**\n    The timezone ID of the healthkit data.\n\n- ` + "`" + `start_time` + "`" + ` _` + "`" + `datetime` + "`" + `_ **Required**\n  The start time of this batch of healthkit data.\n\n- ` + "`" + `end_time` + "`" + ` _` + "`" + `datetime` + "`" + `_ **Required**\n  The end time of this batch of healthkit data.\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -622,95 +306,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/users": {
-            "get": {
-                "description": "Get all users from the database.\n",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Get Users",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/ent.User"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/users/{id}": {
-            "get": {
-                "description": "Get the user specified by the ` + "`" + `id` + "`" + ` path param.\n",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Get User",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The user's Auth0 ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/ent.User"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Update User",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The user's Auth0 ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "user to be updated",
-                        "name": "user",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.BaseUser"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/ent.User"
-                        }
-                    }
-                }
-            },
             "delete": {
                 "produces": [
                     "application/json"
@@ -731,41 +327,6 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK"
-                    }
-                }
-            }
-        },
-        "/users/{id}/notifications": {
-            "get": {
-                "description": "Get all history notifications of an user.\n",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Get All Notifications From an User",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The user's Auth0 ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/definitions/ent.Notification"
-                                }
-                            }
-                        }
                     }
                 }
             }
@@ -822,81 +383,6 @@ const docTemplate = `{
                 }
             }
         },
-        "ent.MyCard": {
-            "type": "object",
-            "properties": {
-                "card_password": {
-                    "description": "CardPassword holds the value of the \"card_password\" field.",
-                    "type": "string"
-                },
-                "created_at": {
-                    "description": "CreatedAt holds the value of the \"created_at\" field.",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "ID of the ent.",
-                    "type": "string"
-                },
-                "taken_at": {
-                    "description": "TakenAt holds the value of the \"taken_at\" field.",
-                    "type": "string"
-                }
-            }
-        },
-        "ent.Notification": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "description": "ID of the ent.",
-                    "type": "string"
-                },
-                "message": {
-                    "description": "Message holds the value of the \"message\" field.",
-                    "type": "string"
-                },
-                "read_at": {
-                    "description": "ReadAt holds the value of the \"read_at\" field.",
-                    "type": "string"
-                },
-                "sent_at": {
-                    "description": "SentAt holds the value of the \"sent_at\" field.",
-                    "type": "string"
-                },
-                "type": {
-                    "description": "Type holds the value of the \"type\" field.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/notification.Type"
-                        }
-                    ]
-                }
-            }
-        },
-        "ent.Price": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "description": "CreatedAt holds the value of the \"created_at\" field.",
-                    "type": "string"
-                },
-                "description": {
-                    "description": "Description holds the value of the \"description\" field.",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "ID of the ent.",
-                    "type": "string"
-                },
-                "name": {
-                    "description": "Name holds the value of the \"name\" field.",
-                    "type": "string"
-                },
-                "taken_at": {
-                    "description": "TakenAt holds the value of the \"taken_at\" field.",
-                    "type": "string"
-                }
-            }
-        },
         "ent.Question": {
             "type": "object",
             "properties": {
@@ -919,23 +405,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/question.Type"
                         }
                     ]
-                }
-            }
-        },
-        "ent.Questionnaire": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "description": "CreatedAt holds the value of the \"created_at\" field.",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "ID of the ent.",
-                    "type": "string"
-                },
-                "name": {
-                    "description": "Name holds the value of the \"name\" field.",
-                    "type": "string"
                 }
             }
         },
@@ -1076,19 +545,6 @@ const docTemplate = `{
                 }
             }
         },
-        "notification.Type": {
-            "type": "string",
-            "enum": [
-                "normal",
-                "mycard",
-                "price"
-            ],
-            "x-enum-varnames": [
-                "TypeNormal",
-                "TypeMycard",
-                "TypePrice"
-            ]
-        },
         "question.Type": {
             "type": "string",
             "enum": [
@@ -1170,75 +626,6 @@ const docTemplate = `{
                 },
                 "start_time": {
                     "type": "string"
-                }
-            }
-        },
-        "types.BaseMyCard": {
-            "type": "object",
-            "properties": {
-                "card_number": {
-                    "type": "string"
-                },
-                "card_password": {
-                    "type": "string"
-                }
-            }
-        },
-        "types.BasePrice": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "types.BaseQuestion": {
-            "type": "object",
-            "properties": {
-                "body": {
-                    "description": "The question body",
-                    "type": "string",
-                    "example": "你這週的心情如何？"
-                },
-                "choices": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "example": [
-                        "是",
-                        "否"
-                    ]
-                },
-                "type": {
-                    "type": "string",
-                    "enum": [
-                        "short_answer",
-                        "single_choice",
-                        "multiple_choice"
-                    ],
-                    "example": "single_choice"
-                }
-            }
-        },
-        "types.BaseQuestionnaire": {
-            "description": "BaseQuestionnaire",
-            "type": "object",
-            "properties": {
-                "name": {
-                    "description": "The name of the questionnaire",
-                    "type": "string",
-                    "example": "問卷標題"
-                },
-                "questions": {
-                    "description": "The initial questions in this questionnaire. This field may be empty\nand you can add questions later using post request to\n` + "`" + `quesionnaires/:id/new/question` + "`" + `.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.BaseQuestion"
-                    }
                 }
             }
         },

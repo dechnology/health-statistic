@@ -36,58 +36,6 @@ definitions:
         description: StartTime holds the value of the "start_time" field.
         type: string
     type: object
-  ent.MyCard:
-    properties:
-      card_password:
-        description: CardPassword holds the value of the "card_password" field.
-        type: string
-      created_at:
-        description: CreatedAt holds the value of the "created_at" field.
-        type: string
-      id:
-        description: ID of the ent.
-        type: string
-      taken_at:
-        description: TakenAt holds the value of the "taken_at" field.
-        type: string
-    type: object
-  ent.Notification:
-    properties:
-      id:
-        description: ID of the ent.
-        type: string
-      message:
-        description: Message holds the value of the "message" field.
-        type: string
-      read_at:
-        description: ReadAt holds the value of the "read_at" field.
-        type: string
-      sent_at:
-        description: SentAt holds the value of the "sent_at" field.
-        type: string
-      type:
-        allOf:
-        - $ref: '#/definitions/notification.Type'
-        description: Type holds the value of the "type" field.
-    type: object
-  ent.Price:
-    properties:
-      created_at:
-        description: CreatedAt holds the value of the "created_at" field.
-        type: string
-      description:
-        description: Description holds the value of the "description" field.
-        type: string
-      id:
-        description: ID of the ent.
-        type: string
-      name:
-        description: Name holds the value of the "name" field.
-        type: string
-      taken_at:
-        description: TakenAt holds the value of the "taken_at" field.
-        type: string
-    type: object
   ent.Question:
     properties:
       body:
@@ -103,18 +51,6 @@ definitions:
         allOf:
         - $ref: '#/definitions/question.Type'
         description: Type holds the value of the "type" field.
-    type: object
-  ent.Questionnaire:
-    properties:
-      created_at:
-        description: CreatedAt holds the value of the "created_at" field.
-        type: string
-      id:
-        description: ID of the ent.
-        type: string
-      name:
-        description: Name holds the value of the "name" field.
-        type: string
     type: object
   ent.QuestionnaireResponse:
     properties:
@@ -202,16 +138,6 @@ definitions:
         example: Hello, this is an example message!
         type: string
     type: object
-  notification.Type:
-    enum:
-    - normal
-    - mycard
-    - price
-    type: string
-    x-enum-varnames:
-    - TypeNormal
-    - TypeMycard
-    - TypePrice
   question.Type:
     enum:
     - short_answer
@@ -271,57 +197,6 @@ definitions:
         type: string
       start_time:
         type: string
-    type: object
-  types.BaseMyCard:
-    properties:
-      card_number:
-        type: string
-      card_password:
-        type: string
-    type: object
-  types.BasePrice:
-    properties:
-      description:
-        type: string
-      name:
-        type: string
-    type: object
-  types.BaseQuestion:
-    properties:
-      body:
-        description: The question body
-        example: 你這週的心情如何？
-        type: string
-      choices:
-        example:
-        - 是
-        - 否
-        items:
-          type: string
-        type: array
-      type:
-        enum:
-        - short_answer
-        - single_choice
-        - multiple_choice
-        example: single_choice
-        type: string
-    type: object
-  types.BaseQuestionnaire:
-    description: BaseQuestionnaire
-    properties:
-      name:
-        description: The name of the questionnaire
-        example: 問卷標題
-        type: string
-      questions:
-        description: |-
-          The initial questions in this questionnaire. This field may be empty
-          and you can add questions later using post request to
-          `quesionnaires/:id/new/question`.
-        items:
-          $ref: '#/definitions/types.BaseQuestion'
-        type: array
     type: object
   types.BaseResponse:
     properties:
@@ -723,155 +598,6 @@ paths:
       summary: Health Check
       tags:
       - Health
-  /healthkit:
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Get HealthKitData
-      tags:
-      - HealthKit
-  /mycards:
-    get:
-      description: |
-        Get all MyCards from the database.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/ent.MyCard'
-            type: array
-      summary: Get MyCards
-      tags:
-      - MyCard
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: The mycard to be created
-        in: body
-        name: mycard
-        required: true
-        schema:
-          $ref: '#/definitions/types.BaseMyCard'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/ent.MyCard'
-      summary: Create MyCard
-      tags:
-      - MyCard
-  /mycards/{id}:
-    delete:
-      parameters:
-      - description: The mycard's ID.
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      summary: Delete MyCard
-      tags:
-      - MyCard
-    get:
-      parameters:
-      - description: The mycard's ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/ent.MyCard'
-      summary: Get MyCard
-      tags:
-      - MyCard
-  /prices:
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/ent.Price'
-            type: array
-      summary: Get Prices
-      tags:
-      - Price
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: The price to be created
-        in: body
-        name: price
-        required: true
-        schema:
-          $ref: '#/definitions/types.BasePrice'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/ent.Price'
-      summary: Create Price
-      tags:
-      - Price
-  /prices/{id}:
-    delete:
-      parameters:
-      - description: The price's ID.
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      summary: Delete Price
-      tags:
-      - Price
-    get:
-      parameters:
-      - description: The price's ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/ent.Price'
-      summary: Get Price
-      tags:
-      - Price
   /questionnaires:
     get:
       description: |
@@ -888,51 +614,7 @@ paths:
       summary: Get Questionnaires
       tags:
       - Questionnaire
-    post:
-      consumes:
-      - application/json
-      description: "Create a new questionnaire and optionally its questions.\n\n##
-        Request Body\n\n- `name` *`string`* **Required**\n    The name of the questionnaire
-        to be created.\n\n- `questions` *`array`* Optional\n    The initial questions
-        in this questionnaire. This field may be empty and you can add questions later
-        using post request to `quesionnaires/:id/new/question`.\n    \n    - `body`
-        *`string`* **Required**\n        The body of one of the question in the questionnaire.\n
-        \   \n    - `type` *`string`* **Required**\n        The type of the question.
-        For now, we accept all strings but in the future this field might be an enum."
-      parameters:
-      - description: The questionnaire to be created.
-        in: body
-        name: questionnaire
-        required: true
-        schema:
-          $ref: '#/definitions/types.BaseQuestionnaire'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/ent.Questionnaire'
-      summary: Create Questionnaire
-      tags:
-      - Questionnaire
   /questionnaires/{id}:
-    delete:
-      description: Delete the questionnaire specified by the `id` path param.
-      parameters:
-      - description: The questionnaire's ID.
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      summary: Delete Questionnaire
-      tags:
-      - Questionnaire
     get:
       description: |
         Get the questionnaire specified by the `id` path param. This will include responses from yourself.
@@ -953,27 +635,6 @@ paths:
       tags:
       - Questionnaire
   /questionnaires/{id}/responses:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: The questionnaire's ID.
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/ent.QuestionnaireResponse'
-            type: array
-      summary: Get Questionnaire Responses
-      tags:
-      - Questionnaire
     post:
       consumes:
       - application/json
@@ -1119,7 +780,7 @@ paths:
             type: array
       summary: Get Own User
       tags:
-      - Self
+      - User
   /user/fcm:
     put:
       consumes:
@@ -1145,6 +806,21 @@ paths:
     post:
       consumes:
       - application/json
+      description: "# Description\n\nUpload HealthKit data for a user.\n\n## Request
+        Body\n\n- `data` _`array`_ **Required**\n  The data is an array of arrays.
+        Each array represents a unit of healthkit data. Each unit of healthkit data
+        is an array of 6 elements. The 6 elements are:\n  \n  - `type` _`string`_
+        **Required**\n    The type of the healthkit data. For example, `HKQuantityTypeIdentifierHeartRate`,
+        `HKQuantityTypeIdentifierStepCount`, and etc.\n  \n  - `count` _`string`_
+        **Required**\n    The count of the healthkit data. For example, if the type
+        is `HKQuantityTypeIdentifierHeartRate`, then the count is the heart rate.\n
+        \ \n  - `uuid` _`string`_ **Required**\n    The UUID of the healthkit data.\n
+        \ \n  - `start_time` _`string`_ **Required**\n    The start time of the healthkit
+        data.\n  \n  - `end_time` _`string`_ **Required**\n    The end time of the
+        healthkit data.\n  \n  - `timezone_id` _`string`_ **Required**\n    The timezone
+        ID of the healthkit data.\n\n- `start_time` _`datetime`_ **Required**\n  The
+        start time of this batch of healthkit data.\n\n- `end_time` _`datetime`_ **Required**\n
+        \ The end time of this batch of healthkit data.\n"
       parameters:
       - description: The healthkit to be created
         in: body
@@ -1162,22 +838,6 @@ paths:
       summary: Create HealthKit Data
       tags:
       - User
-  /users:
-    get:
-      description: |
-        Get all users from the database.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/ent.User'
-            type: array
-      summary: Get Users
-      tags:
-      - Users
   /users/{id}:
     delete:
       parameters:
@@ -1194,74 +854,6 @@ paths:
       summary: Delete User
       tags:
       - User
-    get:
-      description: |
-        Get the user specified by the `id` path param.
-      parameters:
-      - description: The user's Auth0 ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/ent.User'
-      summary: Get User
-      tags:
-      - Users
-    put:
-      consumes:
-      - application/json
-      parameters:
-      - description: The user's Auth0 ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: user to be updated
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/types.BaseUser'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/ent.User'
-      summary: Update User
-      tags:
-      - Users
-  /users/{id}/notifications:
-    get:
-      description: |
-        Get all history notifications of an user.
-      parameters:
-      - description: The user's Auth0 ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              items:
-                $ref: '#/definitions/ent.Notification'
-              type: array
-            type: array
-      summary: Get All Notifications From an User
-      tags:
-      - Users
 schemes:
 - https
 securityDefinitions:

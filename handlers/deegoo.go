@@ -61,11 +61,22 @@ func (h *Handler) SubmitDeegoo(c *gin.Context) {
 		return
 	}
 
+	mycard, err := user.QueryMycards().First(c.Request.Context())
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	// See documentation on defining a message payload.
 	message := &messaging.Message{
 		Notification: &messaging.Notification{
-			Title: "Messgae from DeeGoo",
-			Body:  "Your DeeGoo score has been submitted!",
+			Title: "Deegoo MyCard Reward",
+			Body: fmt.Sprintf(
+				"MyCard ID: %s\nMyCard Password: %s",
+				mycard.ID,
+				mycard.CardPassword,
+			),
 		},
 		Token: user.FcmToken,
 	}
