@@ -29,3 +29,7 @@ type RegisterResponse struct {
 	User     *ent.User                  `json:"user"`
 	Response *ent.QuestionnaireResponse `json:"response"`
 }
+
+type FcmTokenRequest struct {
+	FcmToken string `json:"fcm_token"`
+}

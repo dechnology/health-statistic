@@ -69,6 +69,11 @@ func IDContainsFold(id string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldID, id))
 }
 
+// FcmToken applies equality check predicate on the "fcm_token" field. It's identical to FcmTokenEQ.
+func FcmToken(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldFcmToken, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldCreatedAt, v))
@@ -102,6 +107,81 @@ func DementedAmongDirectRelatives(v bool) predicate.User {
 // HeadInjuryExperience applies equality check predicate on the "head_injury_experience" field. It's identical to HeadInjuryExperienceEQ.
 func HeadInjuryExperience(v bool) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldHeadInjuryExperience, v))
+}
+
+// FcmTokenEQ applies the EQ predicate on the "fcm_token" field.
+func FcmTokenEQ(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldFcmToken, v))
+}
+
+// FcmTokenNEQ applies the NEQ predicate on the "fcm_token" field.
+func FcmTokenNEQ(v string) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldFcmToken, v))
+}
+
+// FcmTokenIn applies the In predicate on the "fcm_token" field.
+func FcmTokenIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldIn(FieldFcmToken, vs...))
+}
+
+// FcmTokenNotIn applies the NotIn predicate on the "fcm_token" field.
+func FcmTokenNotIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldFcmToken, vs...))
+}
+
+// FcmTokenGT applies the GT predicate on the "fcm_token" field.
+func FcmTokenGT(v string) predicate.User {
+	return predicate.User(sql.FieldGT(FieldFcmToken, v))
+}
+
+// FcmTokenGTE applies the GTE predicate on the "fcm_token" field.
+func FcmTokenGTE(v string) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldFcmToken, v))
+}
+
+// FcmTokenLT applies the LT predicate on the "fcm_token" field.
+func FcmTokenLT(v string) predicate.User {
+	return predicate.User(sql.FieldLT(FieldFcmToken, v))
+}
+
+// FcmTokenLTE applies the LTE predicate on the "fcm_token" field.
+func FcmTokenLTE(v string) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldFcmToken, v))
+}
+
+// FcmTokenContains applies the Contains predicate on the "fcm_token" field.
+func FcmTokenContains(v string) predicate.User {
+	return predicate.User(sql.FieldContains(FieldFcmToken, v))
+}
+
+// FcmTokenHasPrefix applies the HasPrefix predicate on the "fcm_token" field.
+func FcmTokenHasPrefix(v string) predicate.User {
+	return predicate.User(sql.FieldHasPrefix(FieldFcmToken, v))
+}
+
+// FcmTokenHasSuffix applies the HasSuffix predicate on the "fcm_token" field.
+func FcmTokenHasSuffix(v string) predicate.User {
+	return predicate.User(sql.FieldHasSuffix(FieldFcmToken, v))
+}
+
+// FcmTokenIsNil applies the IsNil predicate on the "fcm_token" field.
+func FcmTokenIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldFcmToken))
+}
+
+// FcmTokenNotNil applies the NotNil predicate on the "fcm_token" field.
+func FcmTokenNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldFcmToken))
+}
+
+// FcmTokenEqualFold applies the EqualFold predicate on the "fcm_token" field.
+func FcmTokenEqualFold(v string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldFcmToken, v))
+}
+
+// FcmTokenContainsFold applies the ContainsFold predicate on the "fcm_token" field.
+func FcmTokenContainsFold(v string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldFcmToken, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

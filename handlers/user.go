@@ -110,6 +110,51 @@ func (h *Handler) CreateUserHealthKitData(c *gin.Context) {
 	c.JSON(http.StatusOK, healthkitNode)
 }
 
+//	@Summary				Update User's FCM Token
+//	@Description.markdown	user_fcm.put
+//	@Tags					User
+//	@Accept					json
+//	@Produce				json
+//	@Param					healthkit	body		types.FcmTokenRequest	true	"The FCM token to update"
+//	@Success				200			{object}	ent.User
+//	@Router					/user/fcm [put]
+func (h *Handler) UpdateUserFcmToken(c *gin.Context) {
+	userId, err := GetUserId(c)
+	if err != nil {
+		c.JSON(
+			http.StatusUnauthorized,
+			gin.H{
+				"error": err.Error(),
+			},
+		)
+		return
+	}
+
+	var body types.FcmTokenRequest
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	out, err := json.MarshalIndent(body, "", "  ")
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
+	log.Print(string(out))
+
+	userNode, err := h.DB.User.UpdateOneID(*userId).
+		SetFcmToken(body.FcmToken).
+		Save(c.Request.Context())
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, userNode)
+}
+
 //	@Summary				Delete User
 //	@Description.markdown	user.delete
 //	@Tags					User

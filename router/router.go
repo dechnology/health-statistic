@@ -48,6 +48,7 @@ func New(db *ent.Client, fcm *messaging.Client) *gin.Engine {
 		{
 			user.GET("", h.GetSelf)
 			user.POST("/healthkit", h.CreateUserHealthKitData)
+			user.PUT("/fcm", h.UpdateUserFcmToken)
 
 			// TODO
 			// user.PUT("")

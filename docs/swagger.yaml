@@ -150,6 +150,9 @@ definitions:
         - $ref: '#/definitions/user.EyesightCondition'
         description: EyesightCondition holds the value of the "eyesight_condition"
           field.
+      fcm_token:
+        description: FcmToken holds the value of the "fcm_token" field.
+        type: string
       gender:
         allOf:
         - $ref: '#/definitions/user.Gender'
@@ -405,6 +408,11 @@ definitions:
       weight:
         example: 80.3
         type: number
+    type: object
+  types.FcmTokenRequest:
+    properties:
+      fcm_token:
+        type: string
     type: object
   types.QuestionnaireDetails:
     properties:
@@ -1112,6 +1120,27 @@ paths:
       summary: Get Own User
       tags:
       - Self
+  /user/fcm:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: The FCM token to update
+        in: body
+        name: healthkit
+        required: true
+        schema:
+          $ref: '#/definitions/types.FcmTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ent.User'
+      summary: Update User's FCM Token
+      tags:
+      - User
   /user/healthkit:
     post:
       consumes:

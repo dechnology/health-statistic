@@ -482,12 +482,12 @@ func (uq *UserQuery) WithDeegoo(opts ...func(*DeegooQuery)) *UserQuery {
 // Example:
 //
 //	var v []struct {
-//		CreatedAt time.Time `json:"created_at,omitempty"`
+//		FcmToken string `json:"fcm_token,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.User.Query().
-//		GroupBy(user.FieldCreatedAt).
+//		GroupBy(user.FieldFcmToken).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (uq *UserQuery) GroupBy(field string, fields ...string) *UserGroupBy {
@@ -505,11 +505,11 @@ func (uq *UserQuery) GroupBy(field string, fields ...string) *UserGroupBy {
 // Example:
 //
 //	var v []struct {
-//		CreatedAt time.Time `json:"created_at,omitempty"`
+//		FcmToken string `json:"fcm_token,omitempty"`
 //	}
 //
 //	client.User.Query().
-//		Select(user.FieldCreatedAt).
+//		Select(user.FieldFcmToken).
 //		Scan(ctx, &v)
 func (uq *UserQuery) Select(fields ...string) *UserSelect {
 	uq.ctx.Fields = append(uq.ctx.Fields, fields...)

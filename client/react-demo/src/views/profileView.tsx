@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import HealthKitForm from '../components/healthKitForm';
 import DeegooForm from '../components/deegooForm';
+import FcmForm from '../components/fcmForm';
 
 const getRegistrationQuestionnaire = async (
   token: string | null,
@@ -38,6 +39,7 @@ const ProfileView = () => {
     <>
       <div className="flex flex-col gap-4">
         <h2 className="text-3xl font-bold text-center">Profile</h2>
+        <FcmForm />
         <HealthKitForm />
         <DeegooForm />
       </div>

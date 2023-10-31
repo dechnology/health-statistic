@@ -7061,6 +7061,7 @@ type UserMutation struct {
 	op                              Op
 	typ                             string
 	id                              *string
+	fcm_token                       *string
 	created_at                      *time.Time
 	updated_at                      *time.Time
 	birth_year                      *int
@@ -7206,6 +7207,55 @@ func (m *UserMutation) IDs(ctx context.Context) ([]string, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetFcmToken sets the "fcm_token" field.
+func (m *UserMutation) SetFcmToken(s string) {
+	m.fcm_token = &s
+}
+
+// FcmToken returns the value of the "fcm_token" field in the mutation.
+func (m *UserMutation) FcmToken() (r string, exists bool) {
+	v := m.fcm_token
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFcmToken returns the old "fcm_token" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldFcmToken(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFcmToken is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFcmToken requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFcmToken: %w", err)
+	}
+	return oldValue.FcmToken, nil
+}
+
+// ClearFcmToken clears the value of the "fcm_token" field.
+func (m *UserMutation) ClearFcmToken() {
+	m.fcm_token = nil
+	m.clearedFields[user.FieldFcmToken] = struct{}{}
+}
+
+// FcmTokenCleared returns if the "fcm_token" field was cleared in this mutation.
+func (m *UserMutation) FcmTokenCleared() bool {
+	_, ok := m.clearedFields[user.FieldFcmToken]
+	return ok
+}
+
+// ResetFcmToken resets all changes to the "fcm_token" field.
+func (m *UserMutation) ResetFcmToken() {
+	m.fcm_token = nil
+	delete(m.clearedFields, user.FieldFcmToken)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -8202,7 +8252,10 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 16)
+	fields := make([]string, 0, 17)
+	if m.fcm_token != nil {
+		fields = append(fields, user.FieldFcmToken)
+	}
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
 	}
@@ -8259,6 +8312,8 @@ func (m *UserMutation) Fields() []string {
 // schema.
 func (m *UserMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case user.FieldFcmToken:
+		return m.FcmToken()
 	case user.FieldCreatedAt:
 		return m.CreatedAt()
 	case user.FieldUpdatedAt:
@@ -8300,6 +8355,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case user.FieldFcmToken:
+		return m.OldFcmToken(ctx)
 	case user.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case user.FieldUpdatedAt:
@@ -8341,6 +8398,13 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 // type.
 func (m *UserMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case user.FieldFcmToken:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFcmToken(v)
+		return nil
 	case user.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -8521,7 +8585,11 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *UserMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(user.FieldFcmToken) {
+		fields = append(fields, user.FieldFcmToken)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -8534,6 +8602,11 @@ func (m *UserMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *UserMutation) ClearField(name string) error {
+	switch name {
+	case user.FieldFcmToken:
+		m.ClearFcmToken()
+		return nil
+	}
 	return fmt.Errorf("unknown User nullable field %s", name)
 }
 
@@ -8541,6 +8614,9 @@ func (m *UserMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *UserMutation) ResetField(name string) error {
 	switch name {
+	case user.FieldFcmToken:
+		m.ResetFcmToken()
+		return nil
 	case user.FieldCreatedAt:
 		m.ResetCreatedAt()
 		return nil

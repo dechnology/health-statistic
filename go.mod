@@ -4,7 +4,6 @@ go 1.20
 
 require (
 	entgo.io/ent v0.12.3
-	firebase.google.com/go v3.13.0+incompatible
 	firebase.google.com/go/v4 v4.12.1
 	github.com/auth0/go-jwt-middleware/v2 v2.1.0
 	github.com/gin-contrib/cors v1.4.0

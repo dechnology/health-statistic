@@ -12,7 +12,7 @@ type HealthStatus struct {
 }
 
 var (
-	failureMessage = "Hello from Dechnology! The database is disconnected!"
+	// failureMessage = "Hello from Dechnology! The database is disconnected!"
 	successMessage = "Hello from Dechnology! The server is functioning!"
 )
 

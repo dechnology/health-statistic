@@ -19,6 +19,8 @@ const (
 	Label = "user"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldFcmToken holds the string denoting the fcm_token field in the database.
+	FieldFcmToken = "fcm_token"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -114,6 +116,7 @@ const (
 // Columns holds all SQL columns for user fields.
 var Columns = []string{
 	FieldID,
+	FieldFcmToken,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 	FieldBirthYear,
@@ -394,6 +397,11 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByFcmToken orders the results by the fcm_token field.
+func ByFcmToken(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFcmToken, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

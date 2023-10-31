@@ -34,6 +34,13 @@ func (h *Handler) SubmitDeegoo(c *gin.Context) {
 	}
 	log.Print(string(out))
 
+	user, err := h.GetUserById(c.Request.Context(), body.UserId)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	deegooNode, err := h.DB.Deegoo.
 		Create().
 		SetPerception(body.Perception).
@@ -41,7 +48,7 @@ func (h *Handler) SubmitDeegoo(c *gin.Context) {
 		SetExecution(body.Execution).
 		SetMemory(body.Memory).
 		SetLanguage(body.Language).
-		SetUserID(body.UserId).
+		SetUser(user).
 		Save(c.Request.Context())
 
 	if err != nil {
@@ -49,16 +56,18 @@ func (h *Handler) SubmitDeegoo(c *gin.Context) {
 		return
 	}
 
-	// This registration token comes from the client FCM SDKs.
-	registrationToken := "YOUR_REGISTRATION_TOKEN"
+	if user.FcmToken == "" {
+		c.JSON(http.StatusOK, deegooNode)
+		return
+	}
 
 	// See documentation on defining a message payload.
 	message := &messaging.Message{
-		Data: map[string]string{
-			"score": "850",
-			"time":  "2:45",
+		Notification: &messaging.Notification{
+			Title: "Messgae from DeeGoo",
+			Body:  "Your DeeGoo score has been submitted!",
 		},
-		Token: registrationToken,
+		Token: user.FcmToken,
 	}
 
 	// Send a message to the device corresponding to the provided
