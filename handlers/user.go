@@ -12,7 +12,7 @@ import (
 
 //	@Summary				Get Own User
 //	@Description.markdown	user_self.get
-//	@Tags					Self
+//	@Tags					User
 //	@Produce				json
 //	@Success				200	{object}	[]ent.User
 //	@Router					/user [get]

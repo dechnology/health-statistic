@@ -6,12 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//	@Summary				Get HealthKitData
-//	@Description.markdown	healthkit.get
-//	@Tags					HealthKit
-//	@Produce				json
-//	@Success				200	{object}	map[string]interface{}
-//	@Router					/healthkit [get]
 func (h *Handler) GetHealthKitData(c *gin.Context) {
 	healthkitData, err := h.DB.HealthKit.
 		Query().
