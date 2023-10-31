@@ -22,6 +22,8 @@ type User struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID string `json:"id,omitempty"`
+	// FcmToken holds the value of the "fcm_token" field.
+	FcmToken string `json:"fcm_token,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -144,7 +146,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case user.FieldBirthYear:
 			values[i] = new(sql.NullInt64)
-		case user.FieldID, user.FieldGender, user.FieldEducationLevel, user.FieldOccupation, user.FieldMarriage, user.FieldMedicalHistory, user.FieldMedicationStatus, user.FieldEarCondition, user.FieldEyesightCondition, user.FieldSmokingHabit:
+		case user.FieldID, user.FieldFcmToken, user.FieldGender, user.FieldEducationLevel, user.FieldOccupation, user.FieldMarriage, user.FieldMedicalHistory, user.FieldMedicationStatus, user.FieldEarCondition, user.FieldEyesightCondition, user.FieldSmokingHabit:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -168,6 +170,12 @@ func (u *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value.Valid {
 				u.ID = value.String
+			}
+		case user.FieldFcmToken:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field fcm_token", values[i])
+			} else if value.Valid {
+				u.FcmToken = value.String
 			}
 		case user.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -331,6 +339,9 @@ func (u *User) String() string {
 	var builder strings.Builder
 	builder.WriteString("User(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", u.ID))
+	builder.WriteString("fcm_token=")
+	builder.WriteString(u.FcmToken)
+	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(u.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")

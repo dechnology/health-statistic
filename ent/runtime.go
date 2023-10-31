@@ -261,17 +261,17 @@ func init() {
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescCreatedAt is the schema descriptor for created_at field.
-	userDescCreatedAt := userFields[1].Descriptor()
+	userDescCreatedAt := userFields[2].Descriptor()
 	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
 	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
 	// userDescUpdatedAt is the schema descriptor for updated_at field.
-	userDescUpdatedAt := userFields[2].Descriptor()
+	userDescUpdatedAt := userFields[3].Descriptor()
 	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
 	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	user.UpdateDefaultUpdatedAt = userDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// userDescBirthYear is the schema descriptor for birth_year field.
-	userDescBirthYear := userFields[3].Descriptor()
+	userDescBirthYear := userFields[4].Descriptor()
 	// user.BirthYearValidator is a validator for the "birth_year" field. It is called by the builders before save.
 	user.BirthYearValidator = func() func(int) error {
 		validators := userDescBirthYear.Validators
@@ -289,11 +289,11 @@ func init() {
 		}
 	}()
 	// userDescHeight is the schema descriptor for height field.
-	userDescHeight := userFields[4].Descriptor()
+	userDescHeight := userFields[5].Descriptor()
 	// user.HeightValidator is a validator for the "height" field. It is called by the builders before save.
 	user.HeightValidator = userDescHeight.Validators[0].(func(float64) error)
 	// userDescWeight is the schema descriptor for weight field.
-	userDescWeight := userFields[5].Descriptor()
+	userDescWeight := userFields[6].Descriptor()
 	// user.WeightValidator is a validator for the "weight" field. It is called by the builders before save.
 	user.WeightValidator = userDescWeight.Validators[0].(func(float64) error)
 }

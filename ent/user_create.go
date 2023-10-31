@@ -31,6 +31,20 @@ type UserCreate struct {
 	hooks    []Hook
 }
 
+// SetFcmToken sets the "fcm_token" field.
+func (uc *UserCreate) SetFcmToken(s string) *UserCreate {
+	uc.mutation.SetFcmToken(s)
+	return uc
+}
+
+// SetNillableFcmToken sets the "fcm_token" field if the given value is not nil.
+func (uc *UserCreate) SetNillableFcmToken(s *string) *UserCreate {
+	if s != nil {
+		uc.SetFcmToken(*s)
+	}
+	return uc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (uc *UserCreate) SetCreatedAt(t time.Time) *UserCreate {
 	uc.mutation.SetCreatedAt(t)
@@ -431,6 +445,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if id, ok := uc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
+	}
+	if value, ok := uc.mutation.FcmToken(); ok {
+		_spec.SetField(user.FieldFcmToken, field.TypeString, value)
+		_node.FcmToken = value
 	}
 	if value, ok := uc.mutation.CreatedAt(); ok {
 		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)

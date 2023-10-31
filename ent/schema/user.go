@@ -21,6 +21,8 @@ func (User) Fields() []ent.Field {
 		field.String("id").
 			Unique().
 			Immutable(),
+		field.String("fcm_token").
+			Optional(),
 		field.Time("created_at").
 			Default(time.Now),
 		field.Time("updated_at").

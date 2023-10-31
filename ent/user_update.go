@@ -39,6 +39,26 @@ func (uu *UserUpdate) Where(ps ...predicate.User) *UserUpdate {
 	return uu
 }
 
+// SetFcmToken sets the "fcm_token" field.
+func (uu *UserUpdate) SetFcmToken(s string) *UserUpdate {
+	uu.mutation.SetFcmToken(s)
+	return uu
+}
+
+// SetNillableFcmToken sets the "fcm_token" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableFcmToken(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetFcmToken(*s)
+	}
+	return uu
+}
+
+// ClearFcmToken clears the value of the "fcm_token" field.
+func (uu *UserUpdate) ClearFcmToken() *UserUpdate {
+	uu.mutation.ClearFcmToken()
+	return uu
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (uu *UserUpdate) SetCreatedAt(t time.Time) *UserUpdate {
 	uu.mutation.SetCreatedAt(t)
@@ -498,6 +518,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := uu.mutation.FcmToken(); ok {
+		_spec.SetField(user.FieldFcmToken, field.TypeString, value)
+	}
+	if uu.mutation.FcmTokenCleared() {
+		_spec.ClearField(user.FieldFcmToken, field.TypeString)
+	}
 	if value, ok := uu.mutation.CreatedAt(); ok {
 		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)
 	}
@@ -843,6 +869,26 @@ type UserUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *UserMutation
+}
+
+// SetFcmToken sets the "fcm_token" field.
+func (uuo *UserUpdateOne) SetFcmToken(s string) *UserUpdateOne {
+	uuo.mutation.SetFcmToken(s)
+	return uuo
+}
+
+// SetNillableFcmToken sets the "fcm_token" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableFcmToken(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetFcmToken(*s)
+	}
+	return uuo
+}
+
+// ClearFcmToken clears the value of the "fcm_token" field.
+func (uuo *UserUpdateOne) ClearFcmToken() *UserUpdateOne {
+	uuo.mutation.ClearFcmToken()
+	return uuo
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -1333,6 +1379,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := uuo.mutation.FcmToken(); ok {
+		_spec.SetField(user.FieldFcmToken, field.TypeString, value)
+	}
+	if uuo.mutation.FcmTokenCleared() {
+		_spec.ClearField(user.FieldFcmToken, field.TypeString)
 	}
 	if value, ok := uuo.mutation.CreatedAt(); ok {
 		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)
