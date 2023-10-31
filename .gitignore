@@ -32,3 +32,4 @@ docs/*.js*
 #
 node_modules
 firebase-credentials.json
+.DS_Store
