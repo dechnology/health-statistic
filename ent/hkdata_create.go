@@ -25,6 +25,12 @@ type HKDataCreate struct {
 	hooks    []Hook
 }
 
+// SetDataID sets the "data_id" field.
+func (hdc *HKDataCreate) SetDataID(s string) *HKDataCreate {
+	hdc.mutation.SetDataID(s)
+	return hdc
+}
+
 // SetType sets the "type" field.
 func (hdc *HKDataCreate) SetType(s string) *HKDataCreate {
 	hdc.mutation.SetType(s)
@@ -56,8 +62,16 @@ func (hdc *HKDataCreate) SetTimezoneID(s string) *HKDataCreate {
 }
 
 // SetID sets the "id" field.
-func (hdc *HKDataCreate) SetID(s string) *HKDataCreate {
-	hdc.mutation.SetID(s)
+func (hdc *HKDataCreate) SetID(u uuid.UUID) *HKDataCreate {
+	hdc.mutation.SetID(u)
+	return hdc
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (hdc *HKDataCreate) SetNillableID(u *uuid.UUID) *HKDataCreate {
+	if u != nil {
+		hdc.SetID(*u)
+	}
 	return hdc
 }
 
@@ -87,6 +101,7 @@ func (hdc *HKDataCreate) Mutation() *HKDataMutation {
 
 // Save creates the HKData in the database.
 func (hdc *HKDataCreate) Save(ctx context.Context) (*HKData, error) {
+	hdc.defaults()
 	return withHooks(ctx, hdc.sqlSave, hdc.mutation, hdc.hooks)
 }
 
@@ -112,8 +127,19 @@ func (hdc *HKDataCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (hdc *HKDataCreate) defaults() {
+	if _, ok := hdc.mutation.ID(); !ok {
+		v := hkdata.DefaultID()
+		hdc.mutation.SetID(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (hdc *HKDataCreate) check() error {
+	if _, ok := hdc.mutation.DataID(); !ok {
+		return &ValidationError{Name: "data_id", err: errors.New(`ent: missing required field "HKData.data_id"`)}
+	}
 	if _, ok := hdc.mutation.GetType(); !ok {
 		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "HKData.type"`)}
 	}
@@ -144,10 +170,10 @@ func (hdc *HKDataCreate) sqlSave(ctx context.Context) (*HKData, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(string); ok {
-			_node.ID = id
-		} else {
-			return nil, fmt.Errorf("unexpected HKData.ID type: %T", _spec.ID.Value)
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
 		}
 	}
 	hdc.mutation.id = &_node.ID
@@ -158,11 +184,15 @@ func (hdc *HKDataCreate) sqlSave(ctx context.Context) (*HKData, error) {
 func (hdc *HKDataCreate) createSpec() (*HKData, *sqlgraph.CreateSpec) {
 	var (
 		_node = &HKData{config: hdc.config}
-		_spec = sqlgraph.NewCreateSpec(hkdata.Table, sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeString))
+		_spec = sqlgraph.NewCreateSpec(hkdata.Table, sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeUUID))
 	)
 	if id, ok := hdc.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = id
+		_spec.ID.Value = &id
+	}
+	if value, ok := hdc.mutation.DataID(); ok {
+		_spec.SetField(hkdata.FieldDataID, field.TypeString, value)
+		_node.DataID = value
 	}
 	if value, ok := hdc.mutation.GetType(); ok {
 		_spec.SetField(hkdata.FieldType, field.TypeString, value)
@@ -218,6 +248,7 @@ func (hdcb *HKDataCreateBulk) Save(ctx context.Context) ([]*HKData, error) {
 	for i := range hdcb.builders {
 		func(i int, root context.Context) {
 			builder := hdcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*HKDataMutation)
 				if !ok {

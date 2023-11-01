@@ -2089,7 +2089,8 @@ type HKDataMutation struct {
 	config
 	op               Op
 	typ              string
-	id               *string
+	id               *uuid.UUID
+	data_id          *string
 	_type            *string
 	value            *string
 	start_timestamp  *string
@@ -2123,7 +2124,7 @@ func newHKDataMutation(c config, op Op, opts ...hkdataOption) *HKDataMutation {
 }
 
 // withHKDataID sets the ID field of the mutation.
-func withHKDataID(id string) hkdataOption {
+func withHKDataID(id uuid.UUID) hkdataOption {
 	return func(m *HKDataMutation) {
 		var (
 			err   error
@@ -2175,13 +2176,13 @@ func (m HKDataMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of HKData entities.
-func (m *HKDataMutation) SetID(id string) {
+func (m *HKDataMutation) SetID(id uuid.UUID) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *HKDataMutation) ID() (id string, exists bool) {
+func (m *HKDataMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -2192,12 +2193,12 @@ func (m *HKDataMutation) ID() (id string, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *HKDataMutation) IDs(ctx context.Context) ([]string, error) {
+func (m *HKDataMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []string{id}, nil
+			return []uuid.UUID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -2205,6 +2206,42 @@ func (m *HKDataMutation) IDs(ctx context.Context) ([]string, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetDataID sets the "data_id" field.
+func (m *HKDataMutation) SetDataID(s string) {
+	m.data_id = &s
+}
+
+// DataID returns the value of the "data_id" field in the mutation.
+func (m *HKDataMutation) DataID() (r string, exists bool) {
+	v := m.data_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDataID returns the old "data_id" field's value of the HKData entity.
+// If the HKData object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HKDataMutation) OldDataID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDataID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDataID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDataID: %w", err)
+	}
+	return oldValue.DataID, nil
+}
+
+// ResetDataID resets all changes to the "data_id" field.
+func (m *HKDataMutation) ResetDataID() {
+	m.data_id = nil
 }
 
 // SetType sets the "type" field.
@@ -2460,7 +2497,10 @@ func (m *HKDataMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *HKDataMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
+	if m.data_id != nil {
+		fields = append(fields, hkdata.FieldDataID)
+	}
 	if m._type != nil {
 		fields = append(fields, hkdata.FieldType)
 	}
@@ -2484,6 +2524,8 @@ func (m *HKDataMutation) Fields() []string {
 // schema.
 func (m *HKDataMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case hkdata.FieldDataID:
+		return m.DataID()
 	case hkdata.FieldType:
 		return m.GetType()
 	case hkdata.FieldValue:
@@ -2503,6 +2545,8 @@ func (m *HKDataMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *HKDataMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case hkdata.FieldDataID:
+		return m.OldDataID(ctx)
 	case hkdata.FieldType:
 		return m.OldType(ctx)
 	case hkdata.FieldValue:
@@ -2522,6 +2566,13 @@ func (m *HKDataMutation) OldField(ctx context.Context, name string) (ent.Value, 
 // type.
 func (m *HKDataMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case hkdata.FieldDataID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDataID(v)
+		return nil
 	case hkdata.FieldType:
 		v, ok := value.(string)
 		if !ok {
@@ -2606,6 +2657,9 @@ func (m *HKDataMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *HKDataMutation) ResetField(name string) error {
 	switch name {
+	case hkdata.FieldDataID:
+		m.ResetDataID()
+		return nil
 	case hkdata.FieldType:
 		m.ResetType()
 		return nil
@@ -2710,8 +2764,8 @@ type HealthKitMutation struct {
 	clearedFields map[string]struct{}
 	user          *string
 	cleareduser   bool
-	data          map[string]struct{}
-	removeddata   map[string]struct{}
+	data          map[uuid.UUID]struct{}
+	removeddata   map[uuid.UUID]struct{}
 	cleareddata   bool
 	done          bool
 	oldValue      func(context.Context) (*HealthKit, error)
@@ -2934,9 +2988,9 @@ func (m *HealthKitMutation) ResetUser() {
 }
 
 // AddDatumIDs adds the "data" edge to the HKData entity by ids.
-func (m *HealthKitMutation) AddDatumIDs(ids ...string) {
+func (m *HealthKitMutation) AddDatumIDs(ids ...uuid.UUID) {
 	if m.data == nil {
-		m.data = make(map[string]struct{})
+		m.data = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		m.data[ids[i]] = struct{}{}
@@ -2954,9 +3008,9 @@ func (m *HealthKitMutation) DataCleared() bool {
 }
 
 // RemoveDatumIDs removes the "data" edge to the HKData entity by IDs.
-func (m *HealthKitMutation) RemoveDatumIDs(ids ...string) {
+func (m *HealthKitMutation) RemoveDatumIDs(ids ...uuid.UUID) {
 	if m.removeddata == nil {
-		m.removeddata = make(map[string]struct{})
+		m.removeddata = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		delete(m.data, ids[i])
@@ -2965,7 +3019,7 @@ func (m *HealthKitMutation) RemoveDatumIDs(ids ...string) {
 }
 
 // RemovedData returns the removed IDs of the "data" edge to the HKData entity.
-func (m *HealthKitMutation) RemovedDataIDs() (ids []string) {
+func (m *HealthKitMutation) RemovedDataIDs() (ids []uuid.UUID) {
 	for id := range m.removeddata {
 		ids = append(ids, id)
 	}
@@ -2973,7 +3027,7 @@ func (m *HealthKitMutation) RemovedDataIDs() (ids []string) {
 }
 
 // DataIDs returns the "data" edge IDs in the mutation.
-func (m *HealthKitMutation) DataIDs() (ids []string) {
+func (m *HealthKitMutation) DataIDs() (ids []uuid.UUID) {
 	for id := range m.data {
 		ids = append(ids, id)
 	}

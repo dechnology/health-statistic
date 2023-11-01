@@ -9,6 +9,7 @@ package hkdata
 import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/google/uuid"
 )
 
 const (
@@ -16,6 +17,8 @@ const (
 	Label = "hk_data"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldDataID holds the string denoting the data_id field in the database.
+	FieldDataID = "data_id"
 	// FieldType holds the string denoting the type field in the database.
 	FieldType = "type"
 	// FieldValue holds the string denoting the value field in the database.
@@ -42,6 +45,7 @@ const (
 // Columns holds all SQL columns for hkdata fields.
 var Columns = []string{
 	FieldID,
+	FieldDataID,
 	FieldType,
 	FieldValue,
 	FieldStartTimestamp,
@@ -70,12 +74,22 @@ func ValidColumn(column string) bool {
 	return false
 }
 
+var (
+	// DefaultID holds the default value on creation for the "id" field.
+	DefaultID func() uuid.UUID
+)
+
 // OrderOption defines the ordering options for the HKData queries.
 type OrderOption func(*sql.Selector)
 
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByDataID orders the results by the data_id field.
+func ByDataID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDataID, opts...).ToFunc()
 }
 
 // ByType orders the results by the type field.
