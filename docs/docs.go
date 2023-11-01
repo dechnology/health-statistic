@@ -237,6 +237,17 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "delete": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Delete User",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
             }
         },
         "/user/fcm": {
@@ -302,31 +313,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/ent.HealthKit"
                         }
-                    }
-                }
-            }
-        },
-        "/users/{id}": {
-            "delete": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "User"
-                ],
-                "summary": "Delete User",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The user's Auth0 ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
                     }
                 }
             }

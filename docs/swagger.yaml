@@ -768,6 +768,13 @@ paths:
       tags:
       - Registration
   /user:
+    delete:
+      responses:
+        "204":
+          description: No Content
+      summary: Delete User
+      tags:
+      - User
     get:
       produces:
       - application/json
@@ -836,22 +843,6 @@ paths:
           schema:
             $ref: '#/definitions/ent.HealthKit'
       summary: Create HealthKit Data
-      tags:
-      - User
-  /users/{id}:
-    delete:
-      parameters:
-      - description: The user's Auth0 ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      summary: Delete User
       tags:
       - User
 schemes:
