@@ -22,7 +22,9 @@ import (
 type HKData struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
+	// DataID holds the value of the "data_id" field.
+	DataID string `json:"data_id,omitempty"`
 	// Type holds the value of the "type" field.
 	Type string `json:"type,omitempty"`
 	// Value holds the value of the "value" field.
@@ -67,8 +69,10 @@ func (*HKData) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case hkdata.FieldID, hkdata.FieldType, hkdata.FieldValue, hkdata.FieldStartTimestamp, hkdata.FieldEndTimestamp, hkdata.FieldTimezoneID:
+		case hkdata.FieldDataID, hkdata.FieldType, hkdata.FieldValue, hkdata.FieldStartTimestamp, hkdata.FieldEndTimestamp, hkdata.FieldTimezoneID:
 			values[i] = new(sql.NullString)
+		case hkdata.FieldID:
+			values[i] = new(uuid.UUID)
 		case hkdata.ForeignKeys[0]: // health_kit_data
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
@@ -87,10 +91,16 @@ func (hd *HKData) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case hkdata.FieldID:
-			if value, ok := values[i].(*sql.NullString); !ok {
+			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value != nil {
+				hd.ID = *value
+			}
+		case hkdata.FieldDataID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field data_id", values[i])
 			} else if value.Valid {
-				hd.ID = value.String
+				hd.DataID = value.String
 			}
 		case hkdata.FieldType:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -170,6 +180,9 @@ func (hd *HKData) String() string {
 	var builder strings.Builder
 	builder.WriteString("HKData(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", hd.ID))
+	builder.WriteString("data_id=")
+	builder.WriteString(hd.DataID)
+	builder.WriteString(", ")
 	builder.WriteString("type=")
 	builder.WriteString(hd.Type)
 	builder.WriteString(", ")

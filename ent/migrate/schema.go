@@ -88,7 +88,8 @@ var (
 	}
 	// HkDataColumns holds the columns for the "hk_data" table.
 	HkDataColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "data_id", Type: field.TypeString},
 		{Name: "type", Type: field.TypeString},
 		{Name: "value", Type: field.TypeString},
 		{Name: "start_timestamp", Type: field.TypeString},
@@ -104,7 +105,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "hk_data_health_kits_data",
-				Columns:    []*schema.Column{HkDataColumns[6]},
+				Columns:    []*schema.Column{HkDataColumns[7]},
 				RefColumns: []*schema.Column{HealthKitsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},

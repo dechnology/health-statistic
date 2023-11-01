@@ -1,55 +1,6 @@
 // export const baseUrl = 'https://health-statistic.dechnology.com.tw/api/v1';
 export const baseUrl = 'http://localhost:8080/api/v1';
 
-// {
-//   id: '1',
-//   type: 'HKQuantityTypeIdentifierHeartRate',
-//   value: '80',
-//   startTimestamp: '2020-12-01T00:00:00.000Z',
-//   endTimestamp: '2020-12-01T00:00:00.000Z',
-//   timezoneID: 'Asia/Taipei',
-// },
-// {
-//   id: '2',
-//   type: 'HKQuantityTypeIdentifierHeartRate',
-//   value: '90',
-//   startTimestamp: '2020-12-01T00:00:00.000Z',
-//   endTimestamp: '2020-12-01T00:00:00.000Z',
-//   timezoneID: 'Asia/Taipei',
-// },
-// {
-//   id: '3',
-//   type: 'HKQuantityTypeIdentifierHeartRate',
-//   value: '100',
-//   startTimestamp: '2020-12-01T00:00:00.000Z',
-//   endTimestamp: '2020-12-01T00:00:00.000Z',
-//   timezoneID: 'Asia/Taipei',
-// },
-// {
-//   id: '4',
-//   type: 'HKQuantityTypeIdentifierHeartRate',
-//   value: '110',
-//   startTimestamp: '2020-12-01T00:00:00.000Z',
-//   endTimestamp: '2020-12-01T00:00:00.000Z',
-//   timezoneID: 'Asia/Taipei',
-// },
-// {
-//   id: '5',
-//   type: 'HKQuantityTypeIdentifierHeartRate',
-//   value: '120',
-//   startTimestamp: '2020-12-01T00:00:00.000Z',
-//   endTimestamp: '2020-12-01T00:00:00.000Z',
-//   timezoneID: 'Asia/Taipei',
-// },
-// {
-//   id: '6',
-//   type: 'HKQuantityTypeIdentifierHeartRate',
-//   value: '130',
-//   startTimestamp: '2020-12-01T00:00:00.000Z',
-//   endTimestamp: '2020-12-01T00:00:00.000Z',
-//   timezoneID: 'Asia/Taipei',
-// },
-
 // Each data in the array is a tuple with order [type, value, id, startTimestamp, endTimestamp, timezoneID]
 export const sampleHKDataTuples = [
   [

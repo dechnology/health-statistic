@@ -10,12 +10,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//	@Summary				Get Own User
-//	@Description.markdown	user_self.get
-//	@Tags					User
-//	@Produce				json
-//	@Success				200	{object}	[]ent.User
-//	@Router					/user [get]
+// @Summary				Get Own User
+// @Description.markdown	user_self.get
+// @Tags					User
+// @Produce				json
+// @Success				200	{object}	[]ent.User
+// @Router					/user [get]
 func (h *Handler) GetSelf(c *gin.Context) {
 	userId, err := GetUserId(c)
 	if err != nil {
@@ -39,14 +39,14 @@ func (h *Handler) GetSelf(c *gin.Context) {
 	c.JSON(http.StatusOK, userNode)
 }
 
-//	@Summary				Create HealthKit Data
-//	@Description.markdown	user_healthkit.post
-//	@Tags					User
-//	@Accept					json
-//	@Produce				json
-//	@Param					healthkit	body		types.BaseHealthKit	true	"The healthkit to be created"
-//	@Success				200			{object}	ent.HealthKit
-//	@Router					/user/healthkit [post]
+// @Summary				Create HealthKit Data
+// @Description.markdown	user_healthkit.post
+// @Tags					User
+// @Accept					json
+// @Produce				json
+// @Param					healthkit	body		types.BaseHealthKit	true	"The healthkit to be created"
+// @Success				200			{object}	ent.HealthKit
+// @Router					/user/healthkit [post]
 func (h *Handler) CreateUserHealthKitData(c *gin.Context) {
 	userId, err := GetUserId(c)
 	if err != nil {
@@ -95,7 +95,7 @@ func (h *Handler) CreateUserHealthKitData(c *gin.Context) {
 			SetHealthkit(healthkitNode).
 			SetType(datum[0]).
 			SetValue(datum[1]).
-			SetID(datum[2]).
+			SetDataID(datum[2]).
 			SetStartTimestamp(datum[3]).
 			SetEndTimestamp(datum[4]).
 			SetTimezoneID(datum[5]).
@@ -110,14 +110,14 @@ func (h *Handler) CreateUserHealthKitData(c *gin.Context) {
 	c.JSON(http.StatusOK, healthkitNode)
 }
 
-//	@Summary				Update User's FCM Token
-//	@Description.markdown	user_fcm.put
-//	@Tags					User
-//	@Accept					json
-//	@Produce				json
-//	@Param					healthkit	body		types.FcmTokenRequest	true	"The FCM token to update"
-//	@Success				200			{object}	ent.User
-//	@Router					/user/fcm [put]
+// @Summary				Update User's FCM Token
+// @Description.markdown	user_fcm.put
+// @Tags					User
+// @Accept					json
+// @Produce				json
+// @Param					healthkit	body		types.FcmTokenRequest	true	"The FCM token to update"
+// @Success				200			{object}	ent.User
+// @Router					/user/fcm [put]
 func (h *Handler) UpdateUserFcmToken(c *gin.Context) {
 	userId, err := GetUserId(c)
 	if err != nil {
@@ -155,13 +155,13 @@ func (h *Handler) UpdateUserFcmToken(c *gin.Context) {
 	c.JSON(http.StatusOK, userNode)
 }
 
-//	@Summary				Delete User
-//	@Description.markdown	user.delete
-//	@Tags					User
-//	@Produce				json
-//	@Param					id	path	string	true	"The user's Auth0 ID"
-//	@Success				200
-//	@Router					/users/{id} [delete]
+// @Summary				Delete User
+// @Description.markdown	user.delete
+// @Tags					User
+// @Produce				json
+// @Param					id	path	string	true	"The user's Auth0 ID"
+// @Success				200
+// @Router					/users/{id} [delete]
 func (h *Handler) DeleteUser(c *gin.Context) {
 	if err := h.DB.User.DeleteOneID(c.Param("id")).Exec(c.Request.Context()); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

@@ -10,61 +10,57 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/eesoymilk/health-statistic-api/ent/predicate"
+	"github.com/google/uuid"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id string) predicate.HKData {
+func ID(id uuid.UUID) predicate.HKData {
 	return predicate.HKData(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id string) predicate.HKData {
+func IDEQ(id uuid.UUID) predicate.HKData {
 	return predicate.HKData(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id string) predicate.HKData {
+func IDNEQ(id uuid.UUID) predicate.HKData {
 	return predicate.HKData(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...string) predicate.HKData {
+func IDIn(ids ...uuid.UUID) predicate.HKData {
 	return predicate.HKData(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...string) predicate.HKData {
+func IDNotIn(ids ...uuid.UUID) predicate.HKData {
 	return predicate.HKData(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id string) predicate.HKData {
+func IDGT(id uuid.UUID) predicate.HKData {
 	return predicate.HKData(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id string) predicate.HKData {
+func IDGTE(id uuid.UUID) predicate.HKData {
 	return predicate.HKData(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id string) predicate.HKData {
+func IDLT(id uuid.UUID) predicate.HKData {
 	return predicate.HKData(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id string) predicate.HKData {
+func IDLTE(id uuid.UUID) predicate.HKData {
 	return predicate.HKData(sql.FieldLTE(FieldID, id))
 }
 
-// IDEqualFold applies the EqualFold predicate on the ID field.
-func IDEqualFold(id string) predicate.HKData {
-	return predicate.HKData(sql.FieldEqualFold(FieldID, id))
-}
-
-// IDContainsFold applies the ContainsFold predicate on the ID field.
-func IDContainsFold(id string) predicate.HKData {
-	return predicate.HKData(sql.FieldContainsFold(FieldID, id))
+// DataID applies equality check predicate on the "data_id" field. It's identical to DataIDEQ.
+func DataID(v string) predicate.HKData {
+	return predicate.HKData(sql.FieldEQ(FieldDataID, v))
 }
 
 // Type applies equality check predicate on the "type" field. It's identical to TypeEQ.
@@ -90,6 +86,71 @@ func EndTimestamp(v string) predicate.HKData {
 // TimezoneID applies equality check predicate on the "timezone_id" field. It's identical to TimezoneIDEQ.
 func TimezoneID(v string) predicate.HKData {
 	return predicate.HKData(sql.FieldEQ(FieldTimezoneID, v))
+}
+
+// DataIDEQ applies the EQ predicate on the "data_id" field.
+func DataIDEQ(v string) predicate.HKData {
+	return predicate.HKData(sql.FieldEQ(FieldDataID, v))
+}
+
+// DataIDNEQ applies the NEQ predicate on the "data_id" field.
+func DataIDNEQ(v string) predicate.HKData {
+	return predicate.HKData(sql.FieldNEQ(FieldDataID, v))
+}
+
+// DataIDIn applies the In predicate on the "data_id" field.
+func DataIDIn(vs ...string) predicate.HKData {
+	return predicate.HKData(sql.FieldIn(FieldDataID, vs...))
+}
+
+// DataIDNotIn applies the NotIn predicate on the "data_id" field.
+func DataIDNotIn(vs ...string) predicate.HKData {
+	return predicate.HKData(sql.FieldNotIn(FieldDataID, vs...))
+}
+
+// DataIDGT applies the GT predicate on the "data_id" field.
+func DataIDGT(v string) predicate.HKData {
+	return predicate.HKData(sql.FieldGT(FieldDataID, v))
+}
+
+// DataIDGTE applies the GTE predicate on the "data_id" field.
+func DataIDGTE(v string) predicate.HKData {
+	return predicate.HKData(sql.FieldGTE(FieldDataID, v))
+}
+
+// DataIDLT applies the LT predicate on the "data_id" field.
+func DataIDLT(v string) predicate.HKData {
+	return predicate.HKData(sql.FieldLT(FieldDataID, v))
+}
+
+// DataIDLTE applies the LTE predicate on the "data_id" field.
+func DataIDLTE(v string) predicate.HKData {
+	return predicate.HKData(sql.FieldLTE(FieldDataID, v))
+}
+
+// DataIDContains applies the Contains predicate on the "data_id" field.
+func DataIDContains(v string) predicate.HKData {
+	return predicate.HKData(sql.FieldContains(FieldDataID, v))
+}
+
+// DataIDHasPrefix applies the HasPrefix predicate on the "data_id" field.
+func DataIDHasPrefix(v string) predicate.HKData {
+	return predicate.HKData(sql.FieldHasPrefix(FieldDataID, v))
+}
+
+// DataIDHasSuffix applies the HasSuffix predicate on the "data_id" field.
+func DataIDHasSuffix(v string) predicate.HKData {
+	return predicate.HKData(sql.FieldHasSuffix(FieldDataID, v))
+}
+
+// DataIDEqualFold applies the EqualFold predicate on the "data_id" field.
+func DataIDEqualFold(v string) predicate.HKData {
+	return predicate.HKData(sql.FieldEqualFold(FieldDataID, v))
+}
+
+// DataIDContainsFold applies the ContainsFold predicate on the "data_id" field.
+func DataIDContainsFold(v string) predicate.HKData {
+	return predicate.HKData(sql.FieldContainsFold(FieldDataID, v))
 }
 
 // TypeEQ applies the EQ predicate on the "type" field.

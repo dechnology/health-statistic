@@ -13,6 +13,7 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent/choice"
 	"github.com/eesoymilk/health-statistic-api/ent/deegoo"
 	"github.com/eesoymilk/health-statistic-api/ent/healthkit"
+	"github.com/eesoymilk/health-statistic-api/ent/hkdata"
 	"github.com/eesoymilk/health-statistic-api/ent/mycard"
 	"github.com/eesoymilk/health-statistic-api/ent/notification"
 	"github.com/eesoymilk/health-statistic-api/ent/price"
@@ -152,6 +153,12 @@ func init() {
 	deegooDescID := deegooFields[0].Descriptor()
 	// deegoo.DefaultID holds the default value on creation for the id field.
 	deegoo.DefaultID = deegooDescID.Default.(func() uuid.UUID)
+	hkdataFields := schema.HKData{}.Fields()
+	_ = hkdataFields
+	// hkdataDescID is the schema descriptor for id field.
+	hkdataDescID := hkdataFields[0].Descriptor()
+	// hkdata.DefaultID holds the default value on creation for the id field.
+	hkdata.DefaultID = hkdataDescID.Default.(func() uuid.UUID)
 	healthkitFields := schema.HealthKit{}.Fields()
 	_ = healthkitFields
 	// healthkitDescID is the schema descriptor for id field.

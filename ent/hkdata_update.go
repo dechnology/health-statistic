@@ -33,6 +33,12 @@ func (hdu *HKDataUpdate) Where(ps ...predicate.HKData) *HKDataUpdate {
 	return hdu
 }
 
+// SetDataID sets the "data_id" field.
+func (hdu *HKDataUpdate) SetDataID(s string) *HKDataUpdate {
+	hdu.mutation.SetDataID(s)
+	return hdu
+}
+
 // SetType sets the "type" field.
 func (hdu *HKDataUpdate) SetType(s string) *HKDataUpdate {
 	hdu.mutation.SetType(s)
@@ -121,13 +127,16 @@ func (hdu *HKDataUpdate) ExecX(ctx context.Context) {
 }
 
 func (hdu *HKDataUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := sqlgraph.NewUpdateSpec(hkdata.Table, hkdata.Columns, sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeString))
+	_spec := sqlgraph.NewUpdateSpec(hkdata.Table, hkdata.Columns, sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeUUID))
 	if ps := hdu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := hdu.mutation.DataID(); ok {
+		_spec.SetField(hkdata.FieldDataID, field.TypeString, value)
 	}
 	if value, ok := hdu.mutation.GetType(); ok {
 		_spec.SetField(hkdata.FieldType, field.TypeString, value)
@@ -191,6 +200,12 @@ type HKDataUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *HKDataMutation
+}
+
+// SetDataID sets the "data_id" field.
+func (hduo *HKDataUpdateOne) SetDataID(s string) *HKDataUpdateOne {
+	hduo.mutation.SetDataID(s)
+	return hduo
 }
 
 // SetType sets the "type" field.
@@ -294,7 +309,7 @@ func (hduo *HKDataUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (hduo *HKDataUpdateOne) sqlSave(ctx context.Context) (_node *HKData, err error) {
-	_spec := sqlgraph.NewUpdateSpec(hkdata.Table, hkdata.Columns, sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeString))
+	_spec := sqlgraph.NewUpdateSpec(hkdata.Table, hkdata.Columns, sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeUUID))
 	id, ok := hduo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "HKData.id" for update`)}
@@ -318,6 +333,9 @@ func (hduo *HKDataUpdateOne) sqlSave(ctx context.Context) (_node *HKData, err er
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := hduo.mutation.DataID(); ok {
+		_spec.SetField(hkdata.FieldDataID, field.TypeString, value)
 	}
 	if value, ok := hduo.mutation.GetType(); ok {
 		_spec.SetField(hkdata.FieldType, field.TypeString, value)

@@ -73,14 +73,14 @@ func (hkc *HealthKitCreate) SetUser(u *User) *HealthKitCreate {
 }
 
 // AddDatumIDs adds the "data" edge to the HKData entity by IDs.
-func (hkc *HealthKitCreate) AddDatumIDs(ids ...string) *HealthKitCreate {
+func (hkc *HealthKitCreate) AddDatumIDs(ids ...uuid.UUID) *HealthKitCreate {
 	hkc.mutation.AddDatumIDs(ids...)
 	return hkc
 }
 
 // AddData adds the "data" edges to the HKData entity.
 func (hkc *HealthKitCreate) AddData(h ...*HKData) *HealthKitCreate {
-	ids := make([]string, len(h))
+	ids := make([]uuid.UUID, len(h))
 	for i := range h {
 		ids[i] = h[i].ID
 	}
@@ -204,7 +204,7 @@ func (hkc *HealthKitCreate) createSpec() (*HealthKit, *sqlgraph.CreateSpec) {
 			Columns: []string{healthkit.DataColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(hkdata.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
