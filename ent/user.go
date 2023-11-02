@@ -47,9 +47,9 @@ type User struct {
 	// MedicationStatus holds the value of the "medication_status" field.
 	MedicationStatus user.MedicationStatus `json:"medication_status,omitempty"`
 	// DementedAmongDirectRelatives holds the value of the "demented_among_direct_relatives" field.
-	DementedAmongDirectRelatives bool `json:"demented_among_direct_relatives,omitempty"`
+	DementedAmongDirectRelatives bool `json:"demented_among_direct_relatives"`
 	// HeadInjuryExperience holds the value of the "head_injury_experience" field.
-	HeadInjuryExperience bool `json:"head_injury_experience,omitempty"`
+	HeadInjuryExperience bool `json:"head_injury_experience"`
 	// EarCondition holds the value of the "ear_condition" field.
 	EarCondition user.EarCondition `json:"ear_condition,omitempty"`
 	// EyesightCondition holds the value of the "eyesight_condition" field.

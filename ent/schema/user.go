@@ -85,8 +85,10 @@ func (User) Fields() []ent.Field {
 			"other_drugs",
 			"no_drugs",
 		),
-		field.Bool("demented_among_direct_relatives"),
-		field.Bool("head_injury_experience"),
+		field.Bool("demented_among_direct_relatives").
+			StructTag(`json:"demented_among_direct_relatives"`),
+		field.Bool("head_injury_experience").
+			StructTag(`json:"head_injury_experience"`),
 		field.Enum("ear_condition").Values(
 			"normal",
 			"slightly_affecting_conversation",

@@ -25,15 +25,15 @@ type Deegoo struct {
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
 	// Perception holds the value of the "perception" field.
-	Perception int8 `json:"perception,omitempty"`
+	Perception int8 `json:"perception"`
 	// Focus holds the value of the "focus" field.
-	Focus int8 `json:"focus,omitempty"`
+	Focus int8 `json:"focus"`
 	// Execution holds the value of the "execution" field.
-	Execution int8 `json:"execution,omitempty"`
+	Execution int8 `json:"execution"`
 	// Memory holds the value of the "memory" field.
-	Memory int8 `json:"memory,omitempty"`
+	Memory int8 `json:"memory"`
 	// Language holds the value of the "language" field.
-	Language int8 `json:"language,omitempty"`
+	Language int8 `json:"language"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
