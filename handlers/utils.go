@@ -30,9 +30,7 @@ func (h *Handler) GetUserById(
 		WithMycards().
 		WithPrices().
 		WithDeegoo().
-		WithHealthkit(func(hkq *ent.HealthKitQuery) {
-			hkq.Count(ctx)
-		}).
+		WithHealthkit().
 		Only(ctx)
 
 	if err != nil {
