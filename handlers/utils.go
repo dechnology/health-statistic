@@ -31,7 +31,7 @@ func (h *Handler) GetUserById(
 		WithPrices().
 		WithDeegoo().
 		WithHealthkit(func(hkq *ent.HealthKitQuery) {
-			hkq.WithData()
+			hkq.Count(ctx)
 		}).
 		Only(ctx)
 
