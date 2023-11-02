@@ -13,6 +13,14 @@ export const sampleHKDataTuples = [
   ],
   [
     'HKQuantityTypeIdentifierHeartRate',
+    '80',
+    '1',
+    '2020-12-01T00:00:00.000Z',
+    '2020-12-01T00:00:00.000Z',
+    'Asia/Taipei',
+  ],
+  [
+    'HKQuantityTypeIdentifierHeartRate',
     '90',
     '2',
     '2020-12-01T00:00:00.000Z',

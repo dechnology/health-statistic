@@ -303,7 +303,7 @@ func (dq *DeegooQuery) WithUser(opts ...func(*UserQuery)) *DeegooQuery {
 // Example:
 //
 //	var v []struct {
-//		Perception int8 `json:"perception,omitempty"`
+//		Perception int8 `json:"perception"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -326,7 +326,7 @@ func (dq *DeegooQuery) GroupBy(field string, fields ...string) *DeegooGroupBy {
 // Example:
 //
 //	var v []struct {
-//		Perception int8 `json:"perception,omitempty"`
+//		Perception int8 `json:"perception"`
 //	}
 //
 //	client.Deegoo.Query().
