@@ -23,10 +23,8 @@ func (h *Handler) GetUserById(
 	userNode, err := h.DB.User.Query().
 		Where(user.ID(userId)).
 		WithQuestionnaireResponses(func(qrq *ent.QuestionnaireResponseQuery) {
-			qrq.WithQuestionnaire(func(qq *ent.QuestionnaireQuery) {
-				qq.WithQuestions()
-			}).WithAnswers(func(aq *ent.AnswerQuery) {
-				aq.WithChosen()
+			qrq.WithQuestionnaire().WithAnswers(func(aq *ent.AnswerQuery) {
+				aq.WithChosen().WithQuestion()
 			})
 		}).
 		WithMycards().
