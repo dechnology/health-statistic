@@ -28,7 +28,7 @@ Hence, the user registration needs two things: user data and the response to the
     The user's Auth0 ID.
 
   - `birth_year` _`string`_ **Required**
-    Part of the registration questionnaire.
+    Part of the registration questionnaire (must be 25 years old or above).
 
   - `height` _`float`_ **Required**
     Part of the registration questionnaire.
