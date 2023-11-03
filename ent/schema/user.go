@@ -31,8 +31,8 @@ func (User) Fields() []ent.Field {
 		field.Int("birth_year").
 			Positive().
 			Validate(func(y int) error {
-				if time.Now().Year()-y < 45 {
-					return errors.New("the user must be 45 years old or above")
+				if time.Now().Year()-y < 25 {
+					return errors.New("the user must be 25 years old or above")
 				}
 				return nil
 			}),
