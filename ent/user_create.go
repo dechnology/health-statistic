@@ -163,6 +163,14 @@ func (uc *UserCreate) SetDataConsent(b bool) *UserCreate {
 	return uc
 }
 
+// SetNillableDataConsent sets the "data_consent" field if the given value is not nil.
+func (uc *UserCreate) SetNillableDataConsent(b *bool) *UserCreate {
+	if b != nil {
+		uc.SetDataConsent(*b)
+	}
+	return uc
+}
+
 // SetID sets the "id" field.
 func (uc *UserCreate) SetID(s string) *UserCreate {
 	uc.mutation.SetID(s)
@@ -301,6 +309,10 @@ func (uc *UserCreate) defaults() {
 	if _, ok := uc.mutation.UpdatedAt(); !ok {
 		v := user.DefaultUpdatedAt()
 		uc.mutation.SetUpdatedAt(v)
+	}
+	if _, ok := uc.mutation.DataConsent(); !ok {
+		v := user.DefaultDataConsent
+		uc.mutation.SetDataConsent(v)
 	}
 }
 

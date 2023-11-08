@@ -161,6 +161,8 @@ var (
 	HeightValidator func(float64) error
 	// WeightValidator is a validator for the "weight" field. It is called by the builders before save.
 	WeightValidator func(float64) error
+	// DefaultDataConsent holds the default value on creation for the "data_consent" field.
+	DefaultDataConsent bool
 )
 
 // Gender defines the type for the "gender" enum field.

@@ -190,6 +190,14 @@ func (uu *UserUpdate) SetDataConsent(b bool) *UserUpdate {
 	return uu
 }
 
+// SetNillableDataConsent sets the "data_consent" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableDataConsent(b *bool) *UserUpdate {
+	if b != nil {
+		uu.SetDataConsent(*b)
+	}
+	return uu
+}
+
 // AddQuestionnaireResponseIDs adds the "questionnaire_responses" edge to the QuestionnaireResponse entity by IDs.
 func (uu *UserUpdate) AddQuestionnaireResponseIDs(ids ...uuid.UUID) *UserUpdate {
 	uu.mutation.AddQuestionnaireResponseIDs(ids...)
@@ -1028,6 +1036,14 @@ func (uuo *UserUpdateOne) SetSmokingHabit(uh user.SmokingHabit) *UserUpdateOne {
 // SetDataConsent sets the "data_consent" field.
 func (uuo *UserUpdateOne) SetDataConsent(b bool) *UserUpdateOne {
 	uuo.mutation.SetDataConsent(b)
+	return uuo
+}
+
+// SetNillableDataConsent sets the "data_consent" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableDataConsent(b *bool) *UserUpdateOne {
+	if b != nil {
+		uuo.SetDataConsent(*b)
+	}
 	return uuo
 }
 

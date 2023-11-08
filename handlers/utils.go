@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -10,6 +12,7 @@ import (
 	"github.com/eesoymilk/health-statistic-api/ent"
 	"github.com/eesoymilk/health-statistic-api/ent/user"
 	"github.com/eesoymilk/health-statistic-api/middlewares"
+	"github.com/eesoymilk/health-statistic-api/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -27,8 +30,8 @@ func GetManagementToken() (*string, error) {
 		return nil, nil
 	}
 
-	url := auth0Issuer + "/oauth/token"
-	payload := strings.NewReader("grant_type=client_credentials&client_id=" + clientId + "&client_secret=" + clientSecret + "&audience=" + auth0Issuer + "/api/v2/")
+	url := auth0Issuer + "oauth/token"
+	payload := strings.NewReader("grant_type=client_credentials&client_id=" + clientId + "&client_secret=" + clientSecret + "&audience=" + auth0Issuer + "api/v2/")
 	req, err := http.NewRequest("POST", url, payload)
 
 	if err != nil {
@@ -43,17 +46,25 @@ func GetManagementToken() (*string, error) {
 		return nil, err
 	}
 
-	defer res.Body.Close()
-
 	body, err := io.ReadAll(res.Body)
-
 	if err != nil {
 		return nil, err
 	}
 
-	managementToken := string(body)
+	defer res.Body.Close()
 
-	return &managementToken, nil
+	// Unmarshal the JSON data into the struct
+	var responseData types.ManagementTokenResponse
+	err = json.Unmarshal(body, &responseData)
+	if err != nil {
+		return nil, err
+	}
+
+	// Now you can use responseData.AccessToken
+	accessToken := responseData.AccessToken
+	log.Print(accessToken)
+
+	return &accessToken, nil
 }
 
 func GetUserId(c *gin.Context) (*string, error) {

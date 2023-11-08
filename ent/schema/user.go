@@ -104,7 +104,9 @@ func (User) Fields() []ent.Field {
 			"sometimes",
 			"everyday",
 		),
-		field.Bool("data_consent").StructTag(`json:"data_consent"`),
+		field.Bool("data_consent").
+			Default(true).
+			StructTag(`json:"data_consent"`),
 	}
 }
 
