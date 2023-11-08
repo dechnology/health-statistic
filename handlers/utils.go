@@ -16,11 +16,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// "client_id": "Ge4HnGw9b5tKnU1V5wh0b1eYluHLVcjt"
-// "client_secret": "O_e4lZMtK96qOb8emZiFEOzAEW4pHSpVoXBND1V7pnf1kh2e_e-ZjKiKMtFXtxUR"
-// "audience": "https://health-statistic.dechnology.com.tw/api/v2/"
-// "grant_type": "client_credentials"
-
 func GetManagementToken() (*string, error) {
 	auth0Issuer := os.Getenv("AUTH0_ISSUER_URL")
 	clientId := os.Getenv("AUTH0_CLIENT_ID")
