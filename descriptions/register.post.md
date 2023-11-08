@@ -68,3 +68,6 @@ Hence, the user registration needs two things: user data and the response to the
 
   - `smoking_habit` _`string`_ **Required**
     Part of the registration questionnaire.
+
+  - `data_concent` _`bool`_ **Optional**
+    It is a consent to allow us to use the user's data for research purposes. Default to **`true`**. This is usually a checkbox at the end of the registration questionnaire but NOT part of the questionnaire. Therefore, it is a separate field and the frontend needs to make sure the user has checked the box before sending the request.

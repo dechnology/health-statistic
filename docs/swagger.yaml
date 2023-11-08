@@ -756,6 +756,9 @@ paths:
 
           - `smoking_habit` _`string`_ **Required**
             Part of the registration questionnaire.
+
+          - `data_concent` _`bool`_ **Optional**
+            It is a consent to allow us to use the user's data for research purposes. Default to **`true`**. This is usually a checkbox at the end of the registration questionnaire but NOT part of the questionnaire. Therefore, it is a separate field and the frontend needs to make sure the user has checked the box before sending the request.
       parameters:
       - description: The registration data.
         in: body
@@ -775,6 +778,12 @@ paths:
       - Registration
   /user:
     delete:
+      description: |
+        # Delete self
+
+        ## Description
+
+        Delete the user based on the access token. We will first extract the Auth0 ID from the token and then delete the user from our database. The corresponding user in Auth0 will also be deleted.
       responses:
         "204":
           description: No Content
