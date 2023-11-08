@@ -157,6 +157,20 @@ func (uc *UserCreate) SetSmokingHabit(uh user.SmokingHabit) *UserCreate {
 	return uc
 }
 
+// SetDataConsent sets the "data_consent" field.
+func (uc *UserCreate) SetDataConsent(b bool) *UserCreate {
+	uc.mutation.SetDataConsent(b)
+	return uc
+}
+
+// SetNillableDataConsent sets the "data_consent" field if the given value is not nil.
+func (uc *UserCreate) SetNillableDataConsent(b *bool) *UserCreate {
+	if b != nil {
+		uc.SetDataConsent(*b)
+	}
+	return uc
+}
+
 // SetID sets the "id" field.
 func (uc *UserCreate) SetID(s string) *UserCreate {
 	uc.mutation.SetID(s)
@@ -296,6 +310,10 @@ func (uc *UserCreate) defaults() {
 		v := user.DefaultUpdatedAt()
 		uc.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := uc.mutation.DataConsent(); !ok {
+		v := user.DefaultDataConsent
+		uc.mutation.SetDataConsent(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -408,6 +426,9 @@ func (uc *UserCreate) check() error {
 			return &ValidationError{Name: "smoking_habit", err: fmt.Errorf(`ent: validator failed for field "User.smoking_habit": %w`, err)}
 		}
 	}
+	if _, ok := uc.mutation.DataConsent(); !ok {
+		return &ValidationError{Name: "data_consent", err: errors.New(`ent: missing required field "User.data_consent"`)}
+	}
 	if len(uc.mutation.MycardsIDs()) == 0 {
 		return &ValidationError{Name: "mycards", err: errors.New(`ent: missing required edge "User.mycards"`)}
 	}
@@ -513,6 +534,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.SmokingHabit(); ok {
 		_spec.SetField(user.FieldSmokingHabit, field.TypeEnum, value)
 		_node.SmokingHabit = value
+	}
+	if value, ok := uc.mutation.DataConsent(); ok {
+		_spec.SetField(user.FieldDataConsent, field.TypeBool, value)
+		_node.DataConsent = value
 	}
 	if nodes := uc.mutation.QuestionnaireResponsesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

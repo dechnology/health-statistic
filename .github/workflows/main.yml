@@ -22,6 +22,8 @@ env:
 
   AUTH0_ISSUER_URL: https://itri-dechnology.jp.auth0.com/
   AUTH0_AUDIENCE: https://health-statistic.dechnology.com.tw/api/v1/
+  AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
+  AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET }}
 
 jobs:
   build-and-push-images:
@@ -92,6 +94,8 @@ jobs:
             export POSTGRES_PASSWORD=${{ env.POSTGRES_PASSWORD }}
             export AUTH0_ISSUER_URL=${{ env.AUTH0_ISSUER_URL }}
             export AUTH0_AUDIENCE=${{ env.AUTH0_AUDIENCE }}
+            export AUTH0_CLIENT_ID=${{ env.AUTH0_CLIENT_ID }}
+            export AUTH0_CLIENT_SECRET=${{ env.AUTH0_CLIENT_SECRET }}
 
             git clone https://github.com/eesoymilk/health-statistic.git || true
             cd health-statistic || exit 1

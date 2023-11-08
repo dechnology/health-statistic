@@ -7135,6 +7135,7 @@ type UserMutation struct {
 	ear_condition                   *user.EarCondition
 	eyesight_condition              *user.EyesightCondition
 	smoking_habit                   *user.SmokingHabit
+	data_consent                    *bool
 	clearedFields                   map[string]struct{}
 	questionnaire_responses         map[uuid.UUID]struct{}
 	removedquestionnaire_responses  map[uuid.UUID]struct{}
@@ -7948,6 +7949,42 @@ func (m *UserMutation) ResetSmokingHabit() {
 	m.smoking_habit = nil
 }
 
+// SetDataConsent sets the "data_consent" field.
+func (m *UserMutation) SetDataConsent(b bool) {
+	m.data_consent = &b
+}
+
+// DataConsent returns the value of the "data_consent" field in the mutation.
+func (m *UserMutation) DataConsent() (r bool, exists bool) {
+	v := m.data_consent
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDataConsent returns the old "data_consent" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldDataConsent(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDataConsent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDataConsent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDataConsent: %w", err)
+	}
+	return oldValue.DataConsent, nil
+}
+
+// ResetDataConsent resets all changes to the "data_consent" field.
+func (m *UserMutation) ResetDataConsent() {
+	m.data_consent = nil
+}
+
 // AddQuestionnaireResponseIDs adds the "questionnaire_responses" edge to the QuestionnaireResponse entity by ids.
 func (m *UserMutation) AddQuestionnaireResponseIDs(ids ...uuid.UUID) {
 	if m.questionnaire_responses == nil {
@@ -8306,7 +8343,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 17)
+	fields := make([]string, 0, 18)
 	if m.fcm_token != nil {
 		fields = append(fields, user.FieldFcmToken)
 	}
@@ -8358,6 +8395,9 @@ func (m *UserMutation) Fields() []string {
 	if m.smoking_habit != nil {
 		fields = append(fields, user.FieldSmokingHabit)
 	}
+	if m.data_consent != nil {
+		fields = append(fields, user.FieldDataConsent)
+	}
 	return fields
 }
 
@@ -8400,6 +8440,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.EyesightCondition()
 	case user.FieldSmokingHabit:
 		return m.SmokingHabit()
+	case user.FieldDataConsent:
+		return m.DataConsent()
 	}
 	return nil, false
 }
@@ -8443,6 +8485,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldEyesightCondition(ctx)
 	case user.FieldSmokingHabit:
 		return m.OldSmokingHabit(ctx)
+	case user.FieldDataConsent:
+		return m.OldDataConsent(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -8570,6 +8614,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSmokingHabit(v)
+		return nil
+	case user.FieldDataConsent:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDataConsent(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -8718,6 +8769,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldSmokingHabit:
 		m.ResetSmokingHabit()
+		return nil
+	case user.FieldDataConsent:
+		m.ResetDataConsent()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

@@ -18,6 +18,7 @@ type BaseUser struct {
 	EarCondition                 string  `json:"ear_condition" example:"normal" enums:"normal,slightly_affecting_conversation,need_hearing_aid"`
 	EyesightCondition            string  `json:"eyesight_condition" example:"normal" enums:"normal,slightly_affecting_reading,need_glasses"`
 	SmokingHabit                 string  `json:"smoking_habit" example:"none" enums:"none,sometimes,everyday"`
+	DataConsent                  bool    `json:"data_consent" example:"true"`
 }
 
 type RegisterData struct {

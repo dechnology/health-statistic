@@ -303,4 +303,8 @@ func init() {
 	userDescWeight := userFields[6].Descriptor()
 	// user.WeightValidator is a validator for the "weight" field. It is called by the builders before save.
 	user.WeightValidator = userDescWeight.Validators[0].(func(float64) error)
+	// userDescDataConsent is the schema descriptor for data_consent field.
+	userDescDataConsent := userFields[18].Descriptor()
+	// user.DefaultDataConsent holds the default value on creation for the data_consent field.
+	user.DefaultDataConsent = userDescDataConsent.Default.(bool)
 }

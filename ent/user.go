@@ -56,6 +56,8 @@ type User struct {
 	EyesightCondition user.EyesightCondition `json:"eyesight_condition,omitempty"`
 	// SmokingHabit holds the value of the "smoking_habit" field.
 	SmokingHabit user.SmokingHabit `json:"smoking_habit,omitempty"`
+	// DataConsent holds the value of the "data_consent" field.
+	DataConsent bool `json:"data_consent"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges        UserEdges `json:"-"`
@@ -140,7 +142,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldDementedAmongDirectRelatives, user.FieldHeadInjuryExperience:
+		case user.FieldDementedAmongDirectRelatives, user.FieldHeadInjuryExperience, user.FieldDataConsent:
 			values[i] = new(sql.NullBool)
 		case user.FieldHeight, user.FieldWeight:
 			values[i] = new(sql.NullFloat64)
@@ -273,6 +275,12 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.SmokingHabit = user.SmokingHabit(value.String)
 			}
+		case user.FieldDataConsent:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field data_consent", values[i])
+			} else if value.Valid {
+				u.DataConsent = value.Bool
+			}
 		default:
 			u.selectValues.Set(columns[i], values[i])
 		}
@@ -389,6 +397,9 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("smoking_habit=")
 	builder.WriteString(fmt.Sprintf("%v", u.SmokingHabit))
+	builder.WriteString(", ")
+	builder.WriteString("data_consent=")
+	builder.WriteString(fmt.Sprintf("%v", u.DataConsent))
 	builder.WriteByte(')')
 	return builder.String()
 }

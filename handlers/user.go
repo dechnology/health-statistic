@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -172,9 +173,68 @@ func (h *Handler) DeleteSelf(c *gin.Context) {
 		return
 	}
 
+	managementToken, err := GetManagementToken()
+
+	if err != nil || managementToken == nil {
+		c.JSON(
+			http.StatusInternalServerError,
+			gin.H{"error": err.Error()},
+		)
+		return
+	}
+
+	auth0Issuer := os.Getenv("AUTH0_ISSUER_URL")
+
+	if auth0Issuer == "" {
+		c.JSON(
+			http.StatusInternalServerError,
+			gin.H{"error": "AUTH0_ISSUER_URL is not set"},
+		)
+		return
+	}
+
+	url := auth0Issuer + "api/v2/users/" + *userId
+
+	log.Print(url)
+
+	req, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		c.JSON(
+			http.StatusInternalServerError,
+			gin.H{"error": err.Error()},
+		)
+		return
+	}
+
+	req.Header.Add("Authorization", "Bearer "+*managementToken)
+
+	res, err := http.DefaultClient.Do(req)
+
+	log.Print(res.StatusCode)
+
+	if err != nil || res.StatusCode != http.StatusNoContent {
+		c.JSON(
+			http.StatusInternalServerError,
+			gin.H{"error": err.Error()},
+		)
+		return
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.JSON(
+			http.StatusInternalServerError,
+			gin.H{"error": err.Error()},
+		)
+		return
+	}
+	log.Print(string(body))
+
 	if err := h.DB.User.DeleteOneID(*userId).Exec(c.Request.Context()); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	c.JSON(http.StatusNoContent, nil)
 }

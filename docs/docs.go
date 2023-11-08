@@ -418,6 +418,10 @@ const docTemplate = `{
                     "description": "CreatedAt holds the value of the \"created_at\" field.",
                     "type": "string"
                 },
+                "data_consent": {
+                    "description": "DataConsent holds the value of the \"data_consent\" field.",
+                    "type": "boolean"
+                },
                 "demented_among_direct_relatives": {
                     "description": "DementedAmongDirectRelatives holds the value of the \"demented_among_direct_relatives\" field.",
                     "type": "boolean"
@@ -633,6 +637,10 @@ const docTemplate = `{
                 "birth_year": {
                     "type": "integer",
                     "example": 2000
+                },
+                "data_consent": {
+                    "type": "boolean",
+                    "example": true
                 },
                 "demented_among_direct_relatives": {
                     "type": "boolean",

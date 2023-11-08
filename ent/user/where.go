@@ -109,6 +109,11 @@ func HeadInjuryExperience(v bool) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldHeadInjuryExperience, v))
 }
 
+// DataConsent applies equality check predicate on the "data_consent" field. It's identical to DataConsentEQ.
+func DataConsent(v bool) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldDataConsent, v))
+}
+
 // FcmTokenEQ applies the EQ predicate on the "fcm_token" field.
 func FcmTokenEQ(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldFcmToken, v))
@@ -582,6 +587,16 @@ func SmokingHabitIn(vs ...SmokingHabit) predicate.User {
 // SmokingHabitNotIn applies the NotIn predicate on the "smoking_habit" field.
 func SmokingHabitNotIn(vs ...SmokingHabit) predicate.User {
 	return predicate.User(sql.FieldNotIn(FieldSmokingHabit, vs...))
+}
+
+// DataConsentEQ applies the EQ predicate on the "data_consent" field.
+func DataConsentEQ(v bool) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldDataConsent, v))
+}
+
+// DataConsentNEQ applies the NEQ predicate on the "data_consent" field.
+func DataConsentNEQ(v bool) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldDataConsent, v))
 }
 
 // HasQuestionnaireResponses applies the HasEdge predicate on the "questionnaire_responses" edge.
