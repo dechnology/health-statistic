@@ -184,6 +184,12 @@ func (uu *UserUpdate) SetSmokingHabit(uh user.SmokingHabit) *UserUpdate {
 	return uu
 }
 
+// SetDataConsent sets the "data_consent" field.
+func (uu *UserUpdate) SetDataConsent(b bool) *UserUpdate {
+	uu.mutation.SetDataConsent(b)
+	return uu
+}
+
 // AddQuestionnaireResponseIDs adds the "questionnaire_responses" edge to the QuestionnaireResponse entity by IDs.
 func (uu *UserUpdate) AddQuestionnaireResponseIDs(ids ...uuid.UUID) *UserUpdate {
 	uu.mutation.AddQuestionnaireResponseIDs(ids...)
@@ -580,6 +586,9 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := uu.mutation.SmokingHabit(); ok {
 		_spec.SetField(user.FieldSmokingHabit, field.TypeEnum, value)
+	}
+	if value, ok := uu.mutation.DataConsent(); ok {
+		_spec.SetField(user.FieldDataConsent, field.TypeBool, value)
 	}
 	if uu.mutation.QuestionnaireResponsesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1016,6 +1025,12 @@ func (uuo *UserUpdateOne) SetSmokingHabit(uh user.SmokingHabit) *UserUpdateOne {
 	return uuo
 }
 
+// SetDataConsent sets the "data_consent" field.
+func (uuo *UserUpdateOne) SetDataConsent(b bool) *UserUpdateOne {
+	uuo.mutation.SetDataConsent(b)
+	return uuo
+}
+
 // AddQuestionnaireResponseIDs adds the "questionnaire_responses" edge to the QuestionnaireResponse entity by IDs.
 func (uuo *UserUpdateOne) AddQuestionnaireResponseIDs(ids ...uuid.UUID) *UserUpdateOne {
 	uuo.mutation.AddQuestionnaireResponseIDs(ids...)
@@ -1442,6 +1457,9 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if value, ok := uuo.mutation.SmokingHabit(); ok {
 		_spec.SetField(user.FieldSmokingHabit, field.TypeEnum, value)
+	}
+	if value, ok := uuo.mutation.DataConsent(); ok {
+		_spec.SetField(user.FieldDataConsent, field.TypeBool, value)
 	}
 	if uuo.mutation.QuestionnaireResponsesCleared() {
 		edge := &sqlgraph.EdgeSpec{

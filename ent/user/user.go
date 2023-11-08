@@ -53,6 +53,8 @@ const (
 	FieldEyesightCondition = "eyesight_condition"
 	// FieldSmokingHabit holds the string denoting the smoking_habit field in the database.
 	FieldSmokingHabit = "smoking_habit"
+	// FieldDataConsent holds the string denoting the data_consent field in the database.
+	FieldDataConsent = "data_consent"
 	// EdgeQuestionnaireResponses holds the string denoting the questionnaire_responses edge name in mutations.
 	EdgeQuestionnaireResponses = "questionnaire_responses"
 	// EdgeNotifications holds the string denoting the notifications edge name in mutations.
@@ -133,6 +135,7 @@ var Columns = []string{
 	FieldEarCondition,
 	FieldEyesightCondition,
 	FieldSmokingHabit,
+	FieldDataConsent,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -482,6 +485,11 @@ func ByEyesightCondition(opts ...sql.OrderTermOption) OrderOption {
 // BySmokingHabit orders the results by the smoking_habit field.
 func BySmokingHabit(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSmokingHabit, opts...).ToFunc()
+}
+
+// ByDataConsent orders the results by the data_consent field.
+func ByDataConsent(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDataConsent, opts...).ToFunc()
 }
 
 // ByQuestionnaireResponsesCount orders the results by questionnaire_responses count.

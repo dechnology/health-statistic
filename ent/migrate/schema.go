@@ -295,6 +295,7 @@ var (
 		{Name: "ear_condition", Type: field.TypeEnum, Enums: []string{"normal", "slightly_affecting_conversation", "need_hearing_aid"}},
 		{Name: "eyesight_condition", Type: field.TypeEnum, Enums: []string{"normal", "slightly_affecting_reading", "need_glasses"}},
 		{Name: "smoking_habit", Type: field.TypeEnum, Enums: []string{"none", "sometimes", "everyday"}},
+		{Name: "data_consent", Type: field.TypeBool},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
