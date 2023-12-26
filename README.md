@@ -13,6 +13,7 @@ After so, you want to also update the API documentation before making a commit. 
 
 - [Go Installation](https://go.dev/doc/install)
 - [`swaggo/swag`](https://github.com/swaggo/swag#declarative-comments-format)
+
     ```shell
     go install github.com/swaggo/swag/cmd/swag@latest
     ```
@@ -30,7 +31,7 @@ swag init -md descriptions
 
 Setup a `.env` file in the project directory according to `.env.example`
 
-```
+```plaintext
 POSTGRES_PORT=<POSTGRES_PORT>
 POSTGRES_USER=<POSTGRES_USER>
 POSTGRES_DB=<POSTGRES_DB>
@@ -38,7 +39,10 @@ POSTGRES_PASSWORD=<POSTGRES_PASSWORD>
 
 AUTH0_ISSUER_URL=<AUTH0_ISSUER_URL>
 AUTH0_AUDIENCE=<AUTH0_AUDIENCE>
+AUTH0_CLIENT_ID=<AUTH0_CLIENT_ID>
+AUTH0_CLIENT_SECRET=<AUTH0_CLIENT_SECRET>
 ```
+
 > Note that we don't need to provide POSTGRES_HOST since it's taken care of in `docker-compose.yml`.
 
 ### Step 2 - Run the app via `docker compose` with the `--env-file`
